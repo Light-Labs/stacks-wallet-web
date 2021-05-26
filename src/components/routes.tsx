@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
 
-import { OnboardingPassword, SaveKey } from '@pages/sign-up';
 import { MagicRecoveryCode } from '@pages/install/magic-recovery-code';
 import { Username } from '@pages/username';
 import { SaveYourKeyView } from '@components/save-your-key-view';
@@ -106,28 +105,6 @@ export const Routes: React.FC = () => {
       </AccountGateRoute>
       <RouterRoute path={ScreenPaths.ADD_NETWORK} element={<AddNetwork />} />
       <Route path={ScreenPaths.SET_PASSWORD} element={<SetPasswordPage redirect />} />
-      {/*Sign Up*/}
-      <Route path={ScreenPaths.GENERATION} element={getSignUpElement()} />
-      <Route
-        path={ScreenPaths.SAVE_KEY}
-        element={
-          <SaveKey
-            next={() => {
-              doChangeScreen(ScreenPaths.ONBOARDING_PASSWORD);
-            }}
-          />
-        }
-      />
-      <Route
-        path={ScreenPaths.ONBOARDING_PASSWORD}
-        element={
-          <OnboardingPassword
-            next={() => {
-              doChangeScreen(ScreenPaths.USERNAME);
-            }}
-          />
-        }
-      />
       <Route path={ScreenPaths.USERNAME} element={<Username />} />
       {/*Sign In*/}
       <Route path={ScreenPaths.SIGN_IN} element={getSignInComponent()} />
