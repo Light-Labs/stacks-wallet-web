@@ -22,13 +22,13 @@ jobs:
           name: firefox_latest
           path: firefox_latest
 
-      - name: Download previous Firefox version info
-        uses: dawidd6/action-download-artifact@v2
-        with:
-          workflow: notify-release.yml
-          workflow_conclusion: success
-          name: firefox_latest
-          path: old
+      # - name: Download previous Firefox version info
+      #   uses: dawidd6/action-download-artifact@v2
+      #   with:
+      #     workflow: notify-release.yml
+      #     workflow_conclusion: success
+      #     name: firefox_latest
+      #     path: old
 
       - name: Display files
         run: ls -la && ls -la old
