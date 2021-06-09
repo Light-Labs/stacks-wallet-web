@@ -30,8 +30,8 @@ jobs:
       #     name: firefox_latest
       #     path: old
 
-      - name: Display files
-        run: ls -la && ls -la old
+      # - name: Display files
+      #   run: ls -la && ls -la old
 
 ## Firefox
   # Compare versions
