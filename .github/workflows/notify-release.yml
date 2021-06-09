@@ -12,31 +12,43 @@ on:
 jobs:
   firefox:
     runs-on: ubuntu-latest
+    outputs:
+      output1: ${{ steps.step1.outputs.test }}
+      output2: ${{ steps.step2.outputs.test }}
     steps:
       - name: Get latest Firefox version
-        run: curl -s https://addons.mozilla.org/api/v5/addons/addon/stacks-wallet/versions/ | jq '.results[0].version' > firefox_latest
+        run: curl -s https://addons.mozilla.org/api/v5/addons/addon/stacks-wallet/versions/ | jq -r '.results[0].version' > firefox_version
 
       - name: Upload latest Firefox version info
         uses: actions/upload-artifact@v2
         with:
-          name: firefox_latest
-          path: firefox_latest
+          name: firefox_version
+          path: firefox_version
 
-      - name: Download previous Firefox version info
-        uses: dawidd6/action-download-artifact@v2
-        with:
-          workflow: notify-release.yml
-          workflow_conclusion: success
-          name: firefox_latest
-          path: old
+      # - name: Download previous Firefox version info
+      #   uses: dawidd6/action-download-artifact@v2
+      #   with:
+      #     workflow: notify-release.yml
+      #     workflow_conclusion: success
+      #     name: firefox_version
+      #     path: old
 
-      - name: Display files
-        run: ls -la && ls -la old
+      # - name: Determine if new version is live
+      #   id: firefox
+      #   run: |
+      #     NEWEST_VERSION=$(sort -V old/firefox_version firefox_version | tail -n 1)
+      #     LATEST_VERSION=$(cat firefox_version)
+      #     diff old/firefox_version firefox_version > /dev/null
+      #     if [[ "${?}" == '1' && ${NEWEST_VERSION} == ${LATEST_VERSION} ]]; then
+      #       echo "New Firefox version detected: ${LATEST_VERSION}"
+      #       echo "::set-output name=is_new::true"
+      #     else
+      #       echo "::set-output name=is_new::false"
+      #     fi
 
-## Firefox
-  # Compare versions
-
-  # Send Discord message if new version is greater than old version
+      # - name: Send notification
+      #   if: steps.firefox.outputs.is_new
+      #   run: echo "New version released!"
 
 # Chrome
   # Check Chrome store
