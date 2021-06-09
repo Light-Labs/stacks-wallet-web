@@ -25,30 +25,30 @@ jobs:
           name: firefox_version
           path: firefox_version
 
-      # - name: Download previous Firefox version info
-      #   uses: dawidd6/action-download-artifact@v2
-      #   with:
-      #     workflow: notify-release.yml
-      #     workflow_conclusion: success
-      #     name: firefox_version
-      #     path: old
+      - name: Download previous Firefox version info
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: notify-release.yml
+          workflow_conclusion: success
+          name: firefox_version
+          path: old
 
-      # - name: Determine if new version is live
-      #   id: firefox
-      #   run: |
-      #     NEWEST_VERSION=$(sort -V old/firefox_version firefox_version | tail -n 1)
-      #     LATEST_VERSION=$(cat firefox_version)
-      #     diff old/firefox_version firefox_version > /dev/null
-      #     if [[ "${?}" == '1' && ${NEWEST_VERSION} == ${LATEST_VERSION} ]]; then
-      #       echo "New Firefox version detected: ${LATEST_VERSION}"
-      #       echo "::set-output name=is_new::true"
-      #     else
-      #       echo "::set-output name=is_new::false"
-      #     fi
+      - name: Determine if new version is live
+        id: firefox
+        run: |
+          NEWEST_VERSION=$(sort -V old/firefox_version firefox_version | tail -n 1)
+          LATEST_VERSION=$(cat firefox_version)
+          diff old/firefox_version firefox_version > /dev/null
+          if [[ "${?}" == '1' && ${NEWEST_VERSION} == ${LATEST_VERSION} ]]; then
+            echo "New Firefox version detected: ${LATEST_VERSION}"
+            echo "::set-output name=is_new::true"
+          else
+            echo "::set-output name=is_new::false"
+          fi
 
-      # - name: Send notification
-      #   if: steps.firefox.outputs.is_new
-      #   run: echo "New version released!"
+      - name: Send notification
+        if: steps.firefox.outputs.is_new
+        run: echo "New version released!"
 
 # Chrome
   # Check Chrome store
