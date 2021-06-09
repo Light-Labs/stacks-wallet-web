@@ -43,6 +43,7 @@ jobs:
             echo "New Firefox version detected: ${LATEST_VERSION}"
             echo "::set-output name=is_new::true"
           else
+            echo "No new Firefox version detected"
             echo "::set-output name=is_new::false"
           fi
 
