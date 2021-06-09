@@ -1,0 +1,50 @@
+# Sends a notification to Discord whenever a new version of the Stacks Web Wallet is available in FireFox or Chrome stores
+
+name: Notify on Release
+on:
+  push:
+    branches:
+      - 'main'
+  schedule:
+    # Run every hour
+    - cron:  '0 * * * *'
+
+jobs:
+  firefox:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get latest Firefox version
+        run: curl -s https://addons.mozilla.org/api/v5/addons/addon/stacks-wallet/versions/ | jq '.results[0].version' > firefox_latest
+
+      - name: Upload latest Firefox version info
+        uses: actions/upload-artifact@v2
+        with:
+          name: firefox_latest
+          path: firefox_latest
+
+      - name: Download previous Firefox version info
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: notify-release.yml
+          workflow_conclusion: success
+          name: firefox_latest
+          path: old
+
+      - name: Display files
+        run: ls -la && ls -la old
+
+## Firefox
+  # Compare versions
+
+  # Send Discord message if new version is greater than old version
+
+# Chrome
+  # Check Chrome store
+
+  # Upload Chrome version
+
+  # Download previous Chrome version
+
+  # Compare versions
+
+  # Send Discord message if new version is greater than old version
