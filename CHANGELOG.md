@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.11.0
+
+### Minor Changes
+
+- [#1221](https://github.com/blockstack/stacks-wallet-web/pull/1221) [`b438b324`](https://github.com/blockstack/stacks-wallet-web/commit/b438b324d10dd34d1b22474983f7f62b9d9a3df3) Thanks [@aulneau](https://github.com/aulneau)! - This update refactors much of the architecture of the internal state of the extension and attempts to reduce much of the tech debt we have accumulated.
+
+* [#1268](https://github.com/blockstack/stacks-wallet-web/pull/1268) [`b2ecacf9`](https://github.com/blockstack/stacks-wallet-web/commit/b2ecacf975875fadeddaa2c195667456c2a2b5e3) Thanks [@kyranjamie](https://github.com/kyranjamie)! - Changes transaction activity screen to order transactions by date, rather than in a single list
+
+### Patch Changes
+
+- [#1269](https://github.com/blockstack/stacks-wallet-web/pull/1269) [`6777a57a`](https://github.com/blockstack/stacks-wallet-web/commit/6777a57a6a474ce204410d349d6bccfc1b5e1ec8) Thanks [@kyranjamie](https://github.com/kyranjamie)! - Fixes issue where pending transactions aren't always shown
+
+* [#1267](https://github.com/blockstack/stacks-wallet-web/pull/1267) [`117abb0c`](https://github.com/blockstack/stacks-wallet-web/commit/117abb0c2a584ee2460603e517961a9bfe77f92e) Thanks [@kyranjamie](https://github.com/kyranjamie)! - Fixes border radius
+
 ## 2.10.0
 
 ### Minor Changes
