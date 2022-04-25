@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for app/common/transactions/use-fee-estimations-max-values.ts</title>
+    <title>Code coverage report for app/features/fiat-onramp-providers/moonpay-helper.ts</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../../prettify.css" />
     <link rel="stylesheet" href="../../../base.css" />
@@ -19,20 +19,20 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../../../index.html">All files</a> / <a href="index.html">app/common/transactions</a> use-fee-estimations-max-values.ts</h1>
+        <h1><a href="../../../index.html">All files</a> / <a href="index.html">app/features/fiat-onramp-providers</a> moonpay-helper.ts</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
@@ -68,45 +68,15 @@
 <a name='L3'></a><a href='#L3'>3</a>
 <a name='L4'></a><a href='#L4'>4</a>
 <a name='L5'></a><a href='#L5'>5</a>
-<a name='L6'></a><a href='#L6'>6</a>
-<a name='L7'></a><a href='#L7'>7</a>
-<a name='L8'></a><a href='#L8'>8</a>
-<a name='L9'></a><a href='#L9'>9</a>
-<a name='L10'></a><a href='#L10'>10</a>
-<a name='L11'></a><a href='#L11'>11</a>
-<a name='L12'></a><a href='#L12'>12</a>
-<a name='L13'></a><a href='#L13'>13</a>
-<a name='L14'></a><a href='#L14'>14</a>
-<a name='L15'></a><a href='#L15'>15</a>
-<a name='L16'></a><a href='#L16'>16</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L6'></a><a href='#L6'>6</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import {
-  useConfigFeeEstimationsEnabled,
-  useConfigFeeEstimationsMaxValues,
-} from '@app/query/hiro-config/hiro-config.query';
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { MOONPAY_API_KEY_PRODUCTION } from '@shared/constants';
 &nbsp;
-const defaultFeeEstimationsMaxValues = <span class="cstat-no" title="statement not covered" >[500000, 750000, 2000000];</span>
-&nbsp;
-export function <span class="fstat-no" title="function not covered" >useFeeEstimationsMaxValues(</span>) {
-  // Get it first from the config
-  const configFeeEstimationsEnabled = <span class="cstat-no" title="statement not covered" >useConfigFeeEstimationsEnabled();</span>
-  const configFeeEstimationsMaxValues = <span class="cstat-no" title="statement not covered" >useConfigFeeEstimationsMaxValues();</span>
-  // Only when the remote config file explicitly sets the maxValuesEnabled as false, we return no cap for fees
-<span class="cstat-no" title="statement not covered" >  if (configFeeEstimationsEnabled === false) <span class="cstat-no" title="statement not covered" >return;</span></span>
-<span class="cstat-no" title="statement not covered" >  return configFeeEstimationsMaxValues || defaultFeeEstimationsMaxValues;</span>
+export function <span class="fstat-no" title="function not covered" >makeMoonPayUrl(</span>address: string) {
+<span class="cstat-no" title="statement not covered" >  return `https://buy.moonpay.com?apiKey=${MOONPAY_API_KEY_PRODUCTION}&amp;currencyCode=stx&amp;walletAddress=${address}`;</span>
 }
 &nbsp;</pre></td></tr></table></pre>
 
@@ -115,7 +85,7 @@ export function <span class="fstat-no" title="function not covered" >useFeeEstim
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at Mon Mar 21 2022 04:32:16 GMT+0000 (Coordinated Universal Time)
+                at Mon Apr 25 2022 13:21:05 GMT+0000 (Coordinated Universal Time)
             </div>
         <script src="../../../prettify.js"></script>
         <script>
