@@ -23,7 +23,6 @@ import { InternalMethods } from '@shared/message-types';
 import { safeAwait } from '@stacks/ui';
 import { useState } from 'react';
 import { LedgerTxSigningProvider } from './ledger-tx-signing.context';
-import { RyderApp } from './ryder-utils';
 
 const stxDerivationWithAccount = `m/44'/5757'/0'/0/{account}`;
 
@@ -46,24 +45,32 @@ export async function getAppVersion(app: StacksApp) {
   return app.getVersion();
 }
 
+const targetIdMap = new Map([
+  ['31100004', 'Nano S'],
+  ['33000004', 'Nano X'],
+]);
+
 const port = '/dev/pts/6';
 
 export function extractDeviceNameFromKnownTargetIds(targetId: string) {
-  return "Ryder"
+  return targetIdMap.get(targetId);
 }
 
 export function signLedgerTransaction() {
   return async (payload: Buffer, accountIndex: number) => {
-    return new Promise<{ info: string }>(resolve => {
-      const ryderApp = new RyderApp();
-      void ryderApp
-        .serial_info({ port, options: { debug: true } }, (res: any) => {
+    
+    const socket: Socket<any, any> = io('http://localhost:3000');
+    socket.on('connect', () => {
+      console.log(`connect ${socket.id}`);
+      socket.emit(
+        'serial:export:identity',
+        { port, options: { debug: true } },
+        accountIndex,
+        (res: any) => {
           console.log('response', res);
-          resolve({ info: res.data });
-        })
-        .then(() => {
-          console.log('request sent');
-        });
+          return { publicKey: res.data };
+        }
+      );
     });
   };
 }
@@ -110,15 +117,20 @@ export async function pullKeysFromLedgerDevice(): PullKeysFromLedgerResponse {
 async function exportPublicKey(index: number) {
   console.log('try export ', index);
   return new Promise<{ publicKey: string }>(resolve => {
-    const ryderApp = new RyderApp();
-    void ryderApp
-      .serial_export_identity({ port, options: { debug: true } }, index, (res: any) => {
-        console.log('response', res);
-        resolve({ publicKey: res.data });
-      })
-      .then(() => {
-        console.log('request sent');
-      });
+    const socket: Socket<any, any> = io('http://localhost:3000');
+
+    socket.on('connect', () => {
+      console.log(`connect ${socket.id}`);
+      socket.emit(
+        'serial:export:identity',
+        { port, options: { debug: true } },
+        index,
+        (res: any) => {
+          console.log('response', res);
+          resolve({ publicKey: res.data });
+        }
+      );
+    });
   });
 }
 
