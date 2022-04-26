@@ -48,6 +48,9 @@ export const WelcomePage = memo(() => {
           ? navigate(RouteUrls.ConnectLedger)
           : navigate(RouteUrls.LedgerUnsupportedBrowser)
       }
+      onSelectConnectRyder={() => {
+        navigate(RouteUrls.ConnectLedger)
+      }}
       onStartOnboarding={() => startOnboarding()}
       onRestoreWallet={() => navigate(RouteUrls.SignIn)}
     />

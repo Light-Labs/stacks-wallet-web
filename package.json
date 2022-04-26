@@ -86,6 +86,7 @@
     "@emotion/react": "11.7.1",
     "@emotion/styled": "11.6.0",
     "@ledgerhq/hw-transport-webusb": "6.24.1",
+    "@lightlabs/ryderserial-proto": "^0.0.5",
     "@reach/alert": "0.15.3",
     "@reach/auto-id": "0.15.3",
     "@reach/rect": "0.15.3",

@@ -11,7 +11,7 @@ export function LedgerDeviceItemRow({ deviceType }: LedgerDeviceItemRowProps) {
       <Flex my="base-tight" mb="base" mx="base" fontSize="14px" alignItems="center">
         <WalletTypeLedgerIcon mr="base-tight" />
         <Text color={color('text-body')} cursor="default">
-          Ledger {deviceType ?? ''}
+          Ryder {deviceType ?? ''}
         </Text>
       </Flex>
       <Divider />

@@ -30,13 +30,13 @@ const WelcomeIllustration = () => (
 
 interface WelcomeLayoutProps {
   isGeneratingWallet: boolean;
-  onSelectConnectLedger(): void;
   onStartOnboarding(): void;
   onSelectConnectLedger(): void;
+  onSelectConnectRyder(): void;
   onRestoreWallet(): void;
 }
 export function WelcomeLayout(props: WelcomeLayoutProps): JSX.Element {
-  const { isGeneratingWallet, onStartOnboarding, onSelectConnectLedger, onRestoreWallet } = props;
+  const { isGeneratingWallet, onStartOnboarding, onSelectConnectLedger, onSelectConnectRyder, onRestoreWallet } = props;
 
   return (
     <CenteredPageContainer>
@@ -94,6 +94,10 @@ export function WelcomeLayout(props: WelcomeLayoutProps): JSX.Element {
               or{' '}
               <Link fontSize="inherit" onClick={onSelectConnectLedger}>
                 connect your Ledger
+              </Link>{' '}
+              or{' '}
+              <Link fontSize="inherit" onClick={onSelectConnectRyder}>
+                connect your Ryder
               </Link>
             </Box>
           </Flex>
