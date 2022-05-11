@@ -148,11 +148,10 @@ export const Accounts = memo(() => {
     [finishSignIn]
   );
 
-  if (!accounts || !decodedAuthRequest) return null;
+  if (!accounts) return null;
 
   return (
     <>
-      <AddAccountAction />
       {whenWallet({ software: <AddAccountAction />, ledger: <></> })}
       <Box minWidth={`${POPUP_CENTER_WIDTH}px`} mt="base" px="loose">
         <Virtuoso

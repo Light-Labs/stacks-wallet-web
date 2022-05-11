@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import Transport from '@ledgerhq/hw-transport-webusb';
 import StacksApp, { LedgerError, ResponseVersion } from '@zondax/ledger-blockstack';
 
@@ -10,17 +11,18 @@ import {
 
 import { delay } from '@app/common/utils';
 import { safeAwait } from '@stacks/ui';
-import { useState } from 'react';
 import { LedgerTxSigningProvider } from './ledger-tx-signing.context';
 
 const stxDerivationWithAccount = `m/44'/5757'/0'/0/{account}`;
 
-async function connectLedger() {
+const identityDerivationWithAccount = `m/888'/0'/0'/{account}`;
+
+export async function connectLedger() {
   const transport = await Transport.create();
   return new StacksApp(transport);
 }
 
-function requestPublicKeyForAccount(app: StacksApp) {
+function requestPublicKeyForStxAccount(app: StacksApp) {
   return async (index: number) =>
     app.getAddressAndPubKey(
       stxDerivationWithAccount.replace('{account}', index.toString()),
@@ -28,6 +30,11 @@ function requestPublicKeyForAccount(app: StacksApp) {
       // We only need the public key, and can derive the address later in any network format
       AddressVersion.MainnetSingleSig
     );
+}
+
+function requestPublicKeyForIdentityAccount(app: StacksApp) {
+  return async (index: number) =>
+    app.getIdentityPubKey(identityDerivationWithAccount.replace('{account}', index.toString()));
 }
 
 export async function getAppVersion(app: StacksApp) {
@@ -74,9 +81,14 @@ export function signTransactionWithSignature(transaction: string, signatureVRS: 
   return deserialzedTx;
 }
 
+export interface StxAndIdentityPublicKeys {
+  stxPublicKey: string;
+  dataPublicKey: string;
+}
+
 interface PullKeysFromLedgerSuccess {
   status: 'success';
-  publicKeys: string[];
+  publicKeys: StxAndIdentityPublicKeys[];
 }
 
 interface PullKeysFromLedgerFailure {
@@ -91,9 +103,16 @@ export async function pullKeysFromLedgerDevice(stacksApp: StacksApp): PullKeysFr
   const publicKeys = [];
   const amountOfKeysToExtractFromDevice = 5;
   for (let index = 0; index < amountOfKeysToExtractFromDevice; index++) {
-    const resp = await requestPublicKeyForAccount(stacksApp)(index);
-    if (!resp.publicKey) return { status: 'failure', ...resp };
-    publicKeys.push(resp.publicKey.toString('hex'));
+    const stxPublicKeyResp = await requestPublicKeyForStxAccount(stacksApp)(index);
+    const dataPublicKeyResp = await requestPublicKeyForIdentityAccount(stacksApp)(index);
+
+    if (!stxPublicKeyResp.publicKey || !dataPublicKeyResp.publicKey)
+      return { status: 'failure', ...stxPublicKeyResp };
+
+    publicKeys.push({
+      stxPublicKey: stxPublicKeyResp.publicKey.toString('hex'),
+      dataPublicKey: dataPublicKeyResp.publicKey.toString('hex'),
+    });
   }
   await delay(1000);
   return { status: 'success', publicKeys };

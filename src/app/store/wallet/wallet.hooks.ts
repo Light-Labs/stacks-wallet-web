@@ -6,6 +6,7 @@ import {
   makeAuthResponse,
   updateWalletConfigWithApp,
 } from '@stacks/wallet-sdk';
+import * as ecdsaFormat from 'ecdsa-sig-formatter';
 
 import { gaiaUrl } from '@shared/constants';
 import { useOnboardingState } from '@app/common/hooks/auth/use-onboarding-state';
@@ -17,8 +18,10 @@ import { logger } from '@shared/logger';
 import { encryptedSecretKeyState, secretKeyState, walletState } from './wallet';
 import { useKeyActions } from '@app/common/hooks/use-key-actions';
 import { useWalletType } from '@app/common/use-wallet-type';
-import { makeUnsafeAuthResponse } from '@app/common/unsafe-auth-response';
+import { makeLedgerCompatibleUnsignedAuthResponsePayload } from '@app/common/unsafe-auth-response';
 import { getAddressFromPublicKey, TransactionVersion } from '@stacks/transactions';
+import { connectLedger } from '@app/features/ledger/ledger-utils';
+import { useAccounts } from '../accounts/account.hooks';
 
 export function useWalletState() {
   return useAtomValue(walletState);
@@ -51,11 +54,15 @@ export function useFinishSignInCallback() {
   const keyActions = useKeyActions();
   const wallet = useWalletState();
   const { walletType } = useWalletType();
+  const accounts = useAccounts();
 
   return useCallback(
     async (accountIndex: number) => {
-      const account = wallet?.accounts[accountIndex];
-      if (!decodedAuthRequest || !authRequest || !account || !wallet) {
+      const account = accounts?.[accountIndex];
+
+      const legacyAccount = wallet?.accounts[accountIndex];
+
+      if (!decodedAuthRequest || !authRequest || !account || !legacyAccount || !wallet) {
         logger.error('Uh oh! Finished onboarding without auth info.');
         return;
       }
@@ -75,7 +82,7 @@ export function useFinishSignInCallback() {
           wallet,
           walletConfig,
           gaiaHubConfig,
-          account,
+          account: legacyAccount,
           app: {
             origin: appURL.origin,
             lastLoginAt: new Date().getTime(),
@@ -89,17 +96,17 @@ export function useFinishSignInCallback() {
           appDomain: appURL.origin,
           transitPublicKey: decodedAuthRequest.public_keys[0],
           scopes: decodedAuthRequest.scopes,
-          account,
+          account: legacyAccount,
         });
+
         keyActions.switchAccount(accountIndex);
         finalizeAuthResponse({ decodedAuthRequest, authRequest, authResponse });
       }
 
       if (walletType === 'ledger') {
-        const authResponse = await makeUnsafeAuthResponse(
-          (account as any).stxPublicKey,
-          {
-            ...{},
+        const authResponsePayload = await makeLedgerCompatibleUnsignedAuthResponsePayload({
+          dataPublicKey: account.dataPublicKey,
+          profile: {
             stxAddress: {
               testnet: getAddressFromPublicKey(
                 (account as any).stxPublicKey,
@@ -111,20 +118,23 @@ export function useFinishSignInCallback() {
               ),
             },
           },
-          '',
-          {},
-          '',
-          '',
-          undefined,
-          decodedAuthRequest.public_keys[0],
-          undefined,
-          undefined,
-          undefined
-        );
+        });
+
+        const stacksApp = await connectLedger();
+
+        const resp = await stacksApp.sign_jwt(`m/888'/0'/0'/${accountIndex}`, authResponsePayload);
+
+        const resultingSig = reformatDerSignatureToJose(resp.signatureDER);
+
+        const authResponse = [authResponsePayload, resultingSig].join('.');
         keyActions.switchAccount(accountIndex);
         finalizeAuthResponse({ decodedAuthRequest, authRequest, authResponse });
       }
     },
-    [appIcon, appName, authRequest, decodedAuthRequest, keyActions, wallet, walletType]
+    [accounts, appIcon, appName, authRequest, decodedAuthRequest, keyActions, wallet, walletType]
   );
+}
+
+function reformatDerSignatureToJose(derSignature: Uint8Array) {
+  return ecdsaFormat.derToJose(Buffer.from(derSignature), 'ES256');
 }

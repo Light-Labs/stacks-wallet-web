@@ -26,9 +26,6 @@ export const inMemoryKeySlice = createSlice({
     },
 
     saveUsersSecretKeyToBeRestored(state, action: PayloadAction<string>) {
-      if (!isUndefined(state.keys[defaultKeyId])) {
-        throw new Error('Cannot restore key for pre-existing wallet');
-      }
       state.keys[defaultKeyId] = action.payload;
     },
 
