@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { defaultKeyId, keySlice } from '../keys/key.slice';
-import { isUndefined } from '@app/common/utils';
 import { logger } from '@shared/logger';
 
 interface InMemoryKeyState {

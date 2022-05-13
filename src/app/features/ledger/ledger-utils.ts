@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Transport from '@ledgerhq/hw-transport-webusb';
 import StacksApp, { LedgerError, ResponseVersion } from '@zondax/ledger-blockstack';
+import * as ecdsaFormat from 'ecdsa-sig-formatter';
 
 import {
   AddressVersion,
@@ -73,6 +74,14 @@ export function signLedgerTransaction(app: StacksApp) {
     app.sign(stxDerivationWithAccount.replace('{account}', accountIndex.toString()), payload);
 }
 
+export function signLedgerJwtHash(app: StacksApp) {
+  return async (payload: string, accountIndex: number) =>
+    app.sign_jwt(
+      identityDerivationWithAccount.replace('{account}', accountIndex.toString()),
+      payload
+    );
+}
+
 export function signTransactionWithSignature(transaction: string, signatureVRS: Buffer) {
   const deserialzedTx = deserializeTransaction(transaction);
   const spendingCondition = createMessageSignature(signatureVRS.toString('hex'));
@@ -128,4 +137,13 @@ export function isStacksLedgerAppClosed(response: ResponseVersion) {
     response.returnCode === LedgerError.AppDoesNotSeemToBeOpen ||
     response.returnCode === anotherUnknownErrorCodeMeaningAppClosed
   );
+}
+
+function reformatDerSignatureToJose(derSignature: Uint8Array) {
+  return ecdsaFormat.derToJose(Buffer.from(derSignature), 'ES256');
+}
+
+export function addSignatureToAuthResponseJwt(authResponse: string, signature: Uint8Array) {
+  const resultingSig = reformatDerSignatureToJose(signature);
+  return [authResponse, resultingSig].join('.');
 }

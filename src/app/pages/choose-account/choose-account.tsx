@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect } from 'react';
+import { Outlet } from 'react-router-dom';
 import { Flex, Stack, Text } from '@stacks/ui';
 
 import { useRouteHeader } from '@app/common/hooks/use-route-header';
@@ -26,15 +27,18 @@ export const ChooseAccount = memo(() => {
   }, [handleUnmount]);
 
   return (
-    <Flex alignItems="center" flexDirection="column" px="loose" width="100%">
-      <Stack minWidth={`${POPUP_CENTER_WIDTH}px`} spacing="loose" textAlign="center">
-        <AppIcon mt="extra-loose" mb="loose" size="72px" />
-        <Stack spacing="base">
-          <Title fontSize={4}>Choose an account</Title>
-          <Text textStyle="caption">to connect to {appName}</Text>
+    <>
+      <Flex alignItems="center" flexDirection="column" px="loose" width="100%">
+        <Stack minWidth={`${POPUP_CENTER_WIDTH}px`} spacing="loose" textAlign="center">
+          <AppIcon mt="extra-loose" mb="loose" size="72px" />
+          <Stack spacing="base">
+            <Title fontSize={4}>Choose an account</Title>
+            <Text textStyle="caption">to connect to {appName}</Text>
+          </Stack>
         </Stack>
-      </Stack>
-      <Accounts />
-    </Flex>
+        <Accounts />
+      </Flex>
+      <Outlet />
+    </>
   );
 });
