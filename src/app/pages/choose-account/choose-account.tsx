@@ -29,7 +29,7 @@ export const ChooseAccount = memo(() => {
   return (
     <>
       <Flex alignItems="center" flexDirection="column" px="loose" width="100%">
-        <Stack minWidth={`${POPUP_CENTER_WIDTH}px`} spacing="loose" textAlign="center">
+        <Stack spacing="loose" textAlign="center">
           <AppIcon mt="extra-loose" mb="loose" size="72px" />
           <Stack spacing="base">
             <Title fontSize={4}>Choose an account</Title>

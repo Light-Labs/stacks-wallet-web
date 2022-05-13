@@ -9,6 +9,7 @@ import { delay } from '@app/common/utils';
 import {
   addSignatureToAuthResponseJwt,
   getAppVersion,
+  getSha256HashOfJwtAuthPayload,
   prepareLedgerDeviceConnection,
   signLedgerJwtHash,
   useLedgerResponseState,
@@ -44,6 +45,7 @@ export function LedgerSignJwtContainer() {
   const [latestDeviceResponse, setLatestDeviceResponse] = useLedgerResponseState();
 
   const [awaitingDeviceConnection, setAwaitingDeviceConnection] = useState(false);
+  const [jwtPayloadHash, setJwtPayloadHash] = useState<null | string>(null);
 
   const signJwtPayload = async () => {
     if (!account || !decodedAuthRequest || !authRequest || accountIndex === null) return;
@@ -89,6 +91,8 @@ export function LedgerSignJwtContainer() {
         },
       });
 
+      setJwtPayloadHash(getSha256HashOfJwtAuthPayload(authResponsePayload));
+
       ledgerNavigate.toAwaitingDeviceOperation({ hasApprovedOperation: false });
 
       const resp = await signLedgerJwtHash(stacks)(authResponsePayload, accountIndex);
@@ -98,7 +102,9 @@ export function LedgerSignJwtContainer() {
         return;
       }
 
+      ledgerNavigate.toAwaitingDeviceOperation({ hasApprovedOperation: true });
       const authResponse = addSignatureToAuthResponseJwt(authResponsePayload, resp.signatureDER);
+      await delay(600);
       keyActions.switchAccount(accountIndex);
       finalizeAuthResponse({ decodedAuthRequest, authRequest, authResponse });
     } catch (e) {
@@ -110,6 +116,7 @@ export function LedgerSignJwtContainer() {
 
   const ledgerContextValue = {
     signJwtPayload,
+    jwtPayloadHash,
     latestDeviceResponse,
     awaitingDeviceConnection,
     onCancelConnectLedger,

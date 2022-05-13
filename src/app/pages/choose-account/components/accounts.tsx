@@ -1,4 +1,4 @@
-import { useCallback, Suspense, memo, useState, useMemo } from 'react';
+import { useCallback, useEffect, Suspense, memo, useState, useMemo } from 'react';
 import { FiPlusCircle } from 'react-icons/fi';
 import { Virtuoso } from 'react-virtuoso';
 import { Box, BoxProps, color, FlexProps, Spinner, Stack } from '@stacks/ui';
@@ -21,9 +21,9 @@ import { useAccounts, useHasCreatedAccount } from '@app/store/accounts/account.h
 import { useAddressBalances } from '@app/query/balance/balance.hooks';
 import { useWalletType } from '@app/common/use-wallet-type';
 import { AccountWithAddress } from '@app/store/accounts/account.models';
-import { POPUP_CENTER_WIDTH } from '@shared/constants';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { RouteUrls } from '@shared/route-urls';
+import { POPUP_CENTER_WIDTH } from '@shared/constants';
 
 const loadingProps = { color: '#A1A7B3' };
 const getLoadingProps = (loading: boolean) => (loading ? loadingProps : {});
@@ -142,27 +142,24 @@ export const Accounts = memo(() => {
   const navigate = useNavigate();
   const [selectedAccount, setSelectedAccount] = useState<number | null>(null);
 
-  const signIntoAccount = useCallback(
-    async (index: number) => {
-      setSelectedAccount(index);
-      await whenWallet({
-        async software() {
-          await finishSignIn(index);
-        },
-        async ledger() {
-          navigate(RouteUrls.ConnectLedger, { state: { index } });
-        },
-      })();
-    },
-    [finishSignIn, navigate, whenWallet]
-  );
+  const signIntoAccount = async (index: number) => {
+    setSelectedAccount(index);
+    await whenWallet({
+      async software() {
+        await finishSignIn(index);
+      },
+      async ledger() {
+        navigate(RouteUrls.ConnectLedger, { state: { index } });
+      },
+    })();
+  };
 
   if (!accounts) return null;
 
   return (
     <>
       {whenWallet({ software: <AddAccountAction />, ledger: <></> })}
-      <Box minWidth={`${POPUP_CENTER_WIDTH}px`} mt="base" px="loose">
+      <Box width="100%" mt="extra-loose" px="loose" maxWidth={`${POPUP_CENTER_WIDTH}px`}>
         <Virtuoso
           useWindowScroll
           data={accounts}
@@ -170,7 +167,7 @@ export const Accounts = memo(() => {
           itemContent={(index, account) => (
             <AccountItem
               account={account}
-              isLoading={selectedAccount === index}
+              isLoading={whenWallet({ software: selectedAccount === index, ledger: false })}
               onSelectAccount={signIntoAccount}
             />
           )}

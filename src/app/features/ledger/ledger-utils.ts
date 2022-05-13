@@ -13,6 +13,7 @@ import {
 import { delay } from '@app/common/utils';
 import { safeAwait } from '@stacks/ui';
 import { LedgerTxSigningProvider } from './ledger-tx-signing.context';
+import { sha256 } from 'sha.js';
 
 const stxDerivationWithAccount = `m/44'/5757'/0'/0/{account}`;
 
@@ -146,4 +147,8 @@ function reformatDerSignatureToJose(derSignature: Uint8Array) {
 export function addSignatureToAuthResponseJwt(authResponse: string, signature: Uint8Array) {
   const resultingSig = reformatDerSignatureToJose(signature);
   return [authResponse, resultingSig].join('.');
+}
+
+export function getSha256HashOfJwtAuthPayload(payload: string) {
+  return new sha256().update(payload).digest('hex');
 }
