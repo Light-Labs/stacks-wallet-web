@@ -86,9 +86,18 @@ const ledgerAccountsWithAddressState = atom<LedgerAccountWithAddress[] | undefin
   const addressVersion = get(addressNetworkVersionState);
   if (!ledgerWallet) return undefined;
 
-  return ledgerWallet.publicKeys.map((publicKey, index) => {
-    const address = publicKeyToAddress(addressVersion, createStacksPublicKey(publicKey));
-    return { type: 'ledger', address, stxPublicKey: publicKey, index };
+  return ledgerWallet.publicKeys.map((publicKeys, index) => {
+    const address = publicKeyToAddress(
+      addressVersion,
+      createStacksPublicKey(publicKeys.stxPublicKey)
+    );
+    return {
+      type: 'ledger',
+      address,
+      stxPublicKey: publicKeys.stxPublicKey,
+      dataPublicKey: publicKeys.dataPublicKey,
+      index,
+    };
   });
 });
 
@@ -106,6 +115,8 @@ export const accountsWithAddressState = atom<AccountWithAddress[] | undefined>(g
 // This is only used when there is a pending transaction request and
 // the user switches accounts during the signing process
 export const hasSwitchedAccountsState = atom<boolean>(false);
+
+export const hasCreatedAccountState = atom<boolean>(false);
 
 // if there is a pending transaction that has a stxAccount param
 // find the index from the accounts atom and return it

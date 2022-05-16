@@ -21,8 +21,7 @@ const deriveWalletWithAccounts = memoize(async (secretKey: string, highestAccoun
   // method. This does the same as the catch case, with the addition that it will
   // also try and fetch usernames associated with an account
   try {
-    const network = new StacksMainnet();
-    return restoreWalletAccounts({ wallet, gaiaHubUrl: gaiaUrl, network });
+    return restoreWalletAccounts({ wallet, gaiaHubUrl: gaiaUrl, network: new StacksMainnet() });
   } catch (e) {
     // To generate a new account, the wallet-sdk requires the entire `Wallet` to
     // be supplied so that it can count the `wallet.accounts[]` length, and return

@@ -4,6 +4,7 @@ import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-
 import { RouteUrls } from '@shared/route-urls';
 
 import { useAnalytics } from '@app/common/hooks/analytics/use-analytics';
+import { useNextTxNonce } from '@app/common/hooks/account/use-next-tx-nonce';
 import { Container } from '@app/components/container/container';
 import { LoadingSpinner } from '@app/components/loading-spinner';
 import { MagicRecoveryCode } from '@app/pages/onboarding/magic-recovery-code/magic-recovery-code';
@@ -31,6 +32,7 @@ import { WelcomePage } from '@app/pages/onboarding/welcome/welcome';
 import { LedgerRequestKeysContainer } from '@app/features/ryder/flows/request-keys/ledger-request-keys-container';
 import { SignLedgerTransaction } from '@app/features/ryder/flows/tx-signing/steps/sign-ledger-transaction';
 import { useHasStateRehydrated } from '@app/store';
+import { UnauthorizedRequest } from '@app/pages/unauthorized-request/unauthorized-request';
 import { ConnectLedgerSignTxError } from '@app/features/ryder/flows/tx-signing/steps/connect-ledger-sign-tx-error';
 import { ConnectLedgerSignTxSuccess } from '@app/features/ryder/flows/tx-signing/steps/connect-ledger-sign-tx-success';
 import { LedgerSignTxContainer } from '@app/features/ryder/flows/tx-signing/ledger-sign-tx-container';
@@ -44,13 +46,19 @@ import { UnsupportedBrowserLayout } from '@app/features/ryder/steps/unsupported-
 import { useOnWalletLock } from './hooks/use-on-wallet-lock';
 import { useOnSignOut } from './hooks/use-on-sign-out';
 import { OnboardingGate } from './onboarding-gate';
-import { AuthWithLedgerError } from '@app/pages/auth-with-ledger-error/auth-with-ledger-error';
+import { LedgerSignJwtContainer } from '@app/features/ryder/flows/jwt-signing/ledger-sign-jwt';
+import { SignJwtHash } from '@app/features/ryder/flows/jwt-signing/steps/sign-jwt-hash';
+import { ConnectLedgerSignJwt } from '@app/features/ryder/flows/jwt-signing/steps/connect-ledger-sign-jwt';
+import { ConnectLedgerSignJwtError } from '@app/features/ryder/flows/jwt-signing/steps/connect-ledger-sign-jwt-error';
+import { ConnectLedgerSignJwtSuccess } from '@app/features/ryder/flows/jwt-signing/steps/connect-ledger-sign-jwt-success';
+import { LedgerJwtSigningRejected } from '@app/features/ryder/flows/jwt-signing/steps/transaction-rejected';
 
 export function AppRoutes(): JSX.Element | null {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const analytics = useAnalytics();
 
+  useNextTxNonce();
   useSaveAuthRequest();
 
   useOnWalletLock(() => navigate(RouteUrls.Unlock));
@@ -62,18 +70,32 @@ export function AppRoutes(): JSX.Element | null {
 
   const hasStateRehydrated = useHasStateRehydrated();
 
-  const ledgerSigningRoutes = useMemo(
+  const ledgerTxSigningRoutes = useMemo(
     () => (
       <Route element={<LedgerSignTxContainer />}>
         <Route path={RouteUrls.ConnectLedger} element={<ConnectLedgerSignTx />} />
         <Route path={RouteUrls.DeviceBusy} element={<VerifyingPublicKeysMatch />} />
         <Route path={RouteUrls.ConnectLedgerError} element={<ConnectLedgerSignTxError />} />
         <Route path={RouteUrls.ConnectLedgerSuccess} element={<ConnectLedgerSignTxSuccess />} />
-        <Route path={RouteUrls.SignLedgerTransaction} element={<SignLedgerTransaction />} />
+        <Route path={RouteUrls.AwaitingDeviceUserAction} element={<SignLedgerTransaction />} />
         <Route path={RouteUrls.LedgerDisconnected} element={<LedgerDisconnected />} />
-        <Route path={RouteUrls.TransactionRejected} element={<LedgerTransactionRejected />} />
+        <Route path={RouteUrls.LedgerOperationRejected} element={<LedgerTransactionRejected />} />
         <Route path={RouteUrls.LedgerPublicKeyMismatch} element={<LedgerPublicKeyMismatch />} />
         <Route path={RouteUrls.LedgerUnsupportedBrowser} element={<UnsupportedBrowserLayout />} />
+      </Route>
+    ),
+    []
+  );
+
+  const ledgerJwtSigningRoutes = useMemo(
+    () => (
+      <Route element={<LedgerSignJwtContainer />}>
+        <Route path={RouteUrls.ConnectLedger} element={<ConnectLedgerSignJwt />} />
+        <Route path={RouteUrls.ConnectLedgerError} element={<ConnectLedgerSignJwtError />} />
+        <Route path={RouteUrls.ConnectLedgerSuccess} element={<ConnectLedgerSignJwtSuccess />} />
+        <Route path={RouteUrls.LedgerOperationRejected} element={<LedgerJwtSigningRejected />} />
+        <Route path={RouteUrls.AwaitingDeviceUserAction} element={<SignJwtHash />} />
+        <Route path={RouteUrls.LedgerDisconnected} element={<LedgerDisconnected />} />
       </Route>
     ),
     []
@@ -95,7 +117,7 @@ export function AppRoutes(): JSX.Element | null {
           }
         >
           <Route path={RouteUrls.SignOutConfirm} element={<SignOutConfirmDrawer />} />
-          {ledgerSigningRoutes}
+          {ledgerTxSigningRoutes}
         </Route>
         <Route
           path={RouteUrls.Onboarding}
@@ -168,15 +190,10 @@ export function AppRoutes(): JSX.Element | null {
               </Suspense>
             </AccountGate>
           }
-        />
-        <Route
-          path={RouteUrls.AuthNotSupportedWithLedger}
-          element={
-            <Suspense fallback={<></>}>
-              <AuthWithLedgerError />
-            </Suspense>
-          }
-        />
+        >
+          {ledgerJwtSigningRoutes}
+        </Route>
+
         <Route
           path={RouteUrls.Receive}
           element={
@@ -195,7 +212,7 @@ export function AppRoutes(): JSX.Element | null {
             </AccountGate>
           }
         >
-          {ledgerSigningRoutes}
+          {ledgerTxSigningRoutes}
         </Route>
         <Route
           path={RouteUrls.TransactionRequest}
@@ -206,9 +223,8 @@ export function AppRoutes(): JSX.Element | null {
               </Suspense>
             </AccountGate>
           }
-        >
-          {ledgerSigningRoutes}
-        </Route>
+        />
+        <Route path={RouteUrls.UnauthorizedRequest} element={<UnauthorizedRequest />} />
         <Route
           path={RouteUrls.ViewSecretKey}
           element={

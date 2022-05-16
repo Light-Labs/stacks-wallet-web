@@ -30,6 +30,7 @@ const WelcomeIllustration = () => (
 
 interface WelcomeLayoutProps {
   isGeneratingWallet: boolean;
+  onSelectConnectLedger(): void;
   onStartOnboarding(): void;
   onSelectConnectLedger(): void;
   onSelectConnectRyder(): void;
