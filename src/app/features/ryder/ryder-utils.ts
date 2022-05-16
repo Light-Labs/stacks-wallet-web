@@ -1,8 +1,6 @@
-import {
-  AddressVersion,
-  createStacksPublicKey,
-  publicKeyToAddress,
-} from '@stacks/transactions';
+/* eslint-disable no-console */
+import { AddressVersion, createStacksPublicKey, getAddressFromPublicKey, publicKeyToAddress } from '@stacks/transactions';
+import { ResponseAddress, ResponseAppInfo, ResponseVersion } from '@zondax/ledger-blockstack';
 import RyderSerial, { Options } from '../../ryderserial';
 
 interface RyderAppError {
@@ -14,7 +12,73 @@ interface Success<T> {
 }
 export type Response<T> = RyderAppError | Success<T>;
 
-export class RyderApp {
+const port = 'ws:/localhost:8080';
+const stxDerivationWithAccount = `m/44'/5757'/0'/0/{account}`;
+const identityDerivationWithoutAccount = `m/888'/0'/0'/`;
+
+export class StacksApp {
+  constructor(_: any) {}
+  signGetChunks(path: string, message: Buffer): Promise<Buffer[]> {
+    return Promise.reject('Not implemented');
+  }
+  getVersion(): Promise<ResponseVersion> {
+    return Promise.reject('Not implemented');
+  }
+  getAppInfo(): Promise<ResponseAppInfo> {
+    return Promise.reject('Not implemented');
+  }
+  getAddressAndPubKey(path: string, version: AddressVersion): Promise<ResponseAddress> {
+    return Promise.reject('Not implemented');
+  }
+  async getIdentityPubKey(path: string): Promise<ResponseAddress> {
+    const index = parseInt(path.replace(identityDerivationWithoutAccount, ""));
+    console.log('try export ', index);
+    return new Promise<ResponseAddress>(resolve => {
+      const ryderApp = new RyderApp();
+      void ryderApp
+        .serial_export_identity({ port, options: { debug: true } }, index, (res: any) => {
+          console.log('response', res);
+          const address = getAddressFromPublicKey(res.data);
+          resolve({ publicKey: res.data, address, errorMessage: '', returnCode: 0 });
+        })
+        .then(() => {
+          console.log('request sent');
+        });
+    });
+  }
+  showAddressAndPubKey(path: string, version: AddressVersion): Promise<ResponseAddress> {
+    return Promise.reject('Not implemented');
+  }
+  signSendChunk(chunkIdx: number, chunkNum: number, chunk: Buffer): Promise<ResponseSign> {
+    return Promise.reject('Not implemented');
+  }
+  async sign(path: string, message: Buffer): Promise<any> {
+    return Promise.reject('Not implemented');
+  }
+  async sign_msg(path: string, message: string): Promise<any> {
+    return Promise.reject('Not implemented');
+  }
+  async sign_jwt(path: string, message: string): Promise<any> {
+    return Promise.reject('Not implemented');
+  }
+}
+
+async function exportPublicKey(index: number) {
+  console.log('try export ', index);
+  return new Promise<{ publicKey: string }>(resolve => {
+    const ryderApp = new RyderApp();
+    void ryderApp
+      .serial_export_identity({ port, options: { debug: true } }, index, (res: any) => {
+        console.log('response', res);
+        resolve({ publicKey: res.data });
+      })
+      .then(() => {
+        console.log('request sent');
+      });
+  });
+}
+
+class RyderApp {
   ryder_serial?: RyderSerial;
 
   async serial_info(

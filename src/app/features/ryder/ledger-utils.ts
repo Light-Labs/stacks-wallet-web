@@ -1,28 +1,20 @@
 /* eslint-disable no-console */
 import { useState } from 'react';
 import Transport from '@ledgerhq/hw-transport-webusb';
-import StacksApp, { LedgerError, ResponseVersion } from '@zondax/ledger-blockstack';
+import { StacksApp } from './ryder-utils';
 import * as ecdsaFormat from 'ecdsa-sig-formatter';
-
 import {
   AddressVersion,
   createMessageSignature,
   deserializeTransaction,
   SingleSigSpendingCondition,
 } from '@stacks/transactions';
-import { keySlice } from '@app/store/keys/key.slice';
-import { RouteUrls } from '@shared/route-urls';
-
-import { io, Socket } from 'socket.io-client';
 
 import { delay } from '@app/common/utils';
-import { sendMessage } from '@shared/messages';
-import { InternalMethods } from '@shared/message-types';
 import { safeAwait } from '@stacks/ui';
-import { useState } from 'react';
 import { LedgerTxSigningProvider } from './ledger-tx-signing.context';
 import { sha256 } from 'sha.js';
-import { RyderApp } from './ryder-utils';
+import { LedgerError, ResponseVersion } from '@zondax/ledger-blockstack';
 
 const stxDerivationWithAccount = `m/44'/5757'/0'/0/{account}`;
 
@@ -52,10 +44,8 @@ export async function getAppVersion(app: StacksApp) {
   return app.getVersion();
 }
 
-const port = 'ws:/localhost:8080';
-
-export function extractDeviceNameFromKnownTargetIds(targetId: string) {
-  return "Ryder"
+export function extractDeviceNameFromKnownTargetIds(_: string) {
+  return 'Ryder';
 }
 
 interface PrepareLedgerDeviceConnectionArgs {
@@ -116,37 +106,23 @@ interface PullKeysFromLedgerFailure {
 
 type PullKeysFromLedgerResponse = Promise<PullKeysFromLedgerSuccess | PullKeysFromLedgerFailure>;
 
-export async function pullKeysFromLedgerDevice(): PullKeysFromLedgerResponse {
-  const publicKeys: any[] = [];
-  const amountOfKeysToExtractFromDevice = 2;
+export async function pullKeysFromLedgerDevice(stacksApp: StacksApp): PullKeysFromLedgerResponse {
+  const publicKeys = [];
+  const amountOfKeysToExtractFromDevice = 5;
   for (let index = 0; index < amountOfKeysToExtractFromDevice; index++) {
-    try {
-      const resp = await exportPublicKey(index);
-      console.log({ resp });
-      toast.success(`Fetched Account ${index + 1}`, { duration: 1000 });
-      if (!resp.publicKey) return { status: 'failure', errorMessage: 'failure', returnCode: 100 };
-      publicKeys.push(resp.publicKey);
-    } catch (e) {
-      console.log(e);
-    }
+    const stxPublicKeyResp = await requestPublicKeyForStxAccount(stacksApp)(index);
+    const dataPublicKeyResp = await requestPublicKeyForIdentityAccount(stacksApp)(index);
+
+    if (!stxPublicKeyResp.publicKey || !dataPublicKeyResp.publicKey)
+      return { status: 'failure', ...stxPublicKeyResp };
+
+    publicKeys.push({
+      stxPublicKey: stxPublicKeyResp.publicKey.toString('hex'),
+      dataPublicKey: dataPublicKeyResp.publicKey.toString('hex'),
+    });
   }
   await delay(1000);
   return { status: 'success', publicKeys };
-}
-
-async function exportPublicKey(index: number) {
-  console.log('try export ', index);
-  return new Promise<{ publicKey: string }>(resolve => {
-    const ryderApp = new RyderApp();
-    void ryderApp
-      .serial_export_identity({ port, options: { debug: true } }, index, (res: any) => {
-        console.log('response', res);
-        resolve({ publicKey: res.data });
-      })
-      .then(() => {
-        console.log('request sent');
-      });
-  });
 }
 
 export function useLedgerResponseState() {

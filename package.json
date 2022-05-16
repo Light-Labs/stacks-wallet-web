@@ -114,7 +114,7 @@
     "@tippyjs/react": "4.2.6",
     "@types/websocket": "^1.0.5",
     "@vkontakte/vk-qr": "2.0.13",
-    "@zondax/ledger-blockstack": "0.2.0",
+    "@zondax/ledger-blockstack": "0.23.0",
     "are-passive-events-supported": "1.1.1",
     "argon2-browser": "1.18.0",
     "assert": "2.0.0",
