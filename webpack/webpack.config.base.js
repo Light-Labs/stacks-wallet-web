@@ -106,6 +106,8 @@ const config = {
       assert: require.resolve('assert'),
       fs: false,
       path: false,
+      events: require.resolve('events/'),
+      buffer: require.resolve('buffer/'),
     },
   },
   optimization: {

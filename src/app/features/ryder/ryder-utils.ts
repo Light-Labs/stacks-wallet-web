@@ -1,4 +1,9 @@
-import RyderSerial, { Options } from '@lightlabs/ryderserial-proto';
+import {
+  AddressVersion,
+  createStacksPublicKey,
+  publicKeyToAddress,
+} from '@stacks/transactions';
+import RyderSerial, { Options } from '../../ryderserial';
 
 interface RyderAppError {
   source: Error;
@@ -82,16 +87,20 @@ export class RyderApp {
           reject('Ryder serial was destroyed');
           return;
         }
-
         const response = await this.ryder_serial.send([
           RyderSerial.COMMAND_EXPORT_PUBLIC_IDENTITY,
           index,
         ]);
+        // eslint-disable-next-line no-console
+        console.log('typeof response', typeof response);
         const publicKey =
           typeof response === 'number'
             ? response.toString()
             : Buffer.from(response, 'binary').toString('hex');
-
+        // eslint-disable-next-line no-console
+        console.log(
+          publicKeyToAddress(AddressVersion.MainnetSingleSig, createStacksPublicKey(publicKey))
+        );
         resolve(publicKey);
         return;
       });

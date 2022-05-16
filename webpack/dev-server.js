@@ -3,7 +3,7 @@
 process.env.BABEL_ENV = 'development';
 process.env.NODE_ENV = 'development';
 process.env.ASSET_PATH = '/';
-process.env.PORT = '8080';
+process.env.PORT = '8081';
 
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 const WebpackDevServer = require('webpack-dev-server');
@@ -13,7 +13,7 @@ const path = require('path');
 const NODE_ENV = process.env.NODE_ENV;
 
 const HOST = 'localhost';
-const PORT = process.env.PORT || '8080';
+const PORT = process.env.PORT || '8081';
 
 const config = require('./webpack.config.dev');
 
@@ -65,5 +65,5 @@ if (NODE_ENV === 'development' && module.hot) {
 }
 
 server.startCallback(() => {
-  console.log('Starting server on http://localhost:8080');
+  console.log(`Starting server on http://localhost:${process.env.PORT}`,);
 });

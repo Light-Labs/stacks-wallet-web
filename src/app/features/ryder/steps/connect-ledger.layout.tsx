@@ -7,11 +7,9 @@ import { Caption } from '@app/components/typography';
 
 import { LedgerConnectInstructionTitle } from '../components/ledger-title';
 import { ExternalLink } from '@app/components/external-link';
-// import ConnectLedger from '@assets/images/ledger/connect-ledger.png';
-import { lazy, Suspense } from 'react';
+import RyderLogo from '@assets/images/ryder/ryder-logo.png';
 import { LedgerWrapper } from '../components/ledger-wrapper';
 
-const PluggingInLedgerCableAnimation = lazy(() => import('../animations/plugging-in-cable.lottie'));
 
 interface ConnectLedgerLayoutProps {
   isLookingForLedger: boolean;
@@ -26,11 +24,8 @@ export function ConnectLedgerLayout(props: ConnectLedgerLayoutProps) {
   return (
     <LedgerWrapper>
       <Box position="relative" width="100%" height="120px">
-        <Suspense fallback={null}>
-          <PluggingInLedgerCableAnimation position="absolute" top="-80px" />
-        </Suspense>
+        <img src={RyderLogo}/>
       </Box>
-      {/* <img src={ConnectLedger} width="299" height="97" /> */}
       <LedgerConnectInstructionTitle mt="extra-loose" mx="50px" />
 
       <PrimaryButton
@@ -50,10 +45,7 @@ export function ConnectLedgerLayout(props: ConnectLedgerLayoutProps) {
           <Caption mb="tight" mt="loose">
             First time using Ryder on Hiro Wallet?
           </Caption>
-          <ExternalLink
-            href="https://www.ryder.id"
-            fontSize={1}
-          >
+          <ExternalLink href="https://www.ryder.id" fontSize={1}>
             See how to download the Stacks app
           </ExternalLink>
         </>

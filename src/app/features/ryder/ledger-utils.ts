@@ -46,7 +46,7 @@ export async function getAppVersion(app: StacksApp) {
   return app.getVersion();
 }
 
-const port = '/dev/pts/6';
+const port = 'ws:/localhost:8080';
 
 export function extractDeviceNameFromKnownTargetIds(targetId: string) {
   return "Ryder"
@@ -91,7 +91,7 @@ type PullKeysFromLedgerResponse = Promise<PullKeysFromLedgerSuccess | PullKeysFr
 
 export async function pullKeysFromLedgerDevice(): PullKeysFromLedgerResponse {
   const publicKeys: any[] = [];
-  const amountOfKeysToExtractFromDevice = 5;
+  const amountOfKeysToExtractFromDevice = 2;
   for (let index = 0; index < amountOfKeysToExtractFromDevice; index++) {
     try {
       const resp = await exportPublicKey(index);

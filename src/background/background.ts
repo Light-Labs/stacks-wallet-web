@@ -23,6 +23,10 @@ import { backupOldWalletSalt } from './backup-old-wallet-salt';
 
 const IS_TEST_ENV = process.env.TEST_ENV === 'true';
 
+// polyfill buffer (>= react-scripts 5)
+import { Buffer } from '@stacks/common';
+global.Buffer = global.Buffer || Buffer;
+
 initSentry();
 
 initContextMenuActions();
