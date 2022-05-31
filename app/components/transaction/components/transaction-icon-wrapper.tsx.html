@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for app/pages/transaction-request/components/balance.tsx</title>
+    <title>Code coverage report for app/components/transaction/components/transaction-icon-wrapper.tsx</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../../../prettify.css" />
     <link rel="stylesheet" href="../../../../base.css" />
@@ -19,34 +19,34 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../../../../index.html">All files</a> / <a href="index.html">app/pages/transaction-request/components</a> balance.tsx</h1>
+        <h1><a href="../../../../index.html">All files</a> / <a href="index.html">app/components/transaction/components</a> transaction-icon-wrapper.tsx</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
@@ -87,7 +87,17 @@
 <a name='L22'></a><a href='#L22'>22</a>
 <a name='L23'></a><a href='#L23'>23</a>
 <a name='L24'></a><a href='#L24'>24</a>
-<a name='L25'></a><a href='#L25'>25</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -98,42 +108,47 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { useMemo } from 'react';
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Box, BoxProps, Circle, color } from '@stacks/ui';
 &nbsp;
-import { stacksValue } from '@app/common/stacks-utils';
-import { Caption } from '@app/components/typography';
-import { useAddressBalances } from '@app/query/balance/balance.hooks';
+import { Tx } from '@app/common/api/transactions';
 &nbsp;
-interface BalanceProps {
-  address: string;
+import { TransactionTypeIcon } from './transaction-type-icon';
+&nbsp;
+interface TransactionIconWrapperProps extends BoxProps {
+  icon: React.FC;
+  transaction: Tx;
 }
-export function <span class="fstat-no" title="function not covered" >Balance(</span>props: BalanceProps): JSX.Element | null {
-  const { address } = <span class="cstat-no" title="statement not covered" >props;</span>
-  const { data: balances } = <span class="cstat-no" title="statement not covered" >useAddressBalances(address);</span>
-&nbsp;
-  const balance = <span class="cstat-no" title="statement not covered" >useMemo(</span>
-<span class="fstat-no" title="function not covered" >    ()</span> =&gt;
-<span class="cstat-no" title="statement not covered" >      stacksValue({</span>
-        value: balances?.availableStx || 0,
-        withTicker: true,
-      }),
-    [balances]
+export function <span class="fstat-no" title="function not covered" >TransactionIconWrapper(</span>{
+  icon: Icon,
+  transaction,
+  ...rest
+}: TransactionIconWrapperProps) {
+<span class="cstat-no" title="statement not covered" >  return (</span>
+    &lt;Circle
+      bg={color('accent')}
+      color={color('bg')}
+      flexShrink={0}
+      position="relative"
+      size="36px"
+      {...rest}
+    &gt;
+      &lt;Box as={Icon} /&gt;
+      &lt;TransactionTypeIcon transaction={transaction} /&gt;
+    &lt;/Circle&gt;
   );
-&nbsp;
-<span class="cstat-no" title="statement not covered" >  return &lt;Caption&gt;{balance}&lt;/Caption&gt;;</span>
 }
 &nbsp;</pre></td></tr></table></pre>
 
@@ -142,7 +157,7 @@ export function <span class="fstat-no" title="function not covered" >Balance(</s
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at Mon May 02 2022 11:39:05 GMT+0000 (Coordinated Universal Time)
+                at Tue May 31 2022 12:40:32 GMT+0000 (Coordinated Universal Time)
             </div>
         <script src="../../../../prettify.js"></script>
         <script>
