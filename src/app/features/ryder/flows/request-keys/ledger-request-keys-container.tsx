@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import {
   getAppVersion,
   isStacksLedgerAppClosed,
+  prepareLedgerDeviceConnection,
   pullKeysFromLedgerDevice,
   useLedgerResponseState,
 } from '@app/features/ryder/ledger-utils';
@@ -30,22 +31,47 @@ export function LedgerRequestKeysContainer() {
   const [latestDeviceResponse, setLatestDeviceResponse] = useLedgerResponseState();
   const [awaitingDeviceConnection, setAwaitingDeviceConnection] = useState(false);
 
-  const pullPublicKeysFromDevice = async () => {    
+  const pullPublicKeysFromDevice = async () => {
+    const stacks = await prepareLedgerDeviceConnection({
+      setLoadingState: setAwaitingDeviceConnection,
+      onError() {
+        // eslint-disable-next-line no-console
+        console.log("error")
+        ledgerNavigate.toErrorStep();
+      },
+    });
+
+    if (!stacks) return;
+
+    const versionInfo = await getAppVersion(stacks);
+    ledgerAnalytics.trackDeviceVersionInfo(versionInfo);
+    setLatestDeviceResponse(versionInfo);
+
+    if (versionInfo.deviceLocked) {
+      setAwaitingDeviceConnection(false);
+      return;
+    }
+
+    if (versionInfo.returnCode !== LedgerError.NoErrors) {
+      if (!isStacksLedgerAppClosed(versionInfo)) toast.error(versionInfo.errorMessage);
+      return;
+    }
+
     try {
       ledgerNavigate.toConnectionSuccessStep();
-
       await delay(1750);
-
       ledgerNavigate.toActivityHappeningOnDeviceStep();
-
-      const resp = await pullKeysFromLedgerDevice();
+      // eslint-disable-next-line no-console
+      console.log("pullKeysFromLedgerDevice")
+      const resp = await pullKeysFromLedgerDevice(stacks);
+      console.log({ resp });
       if (resp.status === 'failure') {
         fireErrorMessageToast(resp.errorMessage);
         ledgerNavigate.toErrorStep(resp.errorMessage);
         return;
       }
       ledgerNavigate.toActivityHappeningOnDeviceStep();
-      completeLedgerDeviceOnboarding(resp.publicKeys, "ryder");
+      completeLedgerDeviceOnboarding(resp.publicKeys, 'ryder');
       ledgerAnalytics.publicKeysPulledFromLedgerSuccessfully();
       navigate(RouteUrls.Home);
     } catch (e) {

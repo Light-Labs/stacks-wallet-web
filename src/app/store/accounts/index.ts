@@ -87,6 +87,8 @@ const ledgerAccountsWithAddressState = atom<LedgerAccountWithAddress[] | undefin
   if (!ledgerWallet) return undefined;
 
   return ledgerWallet.publicKeys.map((publicKeys, index) => {
+    // eslint-disable-next-line no-console
+    console.log(publicKeys)
     const address = publicKeyToAddress(
       addressVersion,
       createStacksPublicKey(publicKeys.stxPublicKey)

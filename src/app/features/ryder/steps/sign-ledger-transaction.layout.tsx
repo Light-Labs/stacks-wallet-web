@@ -1,7 +1,7 @@
 import { FiInfo } from 'react-icons/fi';
 import { color, Box, Flex, Text, Stack } from '@stacks/ui';
 
-import SignLedgerTransaction from '@assets/images/ledger/sign-ledger-transaction.png';
+import SignLedgerTransaction from '@assets/images/ryder/ryder-logo.png';
 import { Tooltip } from '@app/components/tooltip';
 import { Caption } from '@app/components/typography';
 import { DividerSeparator } from '@app/components/divider-separator';

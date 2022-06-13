@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect } from 'react';
+import { memo, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Flex, Stack, Text } from '@stacks/ui';
 
@@ -9,7 +9,6 @@ import { useWallet } from '@app/common/hooks/use-wallet';
 import { useAppDetails } from '@app/common/hooks/auth/use-app-details';
 import { Header } from '@app/components/header';
 import { Accounts } from '@app/pages/choose-account/components/accounts';
-import { POPUP_CENTER_WIDTH } from '@shared/constants';
 
 export const ChooseAccount = memo(() => {
   const { name: appName } = useAppDetails();
@@ -17,14 +16,13 @@ export const ChooseAccount = memo(() => {
 
   useRouteHeader(<Header hideActions />);
 
-  const handleUnmount = useCallback(async () => {
-    cancelAuthentication();
-  }, [cancelAuthentication]);
+  const handleUnmount = async () => cancelAuthentication();
 
   useEffect(() => {
     window.addEventListener('beforeunload', handleUnmount);
     return () => window.removeEventListener('beforeunload', handleUnmount);
-  }, [handleUnmount]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>

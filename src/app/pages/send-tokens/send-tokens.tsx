@@ -1,8 +1,8 @@
-import { memo, Suspense, useCallback, useState } from 'react';
+import { memo, Suspense, useCallback, useEffect, useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
+import { StacksTransaction } from '@stacks/transactions';
 import toast from 'react-hot-toast';
 import { Formik } from 'formik';
-import { StacksTransaction } from '@stacks/transactions';
 
 import { useHomeTabs } from '@app/common/hooks/use-home-tabs';
 import { useRouteHeader } from '@app/common/hooks/use-route-header';
@@ -32,7 +32,7 @@ import { SendFormInner } from './components/send-form-inner';
 
 function SendTokensFormBase() {
   const navigate = useNavigate();
-  const { showEditNonce } = useDrawers();
+  const { showEditNonce, showNetworks } = useDrawers();
   const [isShowing, setShowing] = useState(false);
   const [assetError, setAssetError] = useState<string | undefined>(undefined);
   const { setActiveTabActivity } = useHomeTabs();
@@ -46,6 +46,12 @@ function SendTokensFormBase() {
   const { whenWallet } = useWalletType();
   const ledgerNavigate = useLedgerNavigate();
   useRouteHeader(<Header title="Send" onClose={() => navigate(RouteUrls.Home)} />);
+
+  useEffect(() => {
+    if (showNetworks) {
+      navigate(RouteUrls.Home);
+    }
+  }, [navigate, showNetworks]);
 
   const handleConfirmDrawerOnClose = useCallback(() => {
     setShowing(false);

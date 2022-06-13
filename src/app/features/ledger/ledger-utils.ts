@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import Transport from '@ledgerhq/hw-transport-webusb';
 import StacksApp, { LedgerError, ResponseVersion } from '@zondax/ledger-blockstack';
-import * as ecdsaFormat from 'ecdsa-sig-formatter';
+import ecdsaFormat from 'ecdsa-sig-formatter';
+import * as secp from '@noble/secp256k1';
+import { sha256 } from 'sha.js';
 
 import {
   AddressVersion,
@@ -13,13 +15,28 @@ import {
 import { delay } from '@app/common/utils';
 import { safeAwait } from '@stacks/ui';
 import { LedgerTxSigningProvider } from './ledger-tx-signing.context';
-import { sha256 } from 'sha.js';
+import { logger } from '@shared/logger';
+
+function decompressSecp256k1PublicKey(publicKey: string) {
+  const point = secp.Point.fromHex(publicKey);
+  return secp.utils.bytesToHex(point.toRawBytes(false));
+}
 
 const stxDerivationWithAccount = `m/44'/5757'/0'/0/{account}`;
 
-const identityDerivationWithAccount = `m/888'/0'/0'/{account}`;
+const identityDerivationWithAccount = `m/888'/0'/{account}'`;
 
-export async function connectLedger() {
+function getAccountIndexFromDerivationPathFactory(derivationPath: string) {
+  return (account: number) => derivationPath.replace('{account}', account.toString());
+}
+
+const getStxDerivationPath = getAccountIndexFromDerivationPathFactory(stxDerivationWithAccount);
+
+const getIdentityDerivationPath = getAccountIndexFromDerivationPathFactory(
+  identityDerivationWithAccount
+);
+
+async function connectLedger() {
   const transport = await Transport.create();
   return new StacksApp(transport);
 }
@@ -27,7 +44,7 @@ export async function connectLedger() {
 function requestPublicKeyForStxAccount(app: StacksApp) {
   return async (index: number) =>
     app.getAddressAndPubKey(
-      stxDerivationWithAccount.replace('{account}', index.toString()),
+      getStxDerivationPath(index),
       // We pass mainnet as it expects something, however this is so it can return a formatted address
       // We only need the public key, and can derive the address later in any network format
       AddressVersion.MainnetSingleSig
@@ -35,8 +52,7 @@ function requestPublicKeyForStxAccount(app: StacksApp) {
 }
 
 function requestPublicKeyForIdentityAccount(app: StacksApp) {
-  return async (index: number) =>
-    app.getIdentityPubKey(identityDerivationWithAccount.replace('{account}', index.toString()));
+  return async (index: number) => app.getIdentityPubKey(getIdentityDerivationPath(index));
 }
 
 export async function getAppVersion(app: StacksApp) {
@@ -116,14 +132,19 @@ export async function pullKeysFromLedgerDevice(stacksApp: StacksApp): PullKeysFr
     const stxPublicKeyResp = await requestPublicKeyForStxAccount(stacksApp)(index);
     const dataPublicKeyResp = await requestPublicKeyForIdentityAccount(stacksApp)(index);
 
-    if (!stxPublicKeyResp.publicKey || !dataPublicKeyResp.publicKey)
-      return { status: 'failure', ...stxPublicKeyResp };
+    if (!stxPublicKeyResp.publicKey) return { status: 'failure', ...stxPublicKeyResp };
+
+    if (!dataPublicKeyResp.publicKey) return { status: 'failure', ...dataPublicKeyResp };
 
     publicKeys.push({
       stxPublicKey: stxPublicKeyResp.publicKey.toString('hex'),
-      dataPublicKey: dataPublicKeyResp.publicKey.toString('hex'),
+      // We return a decompressed public key, to match the behaviour of
+      // @stacks/wallet-sdk. I'm not sure why we return an uncompressed key
+      // typically compressed keys are used
+      dataPublicKey: decompressSecp256k1PublicKey(dataPublicKeyResp.publicKey.toString('hex')),
     });
   }
+  logger.info(publicKeys);
   await delay(1000);
   return { status: 'success', publicKeys };
 }

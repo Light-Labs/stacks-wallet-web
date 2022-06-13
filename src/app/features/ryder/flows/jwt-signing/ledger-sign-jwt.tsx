@@ -25,6 +25,8 @@ import { useLedgerNavigate } from '../../hooks/use-ledger-navigate';
 import { LedgerJwtSigningProvider } from '../../ledger-jwt-signing.context';
 import { finalizeAuthResponse } from '@app/common/actions/finalize-auth-response';
 import { useOnboardingState } from '@app/common/hooks/auth/use-onboarding-state';
+import { doPublicKeysMatchIssuer, doSignaturesMatchPublicKeys, isExpirationDateValid, isIssuanceDateValid } from '@stacks/auth';
+import { decodeToken } from 'jsontokens';
 
 export function LedgerSignJwtContainer() {
   const location = useLocation();
@@ -93,6 +95,8 @@ export function LedgerSignJwtContainer() {
 
       setJwtPayloadHash(getSha256HashOfJwtAuthPayload(authResponsePayload));
 
+
+      /*
       ledgerNavigate.toAwaitingDeviceOperation({ hasApprovedOperation: false });
 
       const resp = await signLedgerJwtHash(stacks)(authResponsePayload, accountIndex);
@@ -104,10 +108,18 @@ export function LedgerSignJwtContainer() {
 
       ledgerNavigate.toAwaitingDeviceOperation({ hasApprovedOperation: true });
       const authResponse = addSignatureToAuthResponseJwt(authResponsePayload, resp.signatureDER);
+      */
+      const authResponse = authResponsePayload;
+      console.log(await isExpirationDateValid(authResponse),
+    await isIssuanceDateValid(authResponse),
+    await doSignaturesMatchPublicKeys(authResponse),
+    await doPublicKeysMatchIssuer(authResponse)),
+
       await delay(600);
       keyActions.switchAccount(accountIndex);
       finalizeAuthResponse({ decodedAuthRequest, authRequest, authResponse });
     } catch (e) {
+      console.log(e);
       ledgerNavigate.toDeviceDisconnectStep();
     }
   };

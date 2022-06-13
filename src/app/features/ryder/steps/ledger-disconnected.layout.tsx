@@ -1,7 +1,6 @@
 import { Box, Button, Stack } from '@stacks/ui';
 import { PrimaryButton } from '@app/components/primary-button';
-import LedgerDisconnected from '@assets/images/ledger/ledger-disconnected.png';
-
+import RyderLogo from '@assets/images/ryder/ryder-logo.png';
 import { LedgerTitle } from '../components/ledger-title';
 import { LedgerWrapper } from '../components/ledger-wrapper';
 
@@ -14,10 +13,10 @@ export function LedgerDisconnectedLayout(props: LedgerDisconnectedLayoutProps) {
   return (
     <LedgerWrapper>
       <Box mb="loose" mt="tight">
-        <img src={LedgerDisconnected} width="242px" />
+        <img src={RyderLogo} width="242px" />
       </Box>
       <LedgerTitle mb="loose" mt="loose" mx="40px">
-        Your Ledger has disconnected
+        Your Ryder has disconnected
       </LedgerTitle>
       <Stack isInline mb="loose">
         <Button

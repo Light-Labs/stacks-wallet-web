@@ -234,8 +234,13 @@ export function getUrlHostname(url: string) {
   return new URL(url).hostname;
 }
 
-export function getUrlPort(url: string) {
+function getUrlPort(url: string) {
   return new URL(url).port;
+}
+
+export function addPortSuffix(url: string) {
+  const port = getUrlPort(url);
+  return port ? `:${port}` : '';
 }
 
 export async function delay(ms: number) {
@@ -292,4 +297,16 @@ export function getFullyQualifiedAssetName(asset?: AssetWithMeta) {
 
 export function doesBrowserSupportWebUsbApi() {
   return Boolean((navigator as any).usb);
+}
+
+const isFullPage = document.location.pathname.startsWith('/index.html');
+
+const pageMode = isFullPage ? 'full' : 'popup';
+
+type PageMode = 'popup' | 'full';
+
+type WhenPageModeMap<T> = Record<PageMode, T>;
+
+export function whenPageMode<T>(pageModeMap: WhenPageModeMap<T>) {
+  return pageModeMap[pageMode];
 }

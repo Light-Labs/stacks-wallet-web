@@ -69,7 +69,7 @@ export function WelcomeLayout(props: WelcomeLayoutProps): JSX.Element {
             pr={['unset', '80px']}
           >
             Hiro Wallet connects you to Stacks apps while keeping your account, data, and crypto
-            secure. Create your Stacks account to get started.
+            secure.
           </Text>
           <Box>
             <PrimaryButton
@@ -78,7 +78,7 @@ export function WelcomeLayout(props: WelcomeLayoutProps): JSX.Element {
               mt={['base', null, 'loose']}
               onClick={onStartOnboarding}
             >
-              Create Stacks Account
+              Create new wallet
             </PrimaryButton>
           </Box>
 

@@ -2,7 +2,6 @@ import { useCallback, useEffect } from 'react';
 import * as yup from 'yup';
 import { Formik } from 'formik';
 import BigNumber from 'bignumber.js';
-import BN from 'bn.js';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { Stack } from '@stacks/ui';
@@ -11,7 +10,7 @@ import { microStxToStx, stacksValue, stxToMicroStx } from '@app/common/stacks-ut
 import { useRefreshAllAccountData } from '@app/common/hooks/account/use-refresh-all-account-data';
 import { useFeeSchema } from '@app/common/validation/use-fee-schema';
 import { Caption } from '@app/components/typography';
-import { TxItem } from '@app/components/tx-item';
+import { TransactionItem } from '@app/components/transaction/components/transaction-item';
 import { useRawDeserializedTxState, useRawTxIdState } from '@app/store/transactions/raw.hooks';
 import { useReplaceByFeeSoftwareWalletSubmitCallBack } from '@app/store/transactions/fees.hooks';
 import { useCurrentAccountAvailableStxBalance } from '@app/store/accounts/account.hooks';
@@ -47,7 +46,7 @@ export function IncreaseFeeForm(): JSX.Element | null {
   const onSubmit = useCallback(
     async values => {
       if (!rawTx) return;
-      rawTx.setFee(new BN(stxToMicroStx(values.fee).toNumber()));
+      rawTx.setFee(stxToMicroStx(values.fee).toString());
       // TODO: Revisit the need for this account refresh?
       await refreshAccountData();
       if (walletType === 'software') {
@@ -79,7 +78,7 @@ export function IncreaseFeeForm(): JSX.Element | null {
     >
       {() => (
         <Stack spacing="extra-loose">
-          {tx && <TxItem position="relative" zIndex={99} transaction={tx} />}
+          {tx && <TransactionItem position="relative" transaction={tx} zIndex={99} />}
           <Stack spacing="base">
             <IncreaseFeeField currentFee={fee} />
             {stxBalance && (

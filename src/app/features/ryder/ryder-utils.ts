@@ -1,6 +1,17 @@
 /* eslint-disable no-console */
-import { AddressVersion, createStacksPublicKey, getAddressFromPublicKey, publicKeyToAddress } from '@stacks/transactions';
-import { ResponseAddress, ResponseAppInfo, ResponseVersion } from '@zondax/ledger-blockstack';
+import {
+  AddressVersion,
+  createStacksPublicKey,
+  getAddressFromPublicKey,
+  publicKeyToAddress,
+} from '@stacks/transactions';
+import {
+  LedgerError,
+  ResponseAddress,
+  ResponseAppInfo,
+  ResponseVersion,
+} from '@zondax/ledger-blockstack';
+import { reject } from 'lodash';
 import RyderSerial, { Options } from '../../ryderserial';
 
 interface RyderAppError {
@@ -19,19 +30,32 @@ const identityDerivationWithoutAccount = `m/888'/0'/0'/`;
 export class StacksApp {
   constructor(_: any) {}
   signGetChunks(path: string, message: Buffer): Promise<Buffer[]> {
-    return Promise.reject('Not implemented');
+    return Promise.reject('signGetChunks not implemented');
   }
   getVersion(): Promise<ResponseVersion> {
-    return Promise.reject('Not implemented');
+    return new Promise<ResponseVersion>(resolve => {
+      const ryderApp = new RyderApp();
+      void ryderApp.serial_info({ port, options: { debug: true } }, (res: any) => {
+        if (typeof res === typeof 'a string') {
+          reject(res);
+        } else {
+          resolve(res.data);
+        }
+      });
+    });
   }
   getAppInfo(): Promise<ResponseAppInfo> {
-    return Promise.reject('Not implemented');
+    return Promise.reject('getAppInfo not implemented');
   }
   getAddressAndPubKey(path: string, version: AddressVersion): Promise<ResponseAddress> {
-    return Promise.reject('Not implemented');
+    return this.getIdentityPubKey(
+      identityDerivationWithoutAccount + path.substring(path.length - 1)
+    );
   }
+
   async getIdentityPubKey(path: string): Promise<ResponseAddress> {
-    const index = parseInt(path.replace(identityDerivationWithoutAccount, ""));
+    console.log({ path });
+    const index = parseInt(path.replace(identityDerivationWithoutAccount, ''));
     console.log('try export ', index);
     return new Promise<ResponseAddress>(resolve => {
       const ryderApp = new RyderApp();
@@ -39,7 +63,13 @@ export class StacksApp {
         .serial_export_identity({ port, options: { debug: true } }, index, (res: any) => {
           console.log('response', res);
           const address = getAddressFromPublicKey(res.data);
-          resolve({ publicKey: res.data, address, errorMessage: '', returnCode: 0 });
+          console.log({ address });
+          resolve({
+            publicKey: res.data,
+            address,
+            errorMessage: '',
+            returnCode: LedgerError.NoErrors,
+          });
         })
         .then(() => {
           console.log('request sent');
@@ -47,16 +77,16 @@ export class StacksApp {
     });
   }
   showAddressAndPubKey(path: string, version: AddressVersion): Promise<ResponseAddress> {
-    return Promise.reject('Not implemented');
+    return Promise.reject('showAddressAndPubKey not implemented');
   }
   signSendChunk(chunkIdx: number, chunkNum: number, chunk: Buffer): Promise<ResponseSign> {
-    return Promise.reject('Not implemented');
+    return Promise.reject('signSendChunk not implemented');
   }
   async sign(path: string, message: Buffer): Promise<any> {
-    return Promise.reject('Not implemented');
+    return Promise.reject('sign not implemented');
   }
   async sign_msg(path: string, message: string): Promise<any> {
-    return Promise.reject('Not implemented');
+    return Promise.reject('sign_msg not implemented');
   }
   async sign_jwt(path: string, message: string): Promise<any> {
     return Promise.reject('Not implemented');
@@ -83,10 +113,10 @@ class RyderApp {
 
   async serial_info(
     payload: { port: string; options?: Options },
-    callback: (res: Response<string>) => void
+    callback: (res: Response<ResponseVersion | string>) => void
   ): Promise<void> {
     this.ryder_serial = new RyderSerial(payload.port, payload.options);
-    new Promise<string>((resolve, reject) => {
+    new Promise<ResponseVersion | string>((resolve, reject) => {
       if (!this.ryder_serial) {
         reject('Ryder Serial does not exist for some reason');
         return;
@@ -109,7 +139,16 @@ class RyderApp {
         if (!info || info.substring(0, 5) !== 'ryder') {
           reject(`Device at ${payload.port} does not appear to be a Ryder device`);
         } else {
-          resolve(info);
+          resolve({
+            targetId: 'ryder',
+            major: info.charCodeAt(5),
+            minor: info.charCodeAt(6),
+            patch: info.charCodeAt(7),
+            testMode: true,
+            deviceLocked: false,
+            errorMessage: '',
+            returnCode: LedgerError.NoErrors,
+          });
         }
         return;
       });
@@ -163,7 +202,8 @@ class RyderApp {
             : Buffer.from(response, 'binary').toString('hex');
         // eslint-disable-next-line no-console
         console.log(
-          publicKeyToAddress(AddressVersion.MainnetSingleSig, createStacksPublicKey(publicKey))
+          publicKey
+          //publicKeyToAddress(AddressVersion.MainnetSingleSig, createStacksPublicKey(publicKey))
         );
         resolve(publicKey);
         return;

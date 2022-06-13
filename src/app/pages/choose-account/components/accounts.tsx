@@ -1,4 +1,4 @@
-import { useCallback, useEffect, Suspense, memo, useState, useMemo } from 'react';
+import { Suspense, memo, useState, useMemo } from 'react';
 import { FiPlusCircle } from 'react-icons/fi';
 import { Virtuoso } from 'react-virtuoso';
 import { Box, BoxProps, color, FlexProps, Spinner, Stack } from '@stacks/ui';
@@ -21,7 +21,7 @@ import { useAccounts, useHasCreatedAccount } from '@app/store/accounts/account.h
 import { useAddressBalances } from '@app/query/balance/balance.hooks';
 import { useWalletType } from '@app/common/use-wallet-type';
 import { AccountWithAddress } from '@app/store/accounts/account.models';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { RouteUrls } from '@shared/route-urls';
 import { POPUP_CENTER_WIDTH } from '@shared/constants';
 
