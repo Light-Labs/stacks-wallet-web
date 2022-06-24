@@ -13,6 +13,7 @@ import {
 } from '@zondax/ledger-blockstack';
 import { reject } from 'lodash';
 import RyderSerial, { Options } from '../../ryderserial';
+import { pathToBytes } from './ryder-bip-utils';
 
 interface RyderAppError {
   source: Error;
@@ -25,7 +26,7 @@ export type Response<T> = RyderAppError | Success<T>;
 
 const port = 'ws:/localhost:8080';
 const stxDerivationWithAccount = `m/44'/5757'/0'/0/{account}`;
-const identityDerivationWithoutAccount = `m/888'/0'/0'/`;
+const identityDerivationWithoutAccount = `m/888'/0'/`;
 
 export class StacksApp {
   constructor(_: any) {}
@@ -48,14 +49,31 @@ export class StacksApp {
     return Promise.reject('getAppInfo not implemented');
   }
   getAddressAndPubKey(path: string, version: AddressVersion): Promise<ResponseAddress> {
-    return this.getIdentityPubKey(
-      identityDerivationWithoutAccount + path.substring(path.length - 1)
-    );
+    console.log('try export ', path);
+    return new Promise<ResponseAddress>(resolve => {
+      const ryderApp = new RyderApp();
+      void ryderApp
+        .export_derived_public_key({ port, options: { debug: true } }, path, (res: any) => {
+          const publicKey = Buffer.from(res.data.substring(0, 66), "hex");
+          console.log('response', res, publicKey);
+          const address = getAddressFromPublicKey(publicKey);
+          console.log({ address });
+          resolve({
+            publicKey,
+            address,
+            errorMessage: '',
+            returnCode: LedgerError.NoErrors,
+          });
+        })
+        .then(() => {
+          console.log('request sent');
+        });
+    });
   }
 
   async getIdentityPubKey(path: string): Promise<ResponseAddress> {
     console.log({ path });
-    const index = parseInt(path.replace(identityDerivationWithoutAccount, ''));
+    const index = parseInt(path.replace(identityDerivationWithoutAccount, '').slice(0, -1));
     console.log('try export ', index);
     return new Promise<ResponseAddress>(resolve => {
       const ryderApp = new RyderApp();
@@ -133,11 +151,13 @@ class RyderApp {
           reject('Ryder serial was destroyed');
           return;
         }
-
+        console.log('send info start');
         const response = await this.ryder_serial.send(RyderSerial.COMMAND_INFO);
+        console.log('send info end');
         const info = typeof response === 'number' ? response.toString() : response;
         if (!info || info.substring(0, 5) !== 'ryder') {
           reject(`Device at ${payload.port} does not appear to be a Ryder device`);
+          return;
         } else {
           resolve({
             targetId: 'ryder',
@@ -149,7 +169,64 @@ class RyderApp {
             errorMessage: '',
             returnCode: LedgerError.NoErrors,
           });
+          return;
         }
+      });
+      this.ryder_serial.on('wait_user_confirm', () => {
+        resolve('Confirm or cancel on Ryder device.');
+        return;
+      });
+    })
+      .then((res: string | ResponseVersion) => callback({ data: res }))
+      .catch(error =>
+        callback({
+          source: error,
+          error: error,
+        })
+      )
+      .finally(() => this.ryder_serial?.close());
+  }
+
+  async export_derived_public_key(
+    payload: { port: string; options?: Options },
+    path: string,
+    callback: (res: Response<string>) => void
+  ): Promise<void> {
+    this.ryder_serial = new RyderSerial(payload.port, payload.options);
+    new Promise<string>((resolve, reject) => {
+      if (!this.ryder_serial) {
+        reject('Ryder Serial does not exist for some reason');
+        return;
+      }
+
+      this.ryder_serial.on('failed', (error: Error) => {
+        reject(
+          `Could not connect to the Ryder on the specified port. Wrong port or it is currently in use: ${error}`
+        );
+        return;
+      });
+
+      this.ryder_serial.on('open', async () => {
+        if (!this.ryder_serial) {
+          reject('Ryder serial was destroyed');
+          return;
+        }
+        const response = await this.ryder_serial.send(
+          [RyderSerial.COMMAND_EXPORT_DERIVED_PUBLIC_KEY].concat(pathToBytes(path))
+        );
+
+        // eslint-disable-next-line no-console
+        console.log('typeof response', typeof response);
+        const publicKey =
+          typeof response === 'number'
+            ? response.toString()
+            : Buffer.from(response, 'binary').toString('hex');
+        // eslint-disable-next-line no-console
+        console.log(
+          publicKey
+          //publicKeyToAddress(AddressVersion.MainnetSingleSig, createStacksPublicKey(publicKey))
+        );
+        resolve(publicKey);
         return;
       });
       this.ryder_serial.on('wait_user_confirm', () => {

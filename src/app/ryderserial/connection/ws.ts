@@ -24,7 +24,7 @@ export class WSConnection {
     switch (event) {
       case 'data':
         this.socket.onmessage = messageEvent => {
-          console.log(messageEvent.data);
+          console.log('new message from bridge', messageEvent.data);
           messageEvent.data.arrayBuffer().then((d: Uint8Array) => callback(d));
         };
         break;

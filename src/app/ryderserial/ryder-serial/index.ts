@@ -35,10 +35,7 @@ const enum State {
 
 const state_symbol = Symbol('state');
 const lock_symbol = Symbol('ready');
-const watchdog_symbol = Symbol('watchdog');
 const reconnect_symbol = Symbol('reconnect');
-
-const WATCHDOG_TIMEOUT = 5000;
 
 let id = 0;
 
@@ -98,8 +95,6 @@ export default class RyderSerial extends Events.EventEmitter {
   [state_symbol]: State;
   /** array of resolve functions representing locks; locks are released when resolved */
   [lock_symbol]: Array<(value?: unknown) => void>;
-  /** timeout that will invoke `this.serial_watchdog()` if we ever go over `SERIAL_WATCHDOG_TIMEOUT` */
-  [watchdog_symbol]: NodeJS.Timeout;
   /** timeout that will invoke `this.open()` if we ever go over `this.options.reconnectTimeout` */
   [reconnect_symbol]: NodeJS.Timeout;
 
@@ -119,9 +114,10 @@ export default class RyderSerial extends Events.EventEmitter {
   static readonly COMMAND_EXPORT_OWNER_APP_KEY_PRIVATE_KEY = 23;
   static readonly COMMAND_EXPORT_PUBLIC_IDENTITIES = 30;
   static readonly COMMAND_EXPORT_PUBLIC_IDENTITY = 31;
-  // encrypt/decrypt commands
-  static readonly COMMAND_START_ENCRYPT = 40;
-  static readonly COMMAND_START_DECRYPT = 41;
+
+  // export public keys
+  static readonly COMMAND_EXPORT_DERIVED_PUBLIC_KEY = 40;
+
   // transaction commands
   static readonly COMMAND_SIGN_TRANSACTION = 50;
   // cancel command
@@ -176,7 +172,6 @@ export default class RyderSerial extends Events.EventEmitter {
       const { reject } = this.#train.pop_tail();
       reject(error);
     }
-    clearTimeout(this[watchdog_symbol]);
     this[state_symbol] = State.IDLE;
     this.next();
   }
@@ -190,7 +185,6 @@ export default class RyderSerial extends Events.EventEmitter {
     if (this[state_symbol] === State.IDLE) {
       this.log(LogLevel.WARN, 'Got data from Ryder without asking, discarding.');
     } else {
-      clearTimeout(this[watchdog_symbol]);
       if (this.#train.is_empty()) {
         return;
       }
@@ -273,7 +267,6 @@ export default class RyderSerial extends Events.EventEmitter {
           LogLevel.INFO,
           '---> (during response_output): READING... ryderserial is trying to read data'
         );
-        this[watchdog_symbol] = setTimeout(this.serial_watchdog.bind(this), WATCHDOG_TIMEOUT);
         for (let i = offset; i < data.byteLength; ++i) {
           const b = data[i];
           // if previous was not escape byte
@@ -303,16 +296,6 @@ export default class RyderSerial extends Events.EventEmitter {
         }
       }
     }
-  }
-
-  private serial_watchdog(): void {
-    if (this.#train.is_empty()) {
-      return;
-    }
-    const { reject } = this.#train.pop_front();
-    reject(new Error('ERROR_WATCHDOG'));
-    this[state_symbol] = State.IDLE;
-    this.next();
   }
 
   /**
@@ -530,8 +513,6 @@ export default class RyderSerial extends Events.EventEmitter {
         this.serial_error(error as Error);
         return;
       }
-      clearTimeout(this[watchdog_symbol]);
-      this[watchdog_symbol] = setTimeout(this.serial_watchdog.bind(this), WATCHDOG_TIMEOUT);
     } else {
       this.log(LogLevel.INFO, '-> IDLE... ryderserial is waiting for next task.');
     }
@@ -547,7 +528,6 @@ export default class RyderSerial extends Events.EventEmitter {
    * - release all locks
    */
   public clear(): void {
-    clearTimeout(this[watchdog_symbol]);
     this.#train.reject_all_remaining();
     this[state_symbol] = State.IDLE;
     for (let i = 0; i < this[lock_symbol].length; ++i)
