@@ -89,6 +89,7 @@ export class StacksApp {
         });
     });
   }
+
   showAddressAndPubKey(path: string, version: AddressVersion): Promise<ResponseAddress> {
     return Promise.reject('showAddressAndPubKey not implemented');
   }
@@ -101,26 +102,41 @@ export class StacksApp {
   async sign_msg(path: string, message: string): Promise<any> {
     return Promise.reject('sign_msg not implemented');
   }
+
   async sign_jwt(path: string, message: string): Promise<any> {
-    return Promise.reject('Not implemented');
+    console.log({ path });
+    const index = parseInt(path.replace(identityDerivationWithoutAccount, '').slice(0, -1));
+    console.log('sign jwt hash with account ', index);
+    console.log(message);
+    return new Promise<any>(resolve => {
+      const ryderApp = new RyderApp();
+      void ryderApp.sign_identity_message(
+        { port, options: { debug: true } },
+        index,
+        Buffer.from(message),
+        (res: any) => {
+          console.log('response', res);
+          resolve({ signatureDER: res.data });
+        }
+      );
+    });
+  }
+
+  async exportPublicKey(index: number) {
+    console.log('try export ', index);
+    return new Promise<{ publicKey: string }>(resolve => {
+      const ryderApp = new RyderApp();
+      void ryderApp
+        .serial_export_identity({ port, options: { debug: true } }, index, (res: any) => {
+          console.log('response', res);
+          resolve({ publicKey: res.data });
+        })
+        .then(() => {
+          console.log('request sent');
+        });
+    });
   }
 }
-
-async function exportPublicKey(index: number) {
-  console.log('try export ', index);
-  return new Promise<{ publicKey: string }>(resolve => {
-    const ryderApp = new RyderApp();
-    void ryderApp
-      .serial_export_identity({ port, options: { debug: true } }, index, (res: any) => {
-        console.log('response', res);
-        resolve({ publicKey: res.data });
-      })
-      .then(() => {
-        console.log('request sent');
-      });
-  });
-}
-
 class RyderApp {
   ryder_serial?: RyderSerial;
 
@@ -299,10 +315,10 @@ class RyderApp {
     payload: { port: string; options?: Options },
     accountIndex: number,
     message: Buffer,
-    callback: (res: Response<string>) => void
+    callback: (res: Response<Uint8Array>) => void
   ): Promise<void> {
     this.ryder_serial = new RyderSerial(payload.port, payload.options);
-    new Promise<string>((resolve, reject) => {
+    new Promise<Uint8Array>((resolve, reject) => {
       if (!this.ryder_serial) {
         reject('Ryder Serial does not exist for some reason');
         return;
@@ -327,12 +343,14 @@ class RyderApp {
         // eslint-disable-next-line no-console
         console.log('typeof response', typeof response);
         if (response === RyderSerial.RESPONSE_SEND_INPUT) {
+          // eslint-disable-next-line no-console
           const length = message.length;
+          console.log('sending message to sign', accountIndex, length);
           const data = new Uint8Array(2 + 4 + length);
-          data.set(new Uint16Array([accountIndex]), 0);
-          data.set(new Uint32Array([length]), 2);
+          data.set(new Uint8Array(new Uint16Array([accountIndex]).buffer).reverse(), 0);
+          data.set(new Uint8Array(new Uint32Array([length]).buffer).reverse(), 2);
           data.set(message, 6);
-          console.log(data);
+          console.log(data, message);
           response = await this.ryder_serial.send(data);
           const signature =
             typeof response === 'number'
@@ -340,7 +358,11 @@ class RyderApp {
               : Buffer.from(response, 'binary').toString('hex');
           // eslint-disable-next-line no-console
           console.log({ signature });
-          resolve(signature);
+          resolve(
+            typeof response === 'number'
+              ? new Uint8Array([response])
+              : new Uint8Array(Buffer.from(response, 'binary'))
+          );
         }
         return;
       });

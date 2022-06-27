@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { LedgerError } from '@zondax/ledger-blockstack';
@@ -25,8 +26,13 @@ import { useLedgerNavigate } from '../../hooks/use-ledger-navigate';
 import { LedgerJwtSigningProvider } from '../../ledger-jwt-signing.context';
 import { finalizeAuthResponse } from '@app/common/actions/finalize-auth-response';
 import { useOnboardingState } from '@app/common/hooks/auth/use-onboarding-state';
-import { doPublicKeysMatchIssuer, doSignaturesMatchPublicKeys, isExpirationDateValid, isIssuanceDateValid } from '@stacks/auth';
-import { decodeToken } from 'jsontokens';
+import {
+  doPublicKeysMatchIssuer,
+  doSignaturesMatchPublicKeys,
+  isExpirationDateValid,
+  isIssuanceDateValid,
+} from '@stacks/auth';
+import { decodeToken, TokenVerifier } from 'jsontokens';
 
 export function LedgerSignJwtContainer() {
   const location = useLocation();
@@ -95,8 +101,6 @@ export function LedgerSignJwtContainer() {
 
       setJwtPayloadHash(getSha256HashOfJwtAuthPayload(authResponsePayload));
 
-
-      /*
       ledgerNavigate.toAwaitingDeviceOperation({ hasApprovedOperation: false });
 
       const resp = await signLedgerJwtHash(stacks)(authResponsePayload, accountIndex);
@@ -107,19 +111,20 @@ export function LedgerSignJwtContainer() {
       }
 
       ledgerNavigate.toAwaitingDeviceOperation({ hasApprovedOperation: true });
-      const authResponse = addSignatureToAuthResponseJwt(authResponsePayload, resp.signatureDER);
-      */
-      const authResponse = authResponsePayload;
-      console.log(await isExpirationDateValid(authResponse),
-    await isIssuanceDateValid(authResponse),
-    await doSignaturesMatchPublicKeys(authResponse),
-    await doPublicKeysMatchIssuer(authResponse)),
 
+      const authResponse = addSignatureToAuthResponseJwt(authResponsePayload, resp.signatureDER);
+      // eslint-disable-next-line no-console
+      console.log(
+        'sign checks',
+        await isExpirationDateValid(authResponse),
+        await isIssuanceDateValid(authResponse),
+        await doSignaturesMatchPublicKeys(authResponse),
+        await doPublicKeysMatchIssuer(authResponse)
+      );
       await delay(600);
       keyActions.switchAccount(accountIndex);
       finalizeAuthResponse({ decodedAuthRequest, authRequest, authResponse });
     } catch (e) {
-      console.log(e);
       ledgerNavigate.toDeviceDisconnectStep();
     }
   };

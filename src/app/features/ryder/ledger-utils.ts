@@ -174,8 +174,17 @@ function reformatDerSignatureToJose(derSignature: Uint8Array) {
 }
 
 export function addSignatureToAuthResponseJwt(authResponse: string, signature: Uint8Array) {
-  const resultingSig = reformatDerSignatureToJose(signature);
-  return [authResponse, resultingSig].join('.');
+  try {
+    const resultingSig = Buffer.from(signature).slice(1)
+      .toString('base64')
+      .replace(/=/g, '')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_');
+    return [authResponse, resultingSig].join('.');
+  } catch (e) {
+    console.log(e);
+    return authResponse;
+  }
 }
 
 export function getSha256HashOfJwtAuthPayload(payload: string) {

@@ -137,7 +137,7 @@
     "http-server": "14.0.0",
     "jotai": "1.5.3",
     "jotai-query-toolkit": "0.1.7",
-    "jsontokens": "3.0.0",
+    "jsontokens": "^3.1.1",
     "limiter": "2.1.0",
     "lodash": "4.17.21",
     "lodash.get": "4.4.2",

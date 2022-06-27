@@ -12345,7 +12345,7 @@ jsonrpc-lite@^2.2.0:
   resolved "https://registry.yarnpkg.com/jsonrpc-lite/-/jsonrpc-lite-2.2.0.tgz#fb3aa9d292c8970eb7f83c6040c6554767bbc6a6"
   integrity sha512-/cbbSxtZWs1O7R4tWqabrCM/t3N8qKUZMAg9IUqpPvUs6UyRvm6pCNYkskyKN/XU0UgffW+NY2ZRr8t0AknX7g==
 
-jsontokens@3.0.0, jsontokens@^3.0.0:
+jsontokens@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/jsontokens/-/jsontokens-3.0.0.tgz#629984d260a4081b11541313acdba708377314d3"
   integrity sha512-P0QZC5AjOkn3t1ej6OuI7+XqoEctYj83UK4pw0WpHY4/z6a5PpZCJSpp5NZodq94GFkw2PfB9DPFoDM5qpyp/g==
@@ -12356,6 +12356,16 @@ jsontokens@3.0.0, jsontokens@^3.0.0:
     ecdsa-sig-formatter "^1.0.11"
     elliptic "^6.4.1"
     sha.js "^2.4.11"
+
+jsontokens@^3.1.1:
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/jsontokens/-/jsontokens-3.1.1.tgz#71e46f01e058145b88244bd52be94ba7921a9e72"
+  integrity sha512-qABuRXXrDP1XQrUm0/59h3kEBWtbyk/lS24t98iHvuAq7gyNA2lxqSQgATsbx8DzbMfOJmkmfjwLodd96lD/kw==
+  dependencies:
+    "@noble/hashes" "^1.0.0"
+    "@noble/secp256k1" "^1.5.5"
+    base64url "^3.0.1"
+    ecdsa-sig-formatter "^1.0.11"
 
 jsonwebtoken@8.5.1:
   version "8.5.1"
