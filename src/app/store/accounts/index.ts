@@ -36,6 +36,7 @@ import { DEFAULT_LIST_LIMIT } from '@shared/constants';
 import { createStacksPublicKey, pubKeyfromPrivKey, publicKeyToAddress } from '@stacks/transactions';
 import { AccountBalanceResponseBigNumber } from '@shared/models/account-types';
 import { derivePublicKey } from '@app/common/derive-public-key';
+import { signatureRequestAccountIndex } from '../signatures/requests';
 
 /**
  * --------------------------------------
@@ -81,14 +82,21 @@ const softwareAccountsWithAddressState = atom<SoftwareWalletAccountWithAddress[]
   }
 );
 
+export const accountsAvailableStxBalanceState = atom<BigNumber | undefined>(get => {
+  const accounts = get(accountsWithAddressState);
+  if (!accounts) return undefined;
+
+  return accounts.reduce((acc, account) => {
+    return acc.plus(get(accountAvailableAnchoredStxBalanceState(account.address)));
+  }, new BigNumber(0));
+});
+
 const ledgerAccountsWithAddressState = atom<LedgerAccountWithAddress[] | undefined>(get => {
   const ledgerWallet = get(ledgerKeyState);
   const addressVersion = get(addressNetworkVersionState);
   if (!ledgerWallet) return undefined;
 
   return ledgerWallet.publicKeys.map((publicKeys, index) => {
-    // eslint-disable-next-line no-console
-    console.log(publicKeys)
     const address = publicKeyToAddress(
       addressVersion,
       createStacksPublicKey(publicKeys.stxPublicKey)
@@ -137,7 +145,7 @@ export const transactionAccountIndexState = atom<number | undefined>(get => {
 // or the last selected / first account of the user
 export const currentAccountState = atom<AccountWithAddress | undefined>(get => {
   const accountIndex = get(currentAccountIndexState);
-  const txIndex = get(transactionAccountIndexState);
+  const txIndex = get(transactionAccountIndexState) ?? get(signatureRequestAccountIndex);
   const hasSwitched = get(hasSwitchedAccountsState);
   const accounts = get(accountsWithAddressState);
 

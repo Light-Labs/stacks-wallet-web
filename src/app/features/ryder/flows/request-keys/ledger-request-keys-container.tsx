@@ -5,6 +5,7 @@ import { Box } from '@stacks/ui';
 import toast from 'react-hot-toast';
 
 import {
+  doesLedgerStacksAppVersionSupportJwtAuth,
   getAppVersion,
   isStacksLedgerAppClosed,
   prepareLedgerDeviceConnection,
@@ -19,24 +20,25 @@ import { BaseDrawer } from '@app/components/drawer';
 import { useLedgerNavigate } from '@app/features/ryder/hooks/use-ledger-navigate';
 import { useTriggerLedgerDeviceRequestKeys } from './use-trigger-ledger-request-keys';
 import { useLedgerAnalytics } from '@app/features/ryder/hooks/use-ledger-analytics.hook';
+import { useScrollLock } from '@app/common/hooks/use-scroll-lock';
 
 export function LedgerRequestKeysContainer() {
   const navigate = useNavigate();
   const ledgerNavigate = useLedgerNavigate();
   const ledgerAnalytics = useLedgerAnalytics();
+  useScrollLock(true);
 
   const { completeLedgerDeviceOnboarding, fireErrorMessageToast } =
     useTriggerLedgerDeviceRequestKeys();
 
   const [latestDeviceResponse, setLatestDeviceResponse] = useLedgerResponseState();
+  const [outdatedAppVersionWarning, setAppVersionOutdatedWarning] = useState(false);
   const [awaitingDeviceConnection, setAwaitingDeviceConnection] = useState(false);
 
   const pullPublicKeysFromDevice = async () => {
     const stacks = await prepareLedgerDeviceConnection({
       setLoadingState: setAwaitingDeviceConnection,
       onError() {
-        // eslint-disable-next-line no-console
-        console.log("error")
         ledgerNavigate.toErrorStep();
       },
     });
@@ -57,21 +59,24 @@ export function LedgerRequestKeysContainer() {
       return;
     }
 
+    if (doesLedgerStacksAppVersionSupportJwtAuth(versionInfo)) {
+      setAppVersionOutdatedWarning(true);
+      return;
+    }
+
     try {
       ledgerNavigate.toConnectionSuccessStep();
       await delay(1750);
       ledgerNavigate.toActivityHappeningOnDeviceStep();
-      // eslint-disable-next-line no-console
-      console.log("pullKeysFromLedgerDevice")
+
       const resp = await pullKeysFromLedgerDevice(stacks);
-      console.log({ resp });
       if (resp.status === 'failure') {
         fireErrorMessageToast(resp.errorMessage);
         ledgerNavigate.toErrorStep(resp.errorMessage);
         return;
       }
       ledgerNavigate.toActivityHappeningOnDeviceStep();
-      completeLedgerDeviceOnboarding(resp.publicKeys, 'ryder');
+      completeLedgerDeviceOnboarding(resp.publicKeys, versionInfo.targetId);
       ledgerAnalytics.publicKeysPulledFromLedgerSuccessfully();
       navigate(RouteUrls.Home);
     } catch (e) {
@@ -86,6 +91,7 @@ export function LedgerRequestKeysContainer() {
     pullPublicKeysFromDevice,
     latestDeviceResponse,
     awaitingDeviceConnection,
+    outdatedAppVersionWarning,
     onCancelConnectLedger,
   };
 

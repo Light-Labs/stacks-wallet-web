@@ -7,7 +7,7 @@ import { ButtonProps } from '@stacks/ui';
 import { useHasFiatProviders } from '@app/query/hiro-config/hiro-config.query';
 import { useCurrentNetworkState } from '@app/store/network/networks.hooks';
 import { RouteUrls } from '@shared/route-urls';
-import { BuyTokensSelectors } from '@tests/page-objects/buy-tokens-selectors';
+import { HomePageSelectors } from '@tests/page-objects/home.selectors';
 
 import { HomeActionButton } from './tx-button';
 import { SecondaryButton } from '@app/components/secondary-button';
@@ -15,7 +15,7 @@ import { SecondaryButton } from '@app/components/secondary-button';
 function BuyTxButton(props: ButtonProps) {
   return (
     <HomeActionButton
-      data-testid={BuyTokensSelectors.BtnBuyTokens}
+      data-testid={HomePageSelectors.BtnFundAccount}
       icon={FiPlus}
       label="Buy"
       buttonComponent={SecondaryButton}
@@ -35,7 +35,7 @@ export const BuyButton = () => {
 
   return (
     <Suspense fallback={<BuyButtonFallback />}>
-      <BuyTxButton onClick={() => navigate(RouteUrls.Buy)} />
+      <BuyTxButton onClick={() => navigate(RouteUrls.Fund)} />
     </Suspense>
   );
 };

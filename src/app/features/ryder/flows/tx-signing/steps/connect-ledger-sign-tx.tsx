@@ -6,7 +6,7 @@ import { ConnectLedgerLayout } from '@app/features/ryder/steps/connect-ledger.la
 import { useWhenReattemptingLedgerConnection } from '@app/features/ryder/hooks/use-when-reattempt-ledger-connection';
 
 import { ledgerTxSigningContext } from '@app/features/ryder/ledger-tx-signing.context';
-import { LedgerInlineWarnings } from '@app/features/ryder/components/ledger-inline-warnings';
+import { CommonLedgerDeviceInlineWarnings } from '@app/features/ryder/components/ledger-inline-warnings';
 
 export function ConnectLedgerSignTx() {
   const location = useLocation();
@@ -22,7 +22,7 @@ export function ConnectLedgerSignTx() {
     <ConnectLedgerLayout
       awaitingLedgerConnection={awaitingDeviceConnection}
       isLookingForLedger={isLookingForLedger}
-      warning={<LedgerInlineWarnings latestDeviceResponse={latestDeviceResponse} />}
+      warning={<CommonLedgerDeviceInlineWarnings latestDeviceResponse={latestDeviceResponse} />}
       onConnectLedger={signTransaction}
       showInstructions={false}
     />

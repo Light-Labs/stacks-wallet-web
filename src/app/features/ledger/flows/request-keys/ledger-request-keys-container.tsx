@@ -5,6 +5,7 @@ import { Box } from '@stacks/ui';
 import toast from 'react-hot-toast';
 
 import {
+  doesLedgerStacksAppVersionSupportJwtAuth,
   getAppVersion,
   isStacksLedgerAppClosed,
   prepareLedgerDeviceConnection,
@@ -19,16 +20,19 @@ import { BaseDrawer } from '@app/components/drawer';
 import { useLedgerNavigate } from '@app/features/ledger/hooks/use-ledger-navigate';
 import { useTriggerLedgerDeviceRequestKeys } from './use-trigger-ledger-request-keys';
 import { useLedgerAnalytics } from '@app/features/ledger/hooks/use-ledger-analytics.hook';
+import { useScrollLock } from '@app/common/hooks/use-scroll-lock';
 
 export function LedgerRequestKeysContainer() {
   const navigate = useNavigate();
   const ledgerNavigate = useLedgerNavigate();
   const ledgerAnalytics = useLedgerAnalytics();
+  useScrollLock(true);
 
   const { completeLedgerDeviceOnboarding, fireErrorMessageToast } =
     useTriggerLedgerDeviceRequestKeys();
 
   const [latestDeviceResponse, setLatestDeviceResponse] = useLedgerResponseState();
+  const [outdatedAppVersionWarning, setAppVersionOutdatedWarning] = useState(false);
   const [awaitingDeviceConnection, setAwaitingDeviceConnection] = useState(false);
 
   const pullPublicKeysFromDevice = async () => {
@@ -52,6 +56,11 @@ export function LedgerRequestKeysContainer() {
 
     if (versionInfo.returnCode !== LedgerError.NoErrors) {
       if (!isStacksLedgerAppClosed(versionInfo)) toast.error(versionInfo.errorMessage);
+      return;
+    }
+
+    if (doesLedgerStacksAppVersionSupportJwtAuth(versionInfo)) {
+      setAppVersionOutdatedWarning(true);
       return;
     }
 
@@ -82,6 +91,7 @@ export function LedgerRequestKeysContainer() {
     pullPublicKeysFromDevice,
     latestDeviceResponse,
     awaitingDeviceConnection,
+    outdatedAppVersionWarning,
     onCancelConnectLedger,
   };
 

@@ -67,10 +67,10 @@ export const SetPasswordPage = () => {
           await finishSignIn(0);
         }
       } else {
-        navigate(RouteUrls.Home);
+        navigate(RouteUrls.Fund, { state: { showSkipButton: true } });
       }
     },
-    [wallet, setPassword, decodedAuthRequest, navigate, finishSignIn]
+    [setPassword, decodedAuthRequest, wallet, navigate, finishSignIn]
   );
 
   const onSubmit = useCallback(
@@ -142,8 +142,8 @@ export const SetPasswordPage = () => {
                 !formik.isSubmitting &&
                 !strengthResult.meetsAllStrengthRequirements ? (
                   <Caption fontSize={0} mt="base-loose">
-                    Please use a stronger password. Longer than 12 characters, with symbols,
-                    numbers, and words.
+                    Use a stronger password. Longer than 12 characters, with symbols, numbers, and
+                    words.
                   </Caption>
                 ) : null}
               </Text>
@@ -189,7 +189,7 @@ export const SetPasswordPage = () => {
                   isLoading={loading || formik.isSubmitting}
                   mt="tight"
                 >
-                  Done
+                  Continue
                 </PrimaryButton>
               </Stack>
             </Stack>

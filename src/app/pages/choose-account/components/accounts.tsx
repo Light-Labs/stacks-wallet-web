@@ -23,7 +23,6 @@ import { useWalletType } from '@app/common/use-wallet-type';
 import { AccountWithAddress } from '@app/store/accounts/account.models';
 import { useNavigate } from 'react-router-dom';
 import { RouteUrls } from '@shared/route-urls';
-import { POPUP_CENTER_WIDTH } from '@shared/constants';
 
 const loadingProps = { color: '#A1A7B3' };
 const getLoadingProps = (loading: boolean) => (loading ? loadingProps : {});
@@ -158,8 +157,9 @@ export const Accounts = memo(() => {
 
   return (
     <>
-      {whenWallet({ software: <AddAccountAction />, ledger: <></> })}
-      <Box width="100%" mt="extra-loose" px="loose" maxWidth={`${POPUP_CENTER_WIDTH}px`}>
+      <AddAccountAction />
+      <Box mt="base" width="100%">
+        {whenWallet({ software: <AddAccountAction />, ledger: <></> })}
         <Virtuoso
           useWindowScroll
           data={accounts}

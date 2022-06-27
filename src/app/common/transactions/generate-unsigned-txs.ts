@@ -50,6 +50,7 @@ function generateUnsignedContractCallTx(args: GenerateUnsignedContractCallTxArgs
     postConditionMode,
     postConditions,
     network,
+    anchorMode,
   } = txData;
 
   const fnArgs = functionArgs.map(arg => deserializeCV(hexToBuff(arg)));
@@ -59,7 +60,7 @@ function generateUnsignedContractCallTx(args: GenerateUnsignedContractCallTxArgs
     contractAddress,
     functionName,
     publicKey,
-    anchorMode: AnchorMode.Any,
+    anchorMode: anchorMode ?? AnchorMode.Any,
     functionArgs: fnArgs,
     nonce: initNonce(nonce)?.toString(),
     fee: new BN(fee, 10).toString(),
@@ -77,14 +78,14 @@ type GenerateUnsignedContractDeployTxArgs = GenerateUnsignedTxArgs<ContractDeplo
 
 function generateUnsignedContractDeployTx(args: GenerateUnsignedContractDeployTxArgs) {
   const { txData, publicKey, nonce, fee } = args;
-  const { contractName, codeBody, network, postConditions, postConditionMode } = txData;
+  const { contractName, codeBody, network, postConditions, postConditionMode, anchorMode } = txData;
   const options = {
     contractName,
     codeBody,
     nonce: initNonce(nonce)?.toString(),
     fee: new BN(fee, 10)?.toString(),
     publicKey,
-    anchorMode: AnchorMode.Any,
+    anchorMode: anchorMode ?? AnchorMode.Any,
     postConditionMode: postConditionMode,
     postConditions: getPostConditions(postConditions),
     network,
@@ -98,12 +99,12 @@ type GenerateUnsignedStxTransferTxArgs = GenerateUnsignedTxArgs<STXTransferPaylo
 
 function generateUnsignedStxTransferTx(args: GenerateUnsignedStxTransferTxArgs) {
   const { txData, publicKey, nonce, fee } = args;
-  const { recipient, memo, amount, network } = txData;
+  const { recipient, memo, amount, network, anchorMode } = txData;
   const options = {
     recipient,
     memo,
     publicKey,
-    anchorMode: AnchorMode.Any,
+    anchorMode: anchorMode ?? AnchorMode.Any,
     amount: new BN(amount).toString(),
     nonce: initNonce(nonce)?.toString(),
     fee: new BN(fee, 10).toString(),

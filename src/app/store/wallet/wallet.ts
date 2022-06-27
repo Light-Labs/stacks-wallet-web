@@ -64,8 +64,6 @@ export const ledgerKeyState = atom(async get => {
   const store = get(storeAtom);
   if (!store.keys.entities.default) return;
   if (store.keys.entities.default.type !== 'ledger') return;
-  // eslint-disable-next-line no-console
-  console.log(store.keys.entities.default);
   return store.keys.entities.default;
 });
 

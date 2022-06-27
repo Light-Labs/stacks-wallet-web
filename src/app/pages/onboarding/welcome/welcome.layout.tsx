@@ -9,6 +9,7 @@ import { PrimaryButton } from '@app/components/primary-button';
 import { CenteredPageContainer } from '@app/components/centered-page-container';
 import ExploreStacks from '@assets/images/onboarding/explore-stacks.png';
 import { OnboardingSelectors } from '@tests/integration/onboarding/onboarding.selectors';
+import { isLedgerFeatureEnabled } from '@shared/constants';
 
 const WelcomeIllustration = () => (
   <Box
@@ -100,6 +101,15 @@ export function WelcomeLayout(props: WelcomeLayoutProps): JSX.Element {
               <Link fontSize="inherit" onClick={onSelectConnectRyder}>
                 connect your Ryder
               </Link>
+              {isLedgerFeatureEnabled && (
+                <>
+                  {' '}
+                  or{' '}
+                  <Link fontSize="inherit" onClick={onSelectConnectLedger}>
+                    connect your Ledger
+                  </Link>
+                </>
+              )}
             </Box>
           </Flex>
         </Flex>

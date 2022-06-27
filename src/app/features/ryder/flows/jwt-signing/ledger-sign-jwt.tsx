@@ -26,17 +26,18 @@ import { useLedgerNavigate } from '../../hooks/use-ledger-navigate';
 import { LedgerJwtSigningProvider } from '../../ledger-jwt-signing.context';
 import { finalizeAuthResponse } from '@app/common/actions/finalize-auth-response';
 import { useOnboardingState } from '@app/common/hooks/auth/use-onboarding-state';
+import { useScrollLock } from '@app/common/hooks/use-scroll-lock';
 import {
   doPublicKeysMatchIssuer,
   doSignaturesMatchPublicKeys,
   isExpirationDateValid,
   isIssuanceDateValid,
 } from '@stacks/auth';
-import { decodeToken, TokenVerifier } from 'jsontokens';
 
 export function LedgerSignJwtContainer() {
   const location = useLocation();
   const ledgerNavigate = useLedgerNavigate();
+  useScrollLock(true);
 
   const account = useCurrentAccount();
   const keyActions = useKeyActions();

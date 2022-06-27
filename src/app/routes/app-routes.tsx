@@ -2,10 +2,9 @@ import { Suspense, useEffect, useMemo } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 
 import { RouteUrls } from '@shared/route-urls';
-
 import { useAnalytics } from '@app/common/hooks/analytics/use-analytics';
 import { useNextTxNonce } from '@app/common/hooks/account/use-next-tx-nonce';
-import { Container } from '@app/components/container/container';
+import { Container } from '@app/features/container/container';
 import { LoadingSpinner } from '@app/components/loading-spinner';
 import { MagicRecoveryCode } from '@app/pages/onboarding/magic-recovery-code/magic-recovery-code';
 import { ChooseAccount } from '@app/pages/choose-account/choose-account';
@@ -27,7 +26,7 @@ import { Unlock } from '@app/pages/unlock';
 import { Home } from '@app/pages/home/home';
 import { SignOutConfirmDrawer } from '@app/pages/sign-out-confirm/sign-out-confirm';
 import { AllowDiagnosticsPage } from '@app/pages/allow-diagnostics/allow-diagnostics';
-import { BuyPage } from '@app/pages/buy/buy';
+import { FundPage } from '@app/pages/fund/fund';
 import { BackUpSecretKeyPage } from '@app/pages/onboarding/back-up-secret-key/back-up-secret-key';
 import { WelcomePage } from '@app/pages/onboarding/welcome/welcome';
 import { LedgerRequestKeysContainer } from '@app/features/ryder/flows/request-keys/ledger-request-keys-container';
@@ -117,6 +116,7 @@ export function AppRoutes(): JSX.Element | null {
             </AccountGate>
           }
         >
+          <Route path={RouteUrls.Receive} element={<ReceiveTokens />} />
           <Route path={RouteUrls.SignOutConfirm} element={<SignOutConfirmDrawer />} />
           {ledgerTxSigningRoutes}
         </Route>
@@ -173,16 +173,6 @@ export function AppRoutes(): JSX.Element | null {
           }
         />
         <Route
-          path={RouteUrls.Buy}
-          element={
-            <AccountGate>
-              <Suspense fallback={<></>}>
-                <BuyPage />
-              </Suspense>
-            </AccountGate>
-          }
-        />
-        <Route
           path={RouteUrls.ChooseAccount}
           element={
             <AccountGate>
@@ -196,13 +186,17 @@ export function AppRoutes(): JSX.Element | null {
         </Route>
 
         <Route
-          path={RouteUrls.Receive}
+          path={RouteUrls.Fund}
           element={
             <AccountGate>
-              <ReceiveTokens />
+              <Suspense fallback={<></>}>
+                <FundPage />
+              </Suspense>
             </AccountGate>
           }
-        />
+        >
+          <Route path={RouteUrls.FundReceive} element={<ReceiveTokens />} />
+        </Route>
         <Route
           path={RouteUrls.Send}
           element={

@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
 import { useState } from 'react';
-import Transport from '@ledgerhq/hw-transport-webusb';
 import { LedgerError, ResponseVersion } from '@zondax/ledger-blockstack';
 import ecdsaFormat from 'ecdsa-sig-formatter';
+import { compare } from 'compare-versions';
 import * as secp from '@noble/secp256k1';
 import { sha256 } from 'sha.js';
 
@@ -175,7 +175,8 @@ function reformatDerSignatureToJose(derSignature: Uint8Array) {
 
 export function addSignatureToAuthResponseJwt(authResponse: string, signature: Uint8Array) {
   try {
-    const resultingSig = Buffer.from(signature).slice(1)
+    const resultingSig = Buffer.from(signature)
+      .slice(1)
       .toString('base64')
       .replace(/=/g, '')
       .replace(/\+/g, '-')
@@ -189,4 +190,20 @@ export function addSignatureToAuthResponseJwt(authResponse: string, signature: U
 
 export function getSha256HashOfJwtAuthPayload(payload: string) {
   return new sha256().update(payload).digest('hex');
+}
+
+type SemVerObject = Record<'major' | 'minor' | 'patch', number>;
+
+function versionObjectToVersionString(version: SemVerObject) {
+  return [version.major, version.minor, version.patch].join('.');
+}
+
+const ledgerStacksAppVersionFromWhichJwtAuthIsSupported = '0.22.5';
+
+export function doesLedgerStacksAppVersionSupportJwtAuth(versionInfo: SemVerObject) {
+  return false && compare(
+    ledgerStacksAppVersionFromWhichJwtAuthIsSupported,
+    versionObjectToVersionString(versionInfo),
+    '>'
+  );
 }

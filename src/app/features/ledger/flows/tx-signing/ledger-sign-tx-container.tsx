@@ -19,16 +19,18 @@ import { useCurrentAccount } from '@app/store/accounts/account.hooks';
 import { LoadingKeys } from '@app/common/hooks/use-loading';
 import { useHandleSubmitTransaction } from '@app/common/hooks/use-submit-stx-transaction';
 import { BaseDrawer } from '@app/components/drawer';
+import { useScrollLock } from '@app/common/hooks/use-scroll-lock';
+import { logger } from '@shared/logger';
 
 import { useLedgerNavigate } from '../../hooks/use-ledger-navigate';
 import { useLedgerAnalytics } from '../../hooks/use-ledger-analytics.hook';
-import { logger } from '@shared/logger';
 
 export function LedgerSignTxContainer() {
   const location = useLocation();
   const navigate = useNavigate();
   const ledgerNavigate = useLedgerNavigate();
   const ledgerAnalytics = useLedgerAnalytics();
+  useScrollLock(true);
 
   const account = useCurrentAccount();
 
@@ -52,16 +54,16 @@ export function LedgerSignTxContainer() {
   const signTransaction = async () => {
     if (!account) return;
 
-    const stacks = await prepareLedgerDeviceConnection({
+    const stacksApp = await prepareLedgerDeviceConnection({
       setLoadingState: setAwaitingDeviceConnection,
       onError() {
         ledgerNavigate.toErrorStep();
       },
     });
 
-    if (!stacks) return;
+    if (!stacksApp) return;
 
-    const versionInfo = await getAppVersion(stacks);
+    const versionInfo = await getAppVersion(stacksApp);
     ledgerAnalytics.trackDeviceVersionInfo(versionInfo);
     setLatestDeviceResponse(versionInfo);
 
@@ -85,7 +87,7 @@ export function LedgerSignTxContainer() {
 
       ledgerNavigate.toAwaitingDeviceOperation({ hasApprovedOperation: false });
 
-      const resp = await signLedgerTransaction(stacks)(
+      const resp = await signLedgerTransaction(stacksApp)(
         Buffer.from(unsignedTransaction, 'hex'),
         account.index
       );

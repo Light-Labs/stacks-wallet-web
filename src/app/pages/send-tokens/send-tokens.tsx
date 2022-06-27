@@ -29,9 +29,11 @@ import { RouteUrls } from '@shared/route-urls';
 
 import { SendTokensSoftwareConfirmDrawer } from './components/send-tokens-confirm-drawer/send-tokens-confirm-drawer';
 import { SendFormInner } from './components/send-form-inner';
+import { useTransferableAssets } from '@app/store/assets/asset.hooks';
 
 function SendTokensFormBase() {
   const navigate = useNavigate();
+  const assets = useTransferableAssets();
   const { showEditNonce, showNetworks } = useDrawers();
   const [isShowing, setShowing] = useState(false);
   const [assetError, setAssetError] = useState<string | undefined>(undefined);
@@ -85,6 +87,8 @@ function SendTokensFormBase() {
     },
     [broadcastTransactionFn, handleConfirmDrawerOnClose, navigate, setFeeEstimations]
   );
+
+  if (assets.length < 1) return null;
 
   const initialValues = {
     amount: '',

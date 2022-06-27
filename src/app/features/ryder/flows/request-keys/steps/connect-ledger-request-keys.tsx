@@ -5,13 +5,17 @@ import get from 'lodash.get';
 import { ConnectLedgerLayout } from '@app/features/ryder/steps/connect-ledger.layout';
 import { useWhenReattemptingLedgerConnection } from '@app/features/ryder/hooks/use-when-reattempt-ledger-connection';
 import { ledgerRequestKeysContext } from '@app/features/ryder/ledger-request-keys.context';
-import { LedgerInlineWarnings } from '@app/features/ryder/components/ledger-inline-warnings';
+import { CommonLedgerDeviceInlineWarnings } from '@app/features/ryder/components/ledger-inline-warnings';
 
 export const ConnectLedgerRequestKeys = () => {
   const location = useLocation();
 
-  const { pullPublicKeysFromDevice, latestDeviceResponse, awaitingDeviceConnection } =
-    useContext(ledgerRequestKeysContext);
+  const {
+    pullPublicKeysFromDevice,
+    latestDeviceResponse,
+    awaitingDeviceConnection,
+    outdatedAppVersionWarning,
+  } = useContext(ledgerRequestKeysContext);
 
   const isLookingForLedger = get(location, 'state.isLookingForLedger');
 
@@ -21,7 +25,12 @@ export const ConnectLedgerRequestKeys = () => {
     <ConnectLedgerLayout
       awaitingLedgerConnection={awaitingDeviceConnection}
       isLookingForLedger={isLookingForLedger}
-      warning={<LedgerInlineWarnings latestDeviceResponse={latestDeviceResponse} />}
+      warning={
+        <CommonLedgerDeviceInlineWarnings
+          latestDeviceResponse={latestDeviceResponse}
+          outdatedLedgerAppWarning={outdatedAppVersionWarning}
+        />
+      }
       showInstructions
       onConnectLedger={pullPublicKeysFromDevice}
     />
