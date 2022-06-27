@@ -2,7 +2,7 @@
 export function pathToBytes(path: string): number[] {
   const parts = path.split('/');
   parts.shift(); // remove 'm'
-  const bytes: number[] = [5];
+  const bytes: number[] = [parts.length];
   parts.forEach(p => {
     const hardened = p.endsWith("'");
     const byte = parseInt(hardened ? p.substring(0, p.length - 1) : p);

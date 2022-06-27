@@ -120,6 +120,10 @@ export default class RyderSerial extends Events.EventEmitter {
 
   // transaction commands
   static readonly COMMAND_SIGN_TRANSACTION = 50;
+
+  // sign message commands
+  static readonly COMMAND_REQUEST_IDENTITY_MESSAGE_SIGN = 60;
+
   // cancel command
   static readonly COMMAND_CANCEL = 100;
 

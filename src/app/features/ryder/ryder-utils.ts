@@ -1,10 +1,5 @@
 /* eslint-disable no-console */
-import {
-  AddressVersion,
-  createStacksPublicKey,
-  getAddressFromPublicKey,
-  publicKeyToAddress,
-} from '@stacks/transactions';
+import { AddressVersion, getAddressFromPublicKey } from '@stacks/transactions';
 import {
   LedgerError,
   ResponseAddress,
@@ -54,7 +49,7 @@ export class StacksApp {
       const ryderApp = new RyderApp();
       void ryderApp
         .export_derived_public_key({ port, options: { debug: true } }, path, (res: any) => {
-          const publicKey = Buffer.from(res.data.substring(0, 66), "hex");
+          const publicKey = Buffer.from(res.data.substring(0, 66), 'hex');
           console.log('response', res, publicKey);
           const address = getAddressFromPublicKey(publicKey);
           console.log({ address });
@@ -283,6 +278,70 @@ class RyderApp {
           //publicKeyToAddress(AddressVersion.MainnetSingleSig, createStacksPublicKey(publicKey))
         );
         resolve(publicKey);
+        return;
+      });
+      this.ryder_serial.on('wait_user_confirm', () => {
+        resolve('Confirm or cancel on Ryder device.');
+        return;
+      });
+    })
+      .then((res: string) => callback({ data: res }))
+      .catch(error =>
+        callback({
+          source: error,
+          error: error,
+        })
+      )
+      .finally(() => this.ryder_serial?.close());
+  }
+
+  async sign_identity_message(
+    payload: { port: string; options?: Options },
+    accountIndex: number,
+    message: Buffer,
+    callback: (res: Response<string>) => void
+  ): Promise<void> {
+    this.ryder_serial = new RyderSerial(payload.port, payload.options);
+    new Promise<string>((resolve, reject) => {
+      if (!this.ryder_serial) {
+        reject('Ryder Serial does not exist for some reason');
+        return;
+      }
+
+      this.ryder_serial.on('failed', (error: Error) => {
+        reject(
+          `Could not connect to the Ryder on the specified port. Wrong port or it is currently in use: ${error}`
+        );
+        return;
+      });
+
+      this.ryder_serial.on('open', async () => {
+        if (!this.ryder_serial) {
+          reject('Ryder serial was destroyed');
+          return;
+        }
+        let response = await this.ryder_serial.send([
+          RyderSerial.COMMAND_REQUEST_IDENTITY_MESSAGE_SIGN,
+        ]);
+        // expected response: RESPONSE_SEND_INPUT
+        // eslint-disable-next-line no-console
+        console.log('typeof response', typeof response);
+        if (response === RyderSerial.RESPONSE_SEND_INPUT) {
+          const length = message.length;
+          const data = new Uint8Array(2 + 4 + length);
+          data.set(new Uint16Array([accountIndex]), 0);
+          data.set(new Uint32Array([length]), 2);
+          data.set(message, 6);
+          console.log(data);
+          response = await this.ryder_serial.send(data);
+          const signature =
+            typeof response === 'number'
+              ? response.toString()
+              : Buffer.from(response, 'binary').toString('hex');
+          // eslint-disable-next-line no-console
+          console.log({ signature });
+          resolve(signature);
+        }
         return;
       });
       this.ryder_serial.on('wait_user_confirm', () => {
