@@ -4,7 +4,7 @@ import get from 'lodash.get';
 
 import { ConnectLedgerLayout } from '@app/features/ryder/steps/connect-ledger.layout';
 
-import { LedgerInlineWarnings } from '@app/features/ryder/components/ledger-inline-warnings';
+import { CommonLedgerDeviceInlineWarnings } from '@app/features/ryder/components/ledger-inline-warnings';
 import { ledgerJwtSigningContext } from '@app/features/ryder/ledger-jwt-signing.context';
 
 export function ConnectLedgerSignJwt() {
@@ -19,7 +19,7 @@ export function ConnectLedgerSignJwt() {
     <ConnectLedgerLayout
       awaitingLedgerConnection={awaitingDeviceConnection}
       isLookingForLedger={isLookingForLedger}
-      warning={<LedgerInlineWarnings latestDeviceResponse={latestDeviceResponse} />}
+      warning={<CommonLedgerDeviceInlineWarnings latestDeviceResponse={latestDeviceResponse} />}
       onConnectLedger={signJwtPayload}
       showInstructions={false}
     />

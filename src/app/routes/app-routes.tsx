@@ -206,9 +206,7 @@ export function AppRoutes(): JSX.Element | null {
               </Suspense>
             </AccountGate>
           }
-        >
-          {ledgerTxSigningRoutes}
-        </Route>
+        />
         <Route
           path={RouteUrls.TransactionRequest}
           element={
@@ -218,7 +216,9 @@ export function AppRoutes(): JSX.Element | null {
               </Suspense>
             </AccountGate>
           }
-        />
+        >
+          {ledgerTxSigningRoutes}
+        </Route>
         <Route path={RouteUrls.UnauthorizedRequest} element={<UnauthorizedRequest />} />
         <Route
           path={RouteUrls.SignatureRequest}

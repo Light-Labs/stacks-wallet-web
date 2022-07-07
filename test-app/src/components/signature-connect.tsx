@@ -31,9 +31,8 @@ import { useConnect } from '@stacks/connect-react';
 import { hashMessage, verifyMessageSignatureRsv } from '@stacks/encryption';
 import { sha256 } from 'sha.js';
 import { StacksNetwork } from '@stacks/network';
-import { captureRejectionSymbol } from 'stream';
 
-export const Signature = () => {
+export const SignatureConnect = () => {
   const [signature, setSignature] = useState<SignatureData | undefined>();
   const [signatureStructured, setSignatureStructured] = useState<SignatureData | undefined>();
   const [signatureIsVerified, setSignatureIsVerified] = useState<boolean | undefined>();
@@ -76,7 +75,7 @@ export const Signature = () => {
     n: stringUtf8CV('hello \u{1234}'),
     o: listCV([]),
   });
-  const { sign, signStructuredData } = useConnect();
+  const { userSession, signStructuredData, sign } = useConnect();
 
   useEffect(() => {
     if (!signature || !currentMessage) return;
@@ -106,17 +105,19 @@ export const Signature = () => {
     setSignatureStructured(undefined);
   };
 
-  const signMessage = async (message: string, network?: StacksNetwork) => {
+  const signMessage2 = async (message: string, network?: StacksNetwork) => {
     console.log('signing', message, network);
     clearState();
     setCurrentMessage(message);
     const defaultNetwork = stacksTestnetNetwork;
     try {
       await sign({
+        userSession,
+        stxAddress: userSession?.loadUserData().profile.stxAddress.mainnet,        
         network: network ?? defaultNetwork,
         message,
         onFinish: (sigObj: SignatureData) => {
-          console.log('signature from debugger', sigObj);
+          console.log('signature from extension', sigObj);
           setSignature(sigObj);
         },
         onCancel: () => {
@@ -175,18 +176,18 @@ export const Signature = () => {
           </Text>
         </Text>
       )}
-      <Button mt={3} onClick={() => signMessage(signatureMessage, stacksMainnetNetwork)}>
+      <Button mt={3} onClick={() => signMessage2(signatureMessage, stacksMainnetNetwork)}>
         Signature (Mainnet)
       </Button>
-      <Button mt={3} ml={3} onClick={() => signMessage(signatureMessage, stacksTestnetNetwork)}>
+      <Button mt={3} ml={3} onClick={() => signMessage2(signatureMessage, stacksTestnetNetwork)}>
         Signature (Testnet)
       </Button>
       <br />
-      <Button mt={3} onClick={() => signMessage(longSignatureMessage)}>
+      <Button mt={3} onClick={() => signMessage2(longSignatureMessage)}>
         Signature (long message)
       </Button>
       <br />
-      <Button mt={3} onClick={() => signMessage(signatureMessageWithLineBreaks)}>
+      <Button mt={3} onClick={() => signMessage2(signatureMessageWithLineBreaks)}>
         Signature (with line breaks)
       </Button>
       <br />

@@ -9,6 +9,7 @@ import get from 'lodash.get';
 import { delay } from '@app/common/utils';
 import {
   addSignatureToAuthResponseJwt,
+  exportEncryptedAppPrivateKey,
   getAppVersion,
   getSha256HashOfJwtAuthPayload,
   prepareLedgerDeviceConnection,
@@ -33,6 +34,7 @@ import {
   isExpirationDateValid,
   isIssuanceDateValid,
 } from '@stacks/auth';
+import { encrypt, getAppPrivateKey } from '@stacks/wallet-sdk';
 
 export function LedgerSignJwtContainer() {
   const location = useLocation();
@@ -84,8 +86,24 @@ export function LedgerSignJwtContainer() {
       ledgerNavigate.toConnectionSuccessStep();
       await delay(1000);
 
+      const appDomain = decodedAuthRequest.domain_name;
+      const transitPublicKey = decodedAuthRequest.public_keys[0];
+
+      /* disabled for now
+      console.log("export private app key");
+      const encrytpedAppPrivateKey = await exportEncryptedAppPrivateKey(stacks)(
+        appDomain,
+        transitPublicKey,
+        accountIndex
+      );
+      console.log(encrytpedAppPrivateKey);
+      */
+      const encrytpedAppPrivateKey = undefined;
+
       const authResponsePayload = await makeLedgerCompatibleUnsignedAuthResponsePayload({
+        // in payload: {.. public_keys:[dataPublicKey]..}
         dataPublicKey: account.dataPublicKey,
+        // in payload: {.. profile:profile..}
         profile: {
           stxAddress: {
             testnet: getAddressFromPublicKey(
@@ -98,6 +116,8 @@ export function LedgerSignJwtContainer() {
             ),
           },
         },
+        // in payload: {.. private_key: encryptedAppPrivateKey..}
+        encrytpedAppPrivateKey,
       });
 
       setJwtPayloadHash(getSha256HashOfJwtAuthPayload(authResponsePayload));
@@ -117,6 +137,7 @@ export function LedgerSignJwtContainer() {
       // eslint-disable-next-line no-console
       console.log(
         'sign checks',
+        authResponse,
         await isExpirationDateValid(authResponse),
         await isIssuanceDateValid(authResponse),
         await doSignaturesMatchPublicKeys(authResponse),
@@ -126,6 +147,7 @@ export function LedgerSignJwtContainer() {
       keyActions.switchAccount(accountIndex);
       finalizeAuthResponse({ decodedAuthRequest, authRequest, authResponse });
     } catch (e) {
+      console.log(e);
       ledgerNavigate.toDeviceDisconnectStep();
     }
   };

@@ -31,7 +31,7 @@ export const SignOutConfirmLayout: FC<SignOutConfirmLayoutProps> = props => {
             When you sign out,
             {whenWallet({
               software: ` you'll need your Secret Key to sign back in. Only sign out if you've backed up your Secret Key.`,
-              ledger: ` you'll need to reconnect your Ledger to sign back into your wallet.`,
+              ledger: ` you'll need to reconnect your Ryder to sign back into your wallet.`,
             })}
           </Body>
 

@@ -27,7 +27,7 @@ export function SignLedgerTransactionLayout({
         <img src={SignLedgerTransaction} width="228px" />
       </Box>
       <LedgerTitle mt="loose" mx="50px">
-        Verify the transaction details on your Ledger
+        Verify the transaction details on your Ryder
       </LedgerTitle>
       <DeviceOperationApprovalStatus status={status} />
       <Flex

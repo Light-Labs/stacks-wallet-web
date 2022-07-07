@@ -7,18 +7,23 @@ export async function makeLedgerCompatibleUnsignedAuthResponsePayload({
   dataPublicKey,
   profile = {},
   expiresAt = nextMonth().getTime(),
+  encrytpedAppPrivateKey = null,
 }: {
   dataPublicKey: string;
   profile: any;
   expiresAt?: number;
+  encrytpedAppPrivateKey?: string | null;
 }): Promise<string> {
   const address = publicKeyToAddress(dataPublicKey);
+  // eslint-disable-next-line no-console
+  console.log({ address, dataPublicKey });
 
   const payload = {
     jti: makeUUID4(),
     iat: Math.floor(new Date().getTime() / 1000), // JWT times are in seconds
     exp: Math.floor(expiresAt / 1000), // JWT times are in seconds
     iss: makeDIDFromAddress(address),
+    private_key: encrytpedAppPrivateKey,
     public_keys: [dataPublicKey],
     profile,
   };

@@ -1,5 +1,9 @@
 /* eslint-disable no-console */
-import { AddressVersion, getAddressFromPublicKey } from '@stacks/transactions';
+import {
+  AddressVersion,
+  deserializeTransaction,
+  getAddressFromPublicKey,
+} from '@stacks/transactions';
 import {
   LedgerError,
   ResponseAddress,
@@ -7,6 +11,7 @@ import {
   ResponseVersion,
 } from '@zondax/ledger-blockstack';
 import { reject } from 'lodash';
+import { deserialize } from 'v8';
 import RyderSerial, { Options } from '../../ryderserial';
 import { pathToBytes } from './ryder-bip-utils';
 
@@ -20,9 +25,8 @@ interface Success<T> {
 export type Response<T> = RyderAppError | Success<T>;
 
 const port = 'ws:/localhost:8080';
-const stxDerivationWithAccount = `m/44'/5757'/0'/0/{account}`;
+const stxDerivationWithoutAccount = `m/44'/5757'/0'/0/`;
 const identityDerivationWithoutAccount = `m/888'/0'/`;
-
 export class StacksApp {
   constructor(_: any) {}
   signGetChunks(path: string, message: Buffer): Promise<Buffer[]> {
@@ -97,7 +101,28 @@ export class StacksApp {
     return Promise.reject('signSendChunk not implemented');
   }
   async sign(path: string, message: Buffer): Promise<any> {
-    return Promise.reject('sign not implemented');
+    console.log({ path });
+    const index = parseInt(path.replace(stxDerivationWithoutAccount, ''));
+    console.log('sign tx with account ', index);
+    console.log(message);
+    try {
+      console.log('tx', deserializeTransaction(message));
+    } catch (e) {
+      console.log(e);
+    }
+    console.log('tx sign now' );
+    return new Promise<any>(resolve => {
+      const ryderApp = new RyderApp();
+      void ryderApp.sign_transaction(
+        { port, options: { debug: true } },
+        index,
+        Buffer.from(message),
+        (res: any) => {
+          console.log('response', res);
+          resolve({ signatureDER: res.data });
+        }
+      );
+    });
   }
   async sign_msg(path: string, message: string): Promise<any> {
     return Promise.reject('sign_msg not implemented');
@@ -131,6 +156,27 @@ export class StacksApp {
           console.log('response', res);
           resolve({ publicKey: res.data });
         })
+        .then(() => {
+          console.log('request sent');
+        });
+    });
+  }
+
+  async exportAppPrivateKey(index: number, appDomain: string) {
+    console.log('try export app private key ', index, appDomain);
+    // TODO check max length of app domain
+    return new Promise<{ appPrivateKey: string }>(resolve => {
+      const ryderApp = new RyderApp();
+      void ryderApp
+        .serial_export_app_private_key(
+          { port, options: { debug: true } },
+          index,
+          appDomain,
+          (res: any) => {
+            console.log('response', res);
+            resolve({ appPrivateKey: res.data });
+          }
+        )
         .then(() => {
           console.log('request sent');
         });
@@ -311,6 +357,80 @@ class RyderApp {
       .finally(() => this.ryder_serial?.close());
   }
 
+  async serial_export_app_private_key(
+    payload: { port: string; options?: Options },
+    accountIndex: number,
+    appDomain: string,
+    callback: (res: Response<Uint8Array>) => void
+  ): Promise<void> {
+    this.ryder_serial = new RyderSerial(payload.port, payload.options);
+    new Promise<Uint8Array>((resolve, reject) => {
+      if (!this.ryder_serial) {
+        reject('Ryder Serial does not exist for some reason');
+        return;
+      }
+
+      this.ryder_serial.on('failed', (error: Error) => {
+        reject(
+          `Could not connect to the Ryder on the specified port. Wrong port or it is currently in use: ${error}`
+        );
+        return;
+      });
+
+      this.ryder_serial.on('open', async () => {
+        if (!this.ryder_serial) {
+          reject('Ryder serial was destroyed');
+          return;
+        }
+        let response = await this.ryder_serial.send([
+          RyderSerial.COMMAND_EXPORT_APP_KEY_PRIVATE_KEY,
+          accountIndex,
+        ]);
+        // eslint-disable-next-line no-console
+        console.log('typeof response', typeof response);
+        const sendInput = typeof response === 'number' ? response : 0;
+        if (sendInput === RyderSerial.RESPONSE_SEND_INPUT) {
+          const length = appDomain.length;
+          console.log('sending app domain');
+          const data = new Uint8Array(length + 1);
+          data.set(Buffer.from(appDomain), 0);
+          data.set([0], length);
+          response = await this.ryder_serial.send(data);
+
+          console.log('typeof response', typeof response);
+
+          const appPRivateKey =
+            typeof response === 'number'
+              ? response.toString()
+              : Buffer.from(response, 'binary').toString('hex');
+          // eslint-disable-next-line no-console
+          console.log({ appPRivateKey });
+
+          resolve(
+            typeof response === 'number'
+              ? new Uint8Array([response])
+              : new Uint8Array(Buffer.from(response, 'binary'))
+          );
+        }
+
+        return;
+      });
+
+      this.ryder_serial.on('wait_user_confirm', () => {
+        resolve(new Uint8Array());
+        return;
+      });
+    })
+      .then((res: Uint8Array) => callback({ data: res }))
+      .catch(error =>
+        callback({
+          source: error,
+          error: error,
+        })
+      )
+      .finally(() => this.ryder_serial?.close());
+  }
+
   async sign_identity_message(
     payload: { port: string; options?: Options },
     accountIndex: number,
@@ -350,7 +470,6 @@ class RyderApp {
           data.set(new Uint8Array(new Uint16Array([accountIndex]).buffer).reverse(), 0);
           data.set(new Uint8Array(new Uint32Array([length]).buffer).reverse(), 2);
           data.set(message, 6);
-          console.log(data, message);
           response = await this.ryder_serial.send(data);
           const signature =
             typeof response === 'number'
@@ -367,11 +486,93 @@ class RyderApp {
         return;
       });
       this.ryder_serial.on('wait_user_confirm', () => {
-        resolve('Confirm or cancel on Ryder device.');
+        resolve(new Uint8Array());
         return;
       });
     })
-      .then((res: string) => callback({ data: res }))
+      .then((res: Uint8Array) => callback({ data: res }))
+      .catch(error =>
+        callback({
+          source: error,
+          error: error,
+        })
+      )
+      .finally(() => this.ryder_serial?.close());
+  }
+
+  async sign_transaction(
+    payload: { port: string; options?: Options },
+    accountIndex: number,
+    message: Buffer,
+    callback: (res: Response<Uint8Array>) => void
+  ): Promise<void> {
+    this.ryder_serial = new RyderSerial(payload.port, payload.options);
+    new Promise<Uint8Array>((resolve, reject) => {
+      if (!this.ryder_serial) {
+        reject('Ryder Serial does not exist for some reason');
+        return;
+      }
+
+      this.ryder_serial.on('failed', (error: Error) => {
+        reject(
+          `Could not connect to the Ryder on the specified port. Wrong port or it is currently in use: ${error}`
+        );
+        return;
+      });
+
+      this.ryder_serial.on('open', async () => {
+        if (!this.ryder_serial) {
+          reject('Ryder serial was destroyed');
+          return;
+        }
+        let response = await this.ryder_serial.send([
+          RyderSerial.COMMAND_REQUEST_TRANSACTION_SIGN,
+          accountIndex,
+        ]);
+        if (response !== RyderSerial.RESPONSE_SEND_INPUT) {
+          // TODO handle errors
+          console.log('error from ryder device', response);
+          return;
+        }
+        /*
+        const data = new Uint8Array(4 + length);
+        data.set(new Uint8Array(new Uint32Array([length]).buffer).reverse(), 0);
+        data.set(message, 4);
+*/
+        const tx_length = Buffer.from([
+          (message.byteLength >> 24) & 0xff,
+          (message.byteLength >> 16) & 0xff,
+          (message.byteLength >> 8) & 0xff,
+          message.byteLength & 0xff,
+        ]);
+        const data = Buffer.concat([tx_length, message]);
+        const uint8a = new Uint8Array(data.byteLength);
+        for (let i = 0; i < data.byteLength; ++i) uint8a[i] = data[i];
+
+        console.log(Buffer.from(uint8a).toString('hex'));
+        response = await this.ryder_serial.send(uint8a);
+
+        const signature =
+          typeof response === 'number'
+            ? response.toString()
+            : Buffer.from(response, 'binary').toString('hex');
+        // eslint-disable-next-line no-console
+        console.log({ signature });
+        resolve(
+          typeof response === 'number'
+            ? new Uint8Array([response])
+            : new Uint8Array(Buffer.from(response, 'binary'))
+        );
+
+        return;
+      });
+
+      this.ryder_serial.on('wait_user_confirm', () => {
+        resolve(new Uint8Array());
+        return;
+      });
+    })
+      .then((res: Uint8Array) => callback({ data: res }))
       .catch(error =>
         callback({
           source: error,

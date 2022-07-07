@@ -18,6 +18,7 @@ import { safeAwait } from '@stacks/ui';
 import { LedgerTxSigningProvider } from './ledger-tx-signing.context';
 import { logger } from '@shared/logger';
 import { StacksApp } from './ryder-utils';
+import { encryptContent, encryptECIES } from '@stacks/encryption';
 
 function decompressSecp256k1PublicKey(publicKey: string) {
   const point = secp.Point.fromHex(publicKey);
@@ -99,6 +100,22 @@ export function signLedgerJwtHash(app: StacksApp) {
     );
 }
 
+export function exportEncryptedAppPrivateKey(app: StacksApp) {
+  return async (appDomain: string, encryptionPublicKey: string, accountIndex: number) => {
+    const result = await app.exportAppPrivateKey(accountIndex, appDomain);
+    console.log(result);
+
+    // encrypt app private key like in makeAuthResponse of @stacks/auth
+    const encryptedObj = await encryptECIES(
+      encryptionPublicKey,
+      Buffer.from(result.appPrivateKey),
+      true
+    );
+    const encryptedJSON = JSON.stringify(encryptedObj);
+    return Buffer.from(encryptedJSON).toString('hex');
+  };
+}
+
 export function signTransactionWithSignature(transaction: string, signatureVRS: Buffer) {
   const deserialzedTx = deserializeTransaction(transaction);
   const spendingCondition = createMessageSignature(signatureVRS.toString('hex'));
@@ -127,7 +144,7 @@ type PullKeysFromLedgerResponse = Promise<PullKeysFromLedgerSuccess | PullKeysFr
 
 export async function pullKeysFromLedgerDevice(stacksApp: StacksApp): PullKeysFromLedgerResponse {
   const publicKeys = [];
-  const amountOfKeysToExtractFromDevice = 5;
+  const amountOfKeysToExtractFromDevice = 1;
   console.log('pull keys');
   for (let index = 0; index < amountOfKeysToExtractFromDevice; index++) {
     console.log({ index });
@@ -201,9 +218,12 @@ function versionObjectToVersionString(version: SemVerObject) {
 const ledgerStacksAppVersionFromWhichJwtAuthIsSupported = '0.22.5';
 
 export function doesLedgerStacksAppVersionSupportJwtAuth(versionInfo: SemVerObject) {
-  return false && compare(
-    ledgerStacksAppVersionFromWhichJwtAuthIsSupported,
-    versionObjectToVersionString(versionInfo),
-    '>'
+  return (
+    false &&
+    compare(
+      ledgerStacksAppVersionFromWhichJwtAuthIsSupported,
+      versionObjectToVersionString(versionInfo),
+      '>'
+    )
   );
 }
