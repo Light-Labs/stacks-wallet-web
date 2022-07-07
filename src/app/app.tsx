@@ -13,13 +13,12 @@ import { SwitchAccountDrawer } from '@app/features/switch-account-drawer/switch-
 import { NetworksDrawer } from '@app/features/network-drawer/networks-drawer';
 import { SettingsDropdown } from '@app/features/settings-dropdown/settings-dropdown';
 import { AppErrorBoundary } from '@app/features/errors/app-error-boundary';
-import { IncreaseFeeDrawer } from '@app/features/increase-fee-drawer/increase-fee-drawer';
 import { Devtools } from '@app/features/devtool/devtools';
 import { AppRoutes } from '@app/routes/app-routes';
 import { persistor, store } from '@app/store';
 import { jotaiWrappedReactQueryQueryClient as queryClient } from '@app/store/common/common.hooks';
 
-const reactQueryDevToolsEnabled = false;
+const reactQueryDevToolsEnabled = process.env.NODE_ENV === 'development';
 
 export function App() {
   return (
@@ -35,7 +34,6 @@ export function App() {
                     <AppRoutes />
                     <SwitchAccountDrawer />
                     <NetworksDrawer />
-                    <IncreaseFeeDrawer />
                     <SettingsDropdown />
                   </AppErrorBoundary>
                   <Toaster

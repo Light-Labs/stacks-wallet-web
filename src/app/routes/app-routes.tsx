@@ -42,16 +42,18 @@ import { LedgerPublicKeyMismatch } from '@app/features/ryder/flows/tx-signing/st
 import { VerifyingPublicKeysMatch } from '@app/features/ryder/flows/tx-signing/steps/verifying-public-keys-match';
 import { PullingKeysFromDevice } from '@app/features/ryder/flows/request-keys/steps/pulling-keys-from-device';
 import { UnsupportedBrowserLayout } from '@app/features/ryder/steps/unsupported-browser.layout';
-
-import { useOnWalletLock } from './hooks/use-on-wallet-lock';
-import { useOnSignOut } from './hooks/use-on-sign-out';
-import { OnboardingGate } from './onboarding-gate';
-import { LedgerSignJwtContainer } from '@app/features/ryder/flows/jwt-signing/ledger-sign-jwt';
+import { LedgerSignJwtContainer } from '@app/features/ryder/flows/jwt-signing/ledger-sign-jwt-container';
 import { SignJwtHash } from '@app/features/ryder/flows/jwt-signing/steps/sign-jwt-hash';
 import { ConnectLedgerSignJwt } from '@app/features/ryder/flows/jwt-signing/steps/connect-ledger-sign-jwt';
 import { ConnectLedgerSignJwtError } from '@app/features/ryder/flows/jwt-signing/steps/connect-ledger-sign-jwt-error';
 import { ConnectLedgerSignJwtSuccess } from '@app/features/ryder/flows/jwt-signing/steps/connect-ledger-sign-jwt-success';
 import { LedgerJwtSigningRejected } from '@app/features/ryder/flows/jwt-signing/steps/transaction-rejected';
+import { IncreaseFeeDrawer } from '@app/features/increase-fee-drawer/increase-fee-drawer';
+
+import { useOnWalletLock } from './hooks/use-on-wallet-lock';
+import { useOnSignOut } from './hooks/use-on-sign-out';
+import { OnboardingGate } from './onboarding-gate';
+import { LedgerDeviceInvalidTx } from '@app/features/ryder/flows/tx-signing/steps/device-invalid-tx';
 
 export function AppRoutes(): JSX.Element | null {
   const { pathname } = useLocation();
@@ -81,6 +83,7 @@ export function AppRoutes(): JSX.Element | null {
         <Route path={RouteUrls.LedgerDisconnected} element={<LedgerDisconnected />} />
         <Route path={RouteUrls.LedgerOperationRejected} element={<LedgerTransactionRejected />} />
         <Route path={RouteUrls.LedgerPublicKeyMismatch} element={<LedgerPublicKeyMismatch />} />
+        <Route path={RouteUrls.LedgerDeviceTxInvalid} element={<LedgerDeviceInvalidTx />} />
         <Route path={RouteUrls.LedgerUnsupportedBrowser} element={<UnsupportedBrowserLayout />} />
       </Route>
     ),
@@ -116,6 +119,9 @@ export function AppRoutes(): JSX.Element | null {
             </AccountGate>
           }
         >
+          <Route path={RouteUrls.IncreaseFee} element={<IncreaseFeeDrawer />}>
+            {ledgerTxSigningRoutes}
+          </Route>
           <Route path={RouteUrls.Receive} element={<ReceiveTokens />} />
           <Route path={RouteUrls.SignOutConfirm} element={<SignOutConfirmDrawer />} />
           {ledgerTxSigningRoutes}
@@ -184,7 +190,6 @@ export function AppRoutes(): JSX.Element | null {
         >
           {ledgerJwtSigningRoutes}
         </Route>
-
         <Route
           path={RouteUrls.Fund}
           element={
@@ -206,7 +211,9 @@ export function AppRoutes(): JSX.Element | null {
               </Suspense>
             </AccountGate>
           }
-        />
+        >
+          {ledgerTxSigningRoutes}
+        </Route>
         <Route
           path={RouteUrls.TransactionRequest}
           element={
