@@ -110,7 +110,7 @@ export class StacksApp {
     } catch (e) {
       console.log(e);
     }
-    console.log('tx sign now' );
+    console.log('tx sign now');
     return new Promise<any>(resolve => {
       const ryderApp = new RyderApp();
       void ryderApp.sign_transaction(
@@ -119,7 +119,7 @@ export class StacksApp {
         Buffer.from(message),
         (res: any) => {
           console.log('response', res);
-          resolve({ signatureDER: res.data });
+          resolve({ data: res.data, returnCode: LedgerError.NoErrors });
         }
       );
     });
@@ -551,13 +551,12 @@ class RyderApp {
 
         console.log(Buffer.from(uint8a).toString('hex'));
         response = await this.ryder_serial.send(uint8a);
-
-        const signature =
+        const signedTx =
           typeof response === 'number'
             ? response.toString()
             : Buffer.from(response, 'binary').toString('hex');
+        console.log(deserializeTransaction(signedTx));
         // eslint-disable-next-line no-console
-        console.log({ signature });
         resolve(
           typeof response === 'number'
             ? new Uint8Array([response])
@@ -573,12 +572,13 @@ class RyderApp {
       });
     })
       .then((res: Uint8Array) => callback({ data: res }))
-      .catch(error =>
+      .catch(error => {
+        console.log('tx-sign', error);
         callback({
           source: error,
           error: error,
-        })
-      )
+        });
+      })
       .finally(() => this.ryder_serial?.close());
   }
 }

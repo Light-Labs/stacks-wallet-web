@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { color, Box, Flex } from '@stacks/ui';
 
 import SignLedgerTransaction from '@assets/images/ryder/ryder-logo.png';
@@ -6,17 +7,21 @@ import { LedgerTitle } from '../components/ledger-title';
 import { LedgerWrapper } from '../components/ledger-wrapper';
 import { LedgerScreenDetail } from '../components/ledger-screen-detail';
 import { DeviceOperationApprovalStatus } from '../components/device-approval-status';
+import { colourhash_to_svg, hex_to_byte_array } from '@app/colourhash-ts/colourhash';
 
 interface SignLedgerTransactionLayoutProps {
   details: [string, string, string?][];
   isFullPage: boolean;
   status: 'awaiting-approval' | 'approved';
+  txid: string | undefined;
 }
 export function SignLedgerTransactionLayout({
   details,
   isFullPage,
   status,
+  txid,
 }: SignLedgerTransactionLayoutProps) {
+  console.log({txid});
   return (
     <LedgerWrapper>
       <Box mt="tight">
@@ -35,6 +40,16 @@ export function SignLedgerTransactionLayout({
         py="extra-loose"
         width="100%"
       >
+        <div
+          style={{ padding: '1em' }}
+          dangerouslySetInnerHTML={{
+            __html: colourhash_to_svg(new Uint8Array(hex_to_byte_array(txid || '').reverse()), {
+              rows: 2,
+              spacing: 2,
+            }),
+          }}
+        />
+
         <DividerSeparator>
           {details.map(([title, value, tooltipLabel]) => (
             <LedgerScreenDetail

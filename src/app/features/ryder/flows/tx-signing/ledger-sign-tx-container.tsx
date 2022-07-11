@@ -97,6 +97,9 @@ export function LedgerSignTxContainer() {
         account.index
       );
 
+      // eslint-disable-next-line no-console
+      console.log('sign-tx-container', resp);
+
       // Assuming here that public keys are wrong. Alternatively, we may want
       // to proactively check the key before signing
       if (resp.returnCode === LedgerError.DataIsInvalid) {
@@ -122,7 +125,11 @@ export function LedgerSignTxContainer() {
 
       await delay(1000);
 
-      const signedTx = signTransactionWithSignature(unsignedTransaction, resp.signatureVRS);
+      // Ryder returns signed tx
+      // Ledger returns signature only: const signedTx =  signTransactionWithSignature(unsignedTransaction, resp.signatureVRS);
+      const signedTx = deserializeTransaction(Buffer.from(resp.data).toString('hex'));
+      // eslint-disable-next-line no-console
+      console.log({ signedTx });
       ledgerAnalytics.transactionSignedOnLedgerSuccessfully();
 
       await broadcastTransactionFn({
@@ -132,6 +139,8 @@ export function LedgerSignTxContainer() {
       setAwaitingSignedTransaction(false);
       navigate(RouteUrls.Home);
     } catch (e) {
+      // eslint-disable-next-line no-console
+      console.log(e);
       setAwaitingSignedTransaction(false);
       ledgerNavigate.toDeviceDisconnectStep();
     }
