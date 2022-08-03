@@ -72,7 +72,6 @@ export function SignLedgerTransaction() {
       details={transactionDetails}
       isFullPage={desktopViewport}
       status={hasApprovedOperation ? 'approved' : 'awaiting-approval'}
-      txid = {transaction?.txid()}
     />
   );
 }

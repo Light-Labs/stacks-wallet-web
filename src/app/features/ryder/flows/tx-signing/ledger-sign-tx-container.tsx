@@ -4,7 +4,6 @@ import { LedgerError } from '@zondax/ledger-blockstack';
 import get from 'lodash.get';
 
 import { delay } from '@app/common/utils';
-import { noop } from '@shared/utils';
 import {
   getAppVersion,
   prepareLedgerDeviceConnection,
@@ -12,18 +11,17 @@ import {
   signTransactionWithSignature,
   useLedgerResponseState,
 } from '@app/features/ryder/ledger-utils';
-import { RouteUrls } from '@shared/route-urls';
 import { deserializeTransaction } from '@stacks/transactions';
 import { LedgerTxSigningProvider } from '@app/features/ryder/ledger-tx-signing.context';
 import { useCurrentAccount } from '@app/store/accounts/account.hooks';
-import { LoadingKeys } from '@app/common/hooks/use-loading';
-import { useHandleSubmitTransaction } from '@app/common/hooks/use-submit-stx-transaction';
 import { BaseDrawer } from '@app/components/drawer/base-drawer';
 import { useScrollLock } from '@app/common/hooks/use-scroll-lock';
+import { useHardwareWalletTransactionBroadcast } from '@app/store/transactions/transaction.hooks';
 import { logger } from '@shared/logger';
 
 import { useLedgerNavigate } from '../../hooks/use-ledger-navigate';
 import { useLedgerAnalytics } from '../../hooks/use-ledger-analytics.hook';
+import { RouteUrls } from '@shared/route-urls';
 
 export function LedgerSignTxContainer() {
   const location = useLocation();
@@ -31,8 +29,8 @@ export function LedgerSignTxContainer() {
   const ledgerNavigate = useLedgerNavigate();
   const ledgerAnalytics = useLedgerAnalytics();
   useScrollLock(true);
-
   const account = useCurrentAccount();
+  const hwWalletTxBroadcast = useHardwareWalletTransactionBroadcast();
 
   const [unsignedTransaction, setUnsignedTransaction] = useState<null | string>(null);
 
@@ -52,7 +50,6 @@ export function LedgerSignTxContainer() {
   const broadcastTransactionFn = useHandleSubmitTransaction({
     loadingKey: LoadingKeys.CONFIRM_DRAWER,
   });
-
   const signTransaction = async () => {
     if (!account) return;
 
@@ -132,15 +129,11 @@ export function LedgerSignTxContainer() {
       console.log({ signedTx });
       ledgerAnalytics.transactionSignedOnLedgerSuccessfully();
 
-      await broadcastTransactionFn({
-        transaction: signedTx,
-        onClose: noop,
-      });
+      await hwWalletTxBroadcast({ signedTx });
       setAwaitingSignedTransaction(false);
       navigate(RouteUrls.Home);
+      await stacksApp.transport.close();
     } catch (e) {
-      // eslint-disable-next-line no-console
-      console.log(e);
       setAwaitingSignedTransaction(false);
       ledgerNavigate.toDeviceDisconnectStep();
     }
