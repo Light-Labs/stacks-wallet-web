@@ -5,7 +5,7 @@ import {
   transactionRequestValidationState,
 } from '@app/store/transactions/requests';
 import { requestTokenState } from '@app/store/transactions/requests';
-import { transactionBroadcastErrorState } from '@app/store/transactions';
+import { transactionBroadcastErrorState } from '@app/store/transactions/transaction';
 import { useCallback } from 'react';
 import { finalizeTxSignature } from '@app/common/actions/finalize-tx-signature';
 
@@ -34,7 +34,7 @@ export function useOnCancelTransaction() {
     useCallback(async (get, set) => {
       const requestToken = get(requestTokenState);
       if (!requestToken) {
-        set(transactionBroadcastErrorState, 'No pending transaction found.');
+        set(transactionBroadcastErrorState, 'No pending transaction');
         return;
       }
       try {

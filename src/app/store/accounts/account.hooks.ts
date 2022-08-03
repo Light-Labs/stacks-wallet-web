@@ -1,35 +1,24 @@
 import { useAtom } from 'jotai';
-import { useAtomValue, useUpdateAtom } from 'jotai/utils';
+import { useAtomValue } from 'jotai/utils';
+
 import {
   addressNetworkVersionState,
   transactionNetworkVersionState,
-} from '@app/store/transactions';
+} from '@app/store/transactions/transaction';
 import {
   accountsWithAddressState,
-  currentAccountAvailableAnchoredStxBalanceState,
-  currentAccountBalancesUnanchoredState,
   currentAccountConfirmedTransactionsState,
-  currentAccountInfoState,
-  currentAccountMempoolTransactionsState,
   currentAccountState,
   currentAccountStxAddressState,
   hasSwitchedAccountsState,
   hasCreatedAccountState,
-  refreshAccountDataState,
   transactionAccountIndexState,
-} from '@app/store/accounts';
-import { currentAccountIndexState } from '../wallet/wallet';
+} from '@app/store/accounts/accounts';
 
-export function useCurrentAccountAvailableStxBalance() {
-  return useAtomValue(currentAccountAvailableAnchoredStxBalanceState);
-}
+import { currentAccountIndexState } from '../wallet/wallet';
 
 export function useAccountConfirmedTransactions() {
   return useAtomValue(currentAccountConfirmedTransactionsState);
-}
-
-export function useSetMempoolTransactions() {
-  return useUpdateAtom(currentAccountMempoolTransactionsState);
 }
 
 export function useAccounts() {
@@ -66,16 +55,4 @@ export function useHasSwitchedAccounts() {
 
 export function useHasCreatedAccount() {
   return useAtom(hasCreatedAccountState);
-}
-
-export function useRefreshAccountData() {
-  return useUpdateAtom(refreshAccountDataState);
-}
-
-export function useSetAccountBalancesUnanchoredState() {
-  return useUpdateAtom(currentAccountBalancesUnanchoredState);
-}
-
-export function useSetAccountInfo() {
-  return useUpdateAtom(currentAccountInfoState);
 }
