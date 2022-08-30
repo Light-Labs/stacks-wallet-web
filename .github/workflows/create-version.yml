@@ -27,8 +27,10 @@ jobs:
           token: ${{ secrets.GH_TOKEN }}
           persist-credentials: false
 
+      - uses: ./.github/actions/provision
+
       - name: Semantic Release
-        uses: cycjimmy/semantic-release-action@v2.6.0
+        uses: cycjimmy/semantic-release-action@v3.1.0
         id: semantic
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         env:
@@ -37,6 +39,7 @@ jobs:
           extra_plugins: |
             @semantic-release/changelog
             @semantic-release/git
+            @semantic-release/release-notes-generator
 
       - name: Create file with release notes
         if: steps.semantic.outputs.new_release_published == 'true'
@@ -59,16 +62,3 @@ jobs:
         with:
           name: release-notes
           path: release-notes.txt
-
-      - name: Get branch name
-        id: branch-name
-        uses: tj-actions/branch-names@v5.4
-
-      - name: Merge `main` into `dev`
-        uses: devmasx/merge-branch@master
-        if: steps.branch-name.outputs.current_branch == 'main'
-        with:
-          type: now
-          from_branch: main
-          target_branch: dev
-          github_token: ${{ github.token }}
