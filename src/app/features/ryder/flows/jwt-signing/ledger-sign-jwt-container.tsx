@@ -138,7 +138,6 @@ export function LedgerSignJwtContainer() {
         tabId,
       });
       setAwaitingSignedJwt(false);
-      await stacks.transport.close();
     } catch (e) {
       setAwaitingSignedJwt(false);
       ledgerNavigate.toDeviceDisconnectStep();

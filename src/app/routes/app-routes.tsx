@@ -30,9 +30,9 @@ import { useHasStateRehydrated } from '@app/store';
 import { UnauthorizedRequest } from '@app/pages/unauthorized-request/unauthorized-request';
 
 import { IncreaseFeeDrawer } from '@app/features/increase-fee-drawer/increase-fee-drawer';
-import { ledgerJwtSigningRoutes } from '@app/features/ledger/flows/jwt-signing/ledger-sign-jwt.routes';
-import { ledgerTxSigningRoutes } from '@app/features/ledger/flows/tx-signing/ledger-sign-tx.routes';
-import { ledgerRequestKeysRoutes } from '@app/features/ledger/flows/request-keys/ledger-request-keys.routes';
+import { ledgerJwtSigningRoutes } from '@app/features/ryder/flows/jwt-signing/ledger-sign-jwt.routes';
+import { ledgerTxSigningRoutes } from '@app/features/ryder/flows/tx-signing/ledger-sign-tx.routes';
+import { ledgerRequestKeysRoutes } from '@app/features/ryder/flows/request-keys/ledger-request-keys.routes';
 
 import { useOnWalletLock } from './hooks/use-on-wallet-lock';
 import { useOnSignOut } from './hooks/use-on-sign-out';

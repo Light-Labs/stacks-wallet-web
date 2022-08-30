@@ -94,10 +94,6 @@ export function WelcomeLayout(props: WelcomeLayoutProps): JSX.Element {
                 Sign in with Secret Key
               </Link>{' '}
               or{' '}
-              <Link fontSize="inherit" onClick={onSelectConnectLedger}>
-                connect your Ledger
-              </Link>{' '}
-              or{' '}
               <Link fontSize="inherit" onClick={onSelectConnectRyder}>
                 connect your Ryder
               </Link>

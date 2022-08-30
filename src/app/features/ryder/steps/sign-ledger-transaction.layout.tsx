@@ -43,7 +43,7 @@ export function SignLedgerTransactionLayout({
         <div
           style={{ padding: '1em' }}
           dangerouslySetInnerHTML={{
-            __html: colourhash_to_svg(new Uint8Array(hex_to_byte_array(txid || '').reverse()), {
+            __html: colourhash_to_svg(new Uint8Array(hex_to_byte_array(txid || '')), {
               rows: 2,
               spacing: 2,
             }),

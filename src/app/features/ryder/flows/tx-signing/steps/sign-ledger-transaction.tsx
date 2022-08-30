@@ -69,6 +69,7 @@ export function SignLedgerTransaction() {
 
   return (
     <SignLedgerTransactionLayout
+      txid={transaction?.txid()}
       details={transactionDetails}
       isFullPage={desktopViewport}
       status={hasApprovedOperation ? 'approved' : 'awaiting-approval'}

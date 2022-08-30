@@ -47,9 +47,6 @@ export function LedgerSignTxContainer() {
   const [awaitingKeyVerification, setAwaitingKeyVerification] = useState(false);
   const [awaitingSignedTransaction, setAwaitingSignedTransaction] = useState(false);
 
-  const broadcastTransactionFn = useHandleSubmitTransaction({
-    loadingKey: LoadingKeys.CONFIRM_DRAWER,
-  });
   const signTransaction = async () => {
     if (!account) return;
 
@@ -132,7 +129,6 @@ export function LedgerSignTxContainer() {
       await hwWalletTxBroadcast({ signedTx });
       setAwaitingSignedTransaction(false);
       navigate(RouteUrls.Home);
-      await stacksApp.transport.close();
     } catch (e) {
       setAwaitingSignedTransaction(false);
       ledgerNavigate.toDeviceDisconnectStep();

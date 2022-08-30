@@ -11,7 +11,6 @@ import {
   ResponseVersion,
 } from '@zondax/ledger-blockstack';
 import { reject } from 'lodash';
-import { deserialize } from 'v8';
 import RyderSerial, { Options } from '../../ryderserial';
 import { pathToBytes } from './ryder-bip-utils';
 
@@ -24,7 +23,7 @@ interface Success<T> {
 }
 export type Response<T> = RyderAppError | Success<T>;
 
-const port = 'ws:/localhost:8080';
+const port = 'ws:/localhost:8888';
 const stxDerivationWithoutAccount = `m/44'/5757'/0'/0/`;
 const identityDerivationWithoutAccount = `m/888'/0'/`;
 export class StacksApp {
