@@ -83,7 +83,6 @@ export function LedgerRequestKeysContainer() {
       ledgerAnalytics.publicKeysPulledFromLedgerSuccessfully();
       setAwaitingKeyVerification(false);
       navigate(RouteUrls.Home);
-      await stacks.transport.close();
     } catch (e) {
       logger.info(e);
       setAwaitingKeyVerification(false);

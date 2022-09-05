@@ -9,7 +9,6 @@ import get from 'lodash.get';
 import { delay } from '@app/common/utils';
 import {
   addSignatureToAuthResponseJwt,
-  exportEncryptedAppPrivateKey,
   getAppVersion,
   getSha256HashOfJwtAuthPayload,
   prepareLedgerDeviceConnection,
@@ -34,7 +33,6 @@ import {
   isExpirationDateValid,
   isIssuanceDateValid,
 } from '@stacks/auth';
-import { encrypt, getAppPrivateKey } from '@stacks/wallet-sdk';
 
 export function LedgerSignJwtContainer() {
   const location = useLocation();

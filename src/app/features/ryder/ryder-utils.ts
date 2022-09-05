@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+import { intToBytes } from '@stacks/common';
 import {
   AddressVersion,
   deserializeTransaction,
@@ -77,7 +78,7 @@ export class StacksApp {
       const ryderApp = new RyderApp();
       void ryderApp
         .serial_export_identity({ port, options: { debug: true } }, index, (res: any) => {
-          console.log('response', res);
+          console.log('response identity', res);
           const address = getAddressFromPublicKey(res.data);
           console.log({ address });
           resolve({
@@ -323,14 +324,19 @@ class RyderApp {
     )
   }
 
-  async serial_export_app_private_key(
+  async assert_send_input(response: string | number) {
+    const sendInput = typeof response === 'number' ? response : 0;
+    return sendInput === RyderSerial.RESPONSE_SEND_INPUT
+  }
+
+  async serial_app_sign_in_legacy(
     payload: { port: string; options?: Options },
     accountIndex: number,
     appDomain: string,
-    callback: (res: Response<Uint8Array>) => void
+    callback: (res: Response<{ walletPubKey: Uint8Array, identityPubKey: Uint8Array, appPrivateKey: Uint8Array }>) => void
   ): Promise<void> {
     this.ryder_serial = new RyderSerial(payload.port, payload.options);
-    new Promise<Uint8Array>((resolve, reject) => {
+    new Promise<{ walletPubKey: Uint8Array, identityPubKey: Uint8Array, appPrivateKey: Uint8Array }>((resolve, reject) => {
       if (!this.ryder_serial) {
         reject('Ryder Serial does not exist for some reason');
         return;
@@ -349,45 +355,49 @@ class RyderApp {
           return;
         }
         let response = await this.ryder_serial.send([
-          RyderSerial.COMMAND_EXPORT_APP_KEY_PRIVATE_KEY,
-          accountIndex,
+          RyderSerial.COMMAND_STACKS_APP_SIGN_IN_REQUEST_LEGACY,
         ]);
-        // eslint-disable-next-line no-console
-        console.log('typeof response', typeof response);
-        const sendInput = typeof response === 'number' ? response : 0;
-        if (sendInput === RyderSerial.RESPONSE_SEND_INPUT) {
-          const length = appDomain.length;
-          console.log('sending app domain');
-          const data = new Uint8Array(length + 1);
-          data.set(Buffer.from(appDomain), 0);
-          data.set([0], length);
-          response = await this.ryder_serial.send(data);
 
-          console.log('typeof response', typeof response);
-
-          const appPRivateKey =
-            typeof response === 'number'
-              ? response.toString()
-              : Buffer.from(response, 'binary').toString('hex');
-          // eslint-disable-next-line no-console
-          console.log({ appPRivateKey });
-
-          resolve(
-            typeof response === 'number'
-              ? new Uint8Array([response])
-              : new Uint8Array(Buffer.from(response, 'binary'))
-          );
+        if (!this.assert_send_input(response)) {
+          return
         }
+
+        const length = appDomain.length;
+        console.log('sending app domain');
+
+        const data = new Uint8Array(2 + 1 + length);
+        data.set(new Uint8Array(new Uint16Array([accountIndex]).buffer).reverse(), 0);
+        data.set(new Uint8Array(new Uint8Array([length]).buffer).reverse(), 2);
+        data.set(Buffer.from(appDomain), 3);
+        response = await this.ryder_serial.send(data);
+
+        console.log('typeof response', typeof response);
+        if (typeof response === 'number') {
+          console.log("error", response);
+          return;
+        }
+        const walletPubKey = Buffer.from(response.substring(0, 33), 'binary').toString('hex');
+        const identityPubKey = Buffer.from(response.substring(34, 66), 'binary').toString('hex');
+        const appPrivateKey = Buffer.from(response.substring(67), 'binary').toString('hex');
+        // eslint-disable-next-line no-console
+        console.log({ walletPubKey, identityPubKey, appPrivateKey });
+
+        resolve(
+          {
+            walletPubKey: new Uint8Array(Buffer.from(response, 'binary')),
+            identityPubKey: new Uint8Array(Buffer.from(response, 'binary')),
+            appPrivateKey: new Uint8Array(Buffer.from(response, 'binary'))
+          });
 
         return;
       });
 
       this.ryder_serial.on('wait_user_confirm', () => {
-        resolve(new Uint8Array());
+        resolve({ walletPubKey: new Uint8Array(), identityPubKey: new Uint8Array(), appPrivateKey: new Uint8Array() });
         return;
       });
     })
-      .then((res: Uint8Array) => callback({ data: res }))
+      .then((res: { walletPubKey: Uint8Array, identityPubKey: Uint8Array, appPrivateKey: Uint8Array }) => callback({ data: res }))
       .catch(error =>
         callback({
           source: error,
@@ -504,7 +514,7 @@ class RyderApp {
         const data = new Uint8Array(4 + length);
         data.set(new Uint8Array(new Uint32Array([length]).buffer).reverse(), 0);
         data.set(message, 4);
-*/
+  */
         const tx_length = Buffer.from([
           (message.byteLength >> 24) & 0xff,
           (message.byteLength >> 16) & 0xff,

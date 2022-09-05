@@ -9,6 +9,9 @@ export function pathToBytes(path: string): number[] {
     bytes.push((byte / 256) | (hardened ? 128 : 0));
     bytes.push(byte % 256);
   });
+  while (bytes.length < 11) {
+    bytes.push(0);
+  }
   console.log('pathToBytes', path, bytes);
   return bytes;
 }

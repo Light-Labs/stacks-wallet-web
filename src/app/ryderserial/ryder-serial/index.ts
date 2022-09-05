@@ -112,7 +112,7 @@ export default class RyderSerial extends Events.EventEmitter {
   // export commands
   static readonly COMMAND_EXPORT_OWNER_KEY = 18;
   static readonly COMMAND_EXPORT_OWNER_KEY_PRIVATE_KEY = 19;
-  static readonly COMMAND_EXPORT_APP_KEY = 20;
+  static readonly COMMAND_STACKS_APP_SIGN_IN_REQUEST_LEGACY = 20;
   static readonly COMMAND_EXPORT_APP_KEY_PRIVATE_KEY = 21;
   static readonly COMMAND_EXPORT_OWNER_APP_KEY_PRIVATE_KEY = 23;
   static readonly COMMAND_EXPORT_PUBLIC_IDENTITIES = 30;
@@ -473,6 +473,7 @@ export default class RyderSerial extends Events.EventEmitter {
     this.#log_level == LogLevel.DEBUG &&
       this.log(LogLevel.DEBUG, 'queue data for Ryder: ' + buff.length + ' byte(s)', {
         bytes: buff.toString('hex'),
+        data
       });
     return new Promise((resolve, reject) => {
       const c: Entry = {

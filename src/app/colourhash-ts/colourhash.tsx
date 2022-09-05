@@ -73,3 +73,10 @@ export function colourhash_to_svg(hash: Uint8Array, options: ColourHashSvgOption
 	svg += `</svg>`;
 	return svg;
 }
+
+export function hex_to_byte_array(hex: string) {
+	if (hex.length % 2 !== 0) hex = '0' + hex;
+	const bytes: number[] = [];
+	for (let i = 0; i < hex.length; i += 2) bytes.push(parseInt(hex.substring(i, i + 2), 16));
+	return bytes;
+  }
