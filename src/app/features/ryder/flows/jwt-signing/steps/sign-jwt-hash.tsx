@@ -44,7 +44,7 @@ export function SignJwtHash() {
             style={{ padding: '1em' }}
             dangerouslySetInnerHTML={{
               __html: colourhash_to_svg(new Uint8Array(hex_to_byte_array(jwtPayloadHash || '')), {
-                rows: 1,
+                rows: 2,
                 spacing: 2,
               }),
             }}
