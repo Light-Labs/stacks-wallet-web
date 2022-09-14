@@ -32,7 +32,7 @@ import { useSTXAddress } from '@common/use-stx-address';
 import {
   stacksLocalhostNetwork,
   stacksMainnetNetwork,
-  stacksTestnetNetwork as network,
+  stacksMainnetNetwork as network,
   stacksTestnetNetwork,
 } from '@common/utils';
 import { TransactionSigningSelectors } from '@tests/page-objects/transaction-signing.selectors';

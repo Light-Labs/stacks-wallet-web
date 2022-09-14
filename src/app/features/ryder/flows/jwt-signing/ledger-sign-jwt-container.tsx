@@ -7,6 +7,7 @@ import get from 'lodash.get';
 import { delay } from '@app/common/utils';
 import {
   addSignatureToAuthResponseJwt,
+  exportEncryptedAppPrivateKey,
   getAppVersion,
   getSha256HashOfJwtAuthPayload,
   prepareLedgerDeviceConnection,
@@ -27,6 +28,7 @@ import { useScrollLock } from '@app/common/hooks/use-scroll-lock';
 import { useLedgerNavigate } from '../../hooks/use-ledger-navigate';
 import { LedgerJwtSigningProvider } from '../../ledger-jwt-signing.context';
 import { useDefaultRequestParams } from '@app/common/hooks/use-default-request-search-params';
+import { doPublicKeysMatchIssuer, doSignaturesMatchPublicKeys, isExpirationDateValid, isIssuanceDateValid } from '@stacks/auth';
 
 export function LedgerSignJwtContainer() {
   const location = useLocation();
@@ -103,6 +105,18 @@ export function LedgerSignJwtContainer() {
       setAwaitingSignedJwt(true);
       ledgerNavigate.toConnectionSuccessStep();
       await delay(1000);
+      console.log(account);
+
+      const appDomain = decodedAuthRequest.domain_name;
+      const transitPublicKey = decodedAuthRequest.public_keys[0];
+
+      console.log('export private app key');
+      const encrytpedAppPrivateKey = await exportEncryptedAppPrivateKey(stacks)(
+        appDomain,
+        transitPublicKey,
+        accountIndex
+      );
+      console.log("encrytpedAppPrivateKey", encrytpedAppPrivateKey);
 
       const authResponsePayload = await makeLedgerCompatibleUnsignedAuthResponsePayload({
         dataPublicKey: account.dataPublicKey,
@@ -112,6 +126,7 @@ export function LedgerSignJwtContainer() {
             mainnet: getAddressFromPublicKey(account.stxPublicKey, TransactionVersion.Mainnet),
           },
         },
+        encrytpedAppPrivateKey,
       });
 
       setJwtPayloadHash(getSha256HashOfJwtAuthPayload(authResponsePayload));
@@ -128,6 +143,15 @@ export function LedgerSignJwtContainer() {
 
       ledgerNavigate.toAwaitingDeviceOperation({ hasApprovedOperation: true });
       const authResponse = addSignatureToAuthResponseJwt(authResponsePayload, resp.signatureDER);
+      // eslint-disable-next-line no-console
+      console.warn(
+        'sign checks',
+        authResponse,
+        await isExpirationDateValid(authResponse),
+        await isIssuanceDateValid(authResponse),
+        await doSignaturesMatchPublicKeys(authResponse),
+        await doPublicKeysMatchIssuer(authResponse)
+      );
       await delay(600);
       keyActions.switchAccount(accountIndex);
       finalizeAuthResponse({
@@ -140,6 +164,7 @@ export function LedgerSignJwtContainer() {
       setAwaitingSignedJwt(false);
     } catch (e) {
       setAwaitingSignedJwt(false);
+      console.log(e);
       ledgerNavigate.toDeviceDisconnectStep();
     }
   };
