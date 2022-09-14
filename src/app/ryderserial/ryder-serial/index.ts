@@ -254,7 +254,7 @@ export default class RyderSerial extends Events.EventEmitter {
           }
           this[state_symbol] = State.WAITING_FOR_USER_CONFIRM;
           do {
-            await new Promise(r => setTimeout(r, 500));
+            await new Promise(r => setTimeout(r, 2000));
             this.send_empty_message();
           } while (this[state_symbol] === State.WAITING_FOR_USER_CONFIRM);
           return;
