@@ -147,6 +147,8 @@ export async function pullKeysFromLedgerDevice(stacksApp: StacksApp): PullKeysFr
   for (let index = 0; index < amountOfKeysToExtractFromDevice; index++) {
     console.log({ index });
     const stxPublicKeyResp = await requestPublicKeyForStxAccount(stacksApp)(index);
+    console.log("something that takes looooooooooooooooooong", stxPublicKeyResp);
+    await new Promise(r => setTimeout(r, 1000));
     const dataPublicKeyResp = await requestPublicKeyForIdentityAccount(stacksApp)(index);
     console.log({ stxPublicKeyResp, dataPublicKeyResp });
     if (!stxPublicKeyResp.publicKey) return { status: 'failure', ...stxPublicKeyResp };
@@ -194,7 +196,7 @@ function reformatDerSignatureToJose(derSignature: Uint8Array) {
 export function addSignatureToAuthResponseJwt(authResponse: string, signature: Uint8Array) {
   try {
     const resultingSig = Buffer.from(signature)
-      .slice(1)
+      .slice(1) // FIXME after fixing https://github.com/Light-Labs/stacks-wallet-web/issues/9
       .toString('base64')
       .replace(/=/g, '')
       .replace(/\+/g, '-')

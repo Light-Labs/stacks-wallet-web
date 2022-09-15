@@ -1,5 +1,4 @@
 /* eslint-disable no-console */
-import { intToBytes } from '@stacks/common';
 import {
   AddressVersion,
   compressPublicKey,
@@ -44,6 +43,15 @@ export class StacksApp {
         } else {
           resolve(res.data);
         }
+      });
+    });
+  }
+
+  setupDevice(): Promise<Boolean> {
+    return new Promise<Boolean>(resolve => {
+      const ryderApp = new RyderApp();
+      void ryderApp.setup_device({ port, options: { debug: true } }, (res: Response<boolean>) => {
+        resolve((res as any).data);
       });
     });
   }
@@ -162,7 +170,7 @@ export class StacksApp {
           appDomain,
           (res: any) => {
             console.log('response', res);
-            resolve({ appPrivateKey: res.data });
+            resolve(res);
           }
         )
         .then(() => {
@@ -173,6 +181,48 @@ export class StacksApp {
 }
 class RyderApp {
   ryder_serial?: RyderSerial;
+
+  async setup_device(
+    payload: { port: string; options?: Options },
+    callback: (res: Response<boolean>) => void
+  ): Promise<void> {
+    this.ryder_serial = new RyderSerial(payload.port, payload.options);
+    new Promise<boolean>((resolve, reject) => {
+      if (!this.ryder_serial) {
+        reject('Ryder Serial does not exist for some reason');
+        return;
+      }
+
+      this.ryder_serial.on('failed', (error: Error) => {
+        reject(
+          `Could not connect to the Ryder on the specified port. Wrong port or it is currently in use: ${error}`
+        );
+        return;
+      });
+      this.ryder_serial.on('open', async () => {
+        if (!this.ryder_serial) {
+          reject('Ryder serial was destroyed');
+          return;
+        }
+        console.log('setup device');
+        await this.ryder_serial.send(RyderSerial.COMMAND_SETUP);
+        resolve(true);
+        return;
+      });
+      this.ryder_serial.on('wait_user_confirm', () => {
+        console.log('Unexpected wait_user_confirm');
+        return;
+      });
+    })
+      .then((res: boolean) => callback({ data: res }))
+      .catch(error =>
+        callback({
+          source: error,
+          error: error,
+        })
+      )
+      .finally(() => this.ryder_serial?.close());
+  }
 
   async serial_info(
     payload: { port: string; options?: Options },
@@ -270,11 +320,11 @@ class RyderApp {
         response = await this.ryder_serial.send(pathToBytes(path));
 
         // eslint-disable-next-line no-console
-        console.log('typeof response', typeof response);
+        console.log('typeof response', typeof response, response);
         const publicKey =
           typeof response === 'number'
             ? response.toString()
-            : Buffer.from(response.substring(2), 'binary').toString('hex');
+            : Buffer.from(response.substring(1), 'binary').toString('hex');
         // eslint-disable-next-line no-console
         console.log(publicKey);
         console.log(
@@ -372,6 +422,8 @@ class RyderApp {
           console.log('error', response);
           return;
         }
+        response = response.substring(2);
+
         const walletPubKey = Buffer.from(response.substring(0, 33), 'binary').toString('hex');
         const identityPubKey = Buffer.from(response.substring(34, 66), 'binary').toString('hex');
         const appPrivateKey = Buffer.from(response.substring(67), 'binary').toString('hex');
@@ -456,19 +508,20 @@ class RyderApp {
           const signature =
             typeof response === 'number'
               ? response.toString()
-              : Buffer.from(response, 'binary').toString('hex');
+              : Buffer.from(response.slice(1), 'binary').toString('hex'); // FIXME after fixing https://github.com/Light-Labs/stacks-wallet-web/issues/9
           // eslint-disable-next-line no-console
           console.log({ signature });
           resolve(
             typeof response === 'number'
               ? new Uint8Array([response])
-              : new Uint8Array(Buffer.from(response, 'binary'))
+              : new Uint8Array(Buffer.from(response.slice(1), 'binary')) // FIXME after fixing https://github.com/Light-Labs/stacks-wallet-web/issues/9
           );
         }
         return;
       });
       this.ryder_serial.on('wait_user_confirm', () => {
-        resolve(new Uint8Array());
+        console.log('wait_user_confirm');
+        // just wait
         return;
       });
     })
@@ -553,7 +606,10 @@ class RyderApp {
         return;
       });
     })
-      .then((res: Uint8Array) => callback({ data: res }))
+      .then((res: Uint8Array) => {
+        console.log({ res });
+        //callback({ data: res })
+      })
       .catch(error => {
         console.log('tx-sign', error);
         callback({
