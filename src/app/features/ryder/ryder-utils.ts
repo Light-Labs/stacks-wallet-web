@@ -560,32 +560,20 @@ class RyderApp {
           reject('Ryder serial was destroyed');
           return;
         }
-        let response = await this.ryder_serial.send([
-          RyderSerial.COMMAND_REQUEST_TRANSACTION_SIGN,
-          accountIndex,
-        ]);
+        let response = await this.ryder_serial.send([RyderSerial.COMMAND_REQUEST_TRANSACTION_SIGN]);
         if (response !== RyderSerial.RESPONSE_SEND_INPUT) {
           // TODO handle errors
           console.log('error from ryder device', response);
           return;
         }
-        /*
-        const data = new Uint8Array(4 + length);
-        data.set(new Uint8Array(new Uint32Array([length]).buffer).reverse(), 0);
-        data.set(message, 4);
-  */
-        const tx_length = Buffer.from([
-          (message.byteLength >> 24) & 0xff,
-          (message.byteLength >> 16) & 0xff,
-          (message.byteLength >> 8) & 0xff,
-          message.byteLength & 0xff,
-        ]);
-        const data = Buffer.concat([tx_length, message]);
-        const uint8a = new Uint8Array(data.byteLength);
-        for (let i = 0; i < data.byteLength; ++i) uint8a[i] = data[i];
 
-        console.log(Buffer.from(uint8a).toString('hex'));
-        response = await this.ryder_serial.send(uint8a);
+        const data = new Uint8Array(2 + 4 + message.byteLength);
+        data.set(new Uint8Array(new Uint16Array([accountIndex]).buffer).reverse(), 0);
+        data.set(new Uint8Array(new Uint32Array([message.byteLength]).buffer).reverse(), 2);
+        for (let i = 0; i < message.byteLength; ++i) data[i + 6] = message[i];
+
+        console.log('data to send', Buffer.from(data.buffer).toString('hex'));
+        response = await this.ryder_serial.send(data);
         const signedTx =
           typeof response === 'number'
             ? response.toString()
