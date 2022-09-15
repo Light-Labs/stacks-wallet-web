@@ -11,7 +11,7 @@ import { useHasAllowedDiagnostics } from '@app/store/onboarding/onboarding.hooks
 import { useKeyActions } from '@app/common/hooks/use-key-actions';
 import { doesBrowserSupportWebUsbApi, whenPageMode } from '@app/common/utils';
 import { openIndexPageInNewTab } from '@app/common/utils/open-in-new-tab';
-
+import { prepareLedgerDeviceConnection } from '@app/features/ryder/ledger-utils';
 export const WelcomePage = memo(() => {
   const [hasAllowedDiagnostics] = useHasAllowedDiagnostics();
   const navigate = useNavigate();
@@ -25,13 +25,19 @@ export const WelcomePage = memo(() => {
 
   const startOnboarding = useCallback(async () => {
     setIsGeneratingWallet(true);
-    keyActions.generateWalletKey();
-    void analytics.track('generate_new_secret_key');
-    if (decodedAuthRequest) {
-      navigate(RouteUrls.SetPassword);
-    }
-    navigate(RouteUrls.BackUpSecretKey);
-  }, [keyActions, analytics, decodedAuthRequest, navigate]);
+
+    const stacksApp = await prepareLedgerDeviceConnection({
+      setLoadingState: () => {},
+      onError() {
+        console.log('error');
+      },
+    });
+
+    if (!stacksApp) return;
+    const result = await stacksApp.setupDevice();
+    console.log(result);
+    navigate(RouteUrls.Home);
+  }, [navigate]);
 
   useEffect(() => {
     if (hasAllowedDiagnostics === undefined) navigate(RouteUrls.RequestDiagnostics);
@@ -60,7 +66,7 @@ export const WelcomePage = memo(() => {
         doesBrowserSupportWebUsbApi() ? supportsWebUsbAction() : doesNotSupportWebUsbAction()
       }
       onSelectConnectRyder={() => {
-        navigate(RouteUrls.ConnectLedger)
+        navigate(RouteUrls.ConnectLedger);
       }}
       onStartOnboarding={() => startOnboarding()}
       onRestoreWallet={() => navigate(RouteUrls.SignIn)}
