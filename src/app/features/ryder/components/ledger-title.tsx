@@ -13,6 +13,6 @@ export function LedgerTitle(props: BoxProps) {
 
 export function LedgerConnectInstructionTitle(props: BoxProps) {
   return (
-    <LedgerTitle {...props}>Plug in your Ryder and connect</LedgerTitle>
+    <LedgerTitle {...props}>Tap your Ryder to connect</LedgerTitle>
   );
 }

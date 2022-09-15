@@ -21,7 +21,7 @@ export function SignJwtHash() {
         <img src={SignLedgerTransaction} width="228px" />
       </Box>
       <LedgerTitle mt="loose" mx="50px">
-        Approve the JWT hash on your device
+        Prove identity on your device
       </LedgerTitle>
       <DeviceOperationApprovalStatus
         status={hasApprovedOperation ? 'approved' : 'awaiting-approval'}
@@ -41,7 +41,7 @@ export function SignJwtHash() {
           tooltipLabel="This is a Sha256 hash of the JSON Web Token payload returned to the connecting app, which proves to the app you own the corresponding private key"
         >
           <div
-            style={{ padding: '1em' }}
+            style={{ padding: '1em', background: "#000" }}
             dangerouslySetInnerHTML={{
               __html: colourhash_to_svg(new Uint8Array(hex_to_byte_array(jwtPayloadHash || '')), {
                 rows: 2,

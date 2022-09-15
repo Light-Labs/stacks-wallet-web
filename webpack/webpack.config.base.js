@@ -38,7 +38,7 @@ const smp = new SpeedMeasurePlugin({
   granularLoaderData: true,
 });
 
-const APP_TITLE = 'Hiro Wallet';
+const APP_TITLE = 'Hiro Wallet (Ryder edition)';
 
 const HTML_OPTIONS = {
   inject: 'body',
