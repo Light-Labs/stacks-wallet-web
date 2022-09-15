@@ -36,13 +36,14 @@ function SignatureRequestBase() {
   if (isUndefined(validSignatureRequest)) return null;
   if (!requestToken || !messageType) return null;
 
+  /*
   if (!validSignatureRequest)
     return (
       <SignatureRequestLayout>
         <ErrorMessage errorMessage="Invalid signature request" />
       </SignatureRequestLayout>
     );
-
+*/
   return (
     <SignatureRequestLayout>
       {isStructuredMessage(messageType) && (

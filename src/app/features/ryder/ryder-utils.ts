@@ -1,11 +1,15 @@
 /* eslint-disable no-console */
+import { hexToBytes } from '@stacks/common';
 import {
   AddressVersion,
+  ClarityValue,
   compressPublicKey,
   createStacksPublicKey,
+  cvToHex,
   deserializeTransaction,
   getAddressFromPublicKey,
   publicKeyToAddress,
+  TupleCV,
 } from '@stacks/transactions';
 import {
   LedgerError,
@@ -136,8 +140,23 @@ export class StacksApp {
       );
     });
   }
-  async sign_msg(path: string, message: string): Promise<any> {
-    return Promise.reject('sign_msg not implemented');
+  async sign_msg(path: string, domain: TupleCV, payload: ClarityValue): Promise<any> {
+    const index = parseInt(path.replace(stxDerivationWithoutAccount, ''));
+    console.log('sign msg with account ', index, ', Index derived from', path, domain, payload);
+    console.log(domain, payload);
+    return new Promise<any>(resolve => {
+      const ryderApp = new RyderApp();
+      void ryderApp.sign_structed_message(
+        { port, options: { debug: true } },
+        index,
+        domain,
+        payload,
+        (res: any) => {
+          console.warn('response', res);
+          resolve({ signatureDER: res.data });
+        }
+      );
+    });
   }
 
   async sign_jwt(path: string, message: string): Promise<any> {
@@ -567,10 +586,11 @@ class RyderApp {
           return;
         }
 
-        const data = new Uint8Array(2 + 4 + message.byteLength);
+        const messageLength = message.byteLength;
+        const data = new Uint8Array(2 + 4 + messageLength);
         data.set(new Uint8Array(new Uint16Array([accountIndex]).buffer).reverse(), 0);
-        data.set(new Uint8Array(new Uint32Array([message.byteLength]).buffer).reverse(), 2);
-        for (let i = 0; i < message.byteLength; ++i) data[i + 6] = message[i];
+        data.set(new Uint8Array(new Uint32Array([messageLength]).buffer).reverse(), 2);
+        data.set(new Uint8Array(message), 6);
 
         console.log('data to send', Buffer.from(data.buffer).toString('hex'));
         response = await this.ryder_serial.send(data);
@@ -590,7 +610,7 @@ class RyderApp {
       });
 
       this.ryder_serial.on('wait_user_confirm', () => {
-        resolve(new Uint8Array());
+        // do nothing until confirmed by user
         return;
       });
     })
@@ -605,6 +625,79 @@ class RyderApp {
           error: error,
         });
       })
+      .finally(() => this.ryder_serial?.close());
+  }
+
+  async sign_structed_message(
+    serialSettings: { port: string; options?: Options },
+    accountIndex: number,
+    domain: TupleCV,
+    payload: ClarityValue,
+    callback: (res: Response<Uint8Array>) => void
+  ): Promise<void> {
+    this.ryder_serial = new RyderSerial(serialSettings.port, serialSettings.options);
+    new Promise<Uint8Array>((resolve, reject) => {
+      if (!this.ryder_serial) {
+        reject('Ryder Serial does not exist for some reason');
+        return;
+      }
+
+      this.ryder_serial.on('failed', (error: Error) => {
+        reject(
+          `Could not connect to the Ryder on the specified port. Wrong port or it is currently in use: ${error}`
+        );
+        return;
+      });
+
+      this.ryder_serial.on('open', async () => {
+        if (!this.ryder_serial) {
+          reject('Ryder serial was destroyed');
+          return;
+        }
+        let response = await this.ryder_serial.send([
+          RyderSerial.COMMAND_REQUEST_STRUCTURED_MESSAGE_SIGN,
+        ]);
+        // expected response: RESPONSE_SEND_INPUT
+        // eslint-disable-next-line no-console
+        console.log('typeof response', typeof response);
+        if (response === RyderSerial.RESPONSE_SEND_INPUT) {
+          const domainBytes = hexToBytes(cvToHex(domain).substring(2));
+          const payloadBytes = hexToBytes(cvToHex(payload).substring(2));
+          const length = domainBytes.length + payloadBytes.length;
+          console.log('sending message to sign', accountIndex, length);
+          const data = new Uint8Array(2 + 4 + length);
+          data.set(new Uint8Array(new Uint16Array([accountIndex]).buffer).reverse(), 0);
+          data.set(new Uint8Array(new Uint32Array([length]).buffer).reverse(), 2);
+          data.set(domainBytes, 6);
+          data.set(payloadBytes, 6 + domainBytes.length);
+          response = await this.ryder_serial.send(data);
+          const signature =
+            typeof response === 'number'
+              ? response.toString()
+              : Buffer.from(response.slice(1), 'binary').toString('hex'); // FIXME after fixing https://github.com/Light-Labs/stacks-wallet-web/issues/9
+          // eslint-disable-next-line no-console
+          console.log({ signature });
+          resolve(
+            typeof response === 'number'
+              ? new Uint8Array([response])
+              : new Uint8Array(Buffer.from(response.slice(1), 'binary')) // FIXME after fixing https://github.com/Light-Labs/stacks-wallet-web/issues/9
+          );
+        }
+        return;
+      });
+      this.ryder_serial.on('wait_user_confirm', () => {
+        console.log('wait_user_confirm');
+        // just wait
+        return;
+      });
+    })
+      .then((res: Uint8Array) => callback({ data: res }))
+      .catch(error =>
+        callback({
+          source: error,
+          error: error,
+        })
+      )
       .finally(() => this.ryder_serial?.close());
   }
 }

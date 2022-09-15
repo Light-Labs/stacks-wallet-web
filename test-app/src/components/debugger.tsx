@@ -331,7 +331,7 @@ export const Debugger = () => {
       functionArgs: [
         uintCV(1), // amount
         standardPrincipalCV(address || ''), // sender
-        standardPrincipalCV('ST1X6M947Z7E58CNE0H8YJVJTVKS9VW0PHEG3NHN3'), // recipient
+        standardPrincipalCV('SP2PABAF9FTAJYNFZH93XENAJ8FVY99RRM50D2JG9'), // recipient
       ],
       postConditions: [
         makeStandardFungiblePostCondition(

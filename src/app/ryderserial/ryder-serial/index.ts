@@ -125,6 +125,9 @@ export default class RyderSerial extends Events.EventEmitter {
   // transaction commands
   static readonly COMMAND_REQUEST_TRANSACTION_SIGN = 50;
 
+  // sign structed message command
+  static readonly COMMAND_REQUEST_STRUCTURED_MESSAGE_SIGN = 51;
+
   // sign message commands
   static readonly COMMAND_REQUEST_IDENTITY_MESSAGE_SIGN = 60;
 
@@ -253,8 +256,9 @@ export default class RyderSerial extends Events.EventEmitter {
             return this.serial_data.bind(this)(data.slice(1)); // more responses in the buffer
           }
           this[state_symbol] = State.WAITING_FOR_USER_CONFIRM;
+          ++offset;
           do {
-            await new Promise(r => setTimeout(r, 2000));
+            await new Promise(r => setTimeout(r, 5000));
             this.send_empty_message();
           } while (this[state_symbol] === State.WAITING_FOR_USER_CONFIRM);
           return;
