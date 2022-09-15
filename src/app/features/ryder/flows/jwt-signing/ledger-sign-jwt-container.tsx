@@ -28,7 +28,12 @@ import { useScrollLock } from '@app/common/hooks/use-scroll-lock';
 import { useLedgerNavigate } from '../../hooks/use-ledger-navigate';
 import { LedgerJwtSigningProvider } from '../../ledger-jwt-signing.context';
 import { useDefaultRequestParams } from '@app/common/hooks/use-default-request-search-params';
-import { doPublicKeysMatchIssuer, doSignaturesMatchPublicKeys, isExpirationDateValid, isIssuanceDateValid } from '@stacks/auth';
+import {
+  doPublicKeysMatchIssuer,
+  doSignaturesMatchPublicKeys,
+  isExpirationDateValid,
+  isIssuanceDateValid,
+} from '@stacks/auth';
 
 export function LedgerSignJwtContainer() {
   const location = useLocation();
@@ -109,7 +114,7 @@ export function LedgerSignJwtContainer() {
 
       const appDomain = decodedAuthRequest.domain_name;
       const transitPublicKey = decodedAuthRequest.public_keys[0];
-
+      /*
       console.log('export private app key');
       const encrytpedAppPrivateKey = await exportEncryptedAppPrivateKey(stacks)(
         appDomain,
@@ -117,7 +122,7 @@ export function LedgerSignJwtContainer() {
         accountIndex
       );
       console.log("encrytpedAppPrivateKey", encrytpedAppPrivateKey);
-
+*/
       const authResponsePayload = await makeLedgerCompatibleUnsignedAuthResponsePayload({
         dataPublicKey: account.dataPublicKey,
         profile: {
@@ -126,7 +131,7 @@ export function LedgerSignJwtContainer() {
             mainnet: getAddressFromPublicKey(account.stxPublicKey, TransactionVersion.Mainnet),
           },
         },
-        encrytpedAppPrivateKey,
+        //encrytpedAppPrivateKey,
       });
 
       setJwtPayloadHash(getSha256HashOfJwtAuthPayload(authResponsePayload));
@@ -151,6 +156,13 @@ export function LedgerSignJwtContainer() {
         await isIssuanceDateValid(authResponse),
         await doSignaturesMatchPublicKeys(authResponse),
         await doPublicKeysMatchIssuer(authResponse)
+      );
+
+      console.log(
+        account.stxPublicKey,
+        getAddressFromPublicKey(account.stxPublicKey, TransactionVersion.Mainnet),
+        account.dataPublicKey,
+        getAddressFromPublicKey(account.dataPublicKey, TransactionVersion.Mainnet),
       );
       await delay(600);
       keyActions.switchAccount(accountIndex);
