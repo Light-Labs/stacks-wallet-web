@@ -38,7 +38,13 @@ interface WelcomeLayoutProps {
   onRestoreWallet(): void;
 }
 export function WelcomeLayout(props: WelcomeLayoutProps): JSX.Element {
-  const { isGeneratingWallet, onStartOnboarding, onSelectConnectLedger, onSelectConnectRyder, onRestoreWallet } = props;
+  const {
+    isGeneratingWallet,
+    onStartOnboarding,
+    onSelectConnectLedger,
+    onSelectConnectRyder,
+    onRestoreWallet,
+  } = props;
 
   return (
     <CenteredPageContainer>

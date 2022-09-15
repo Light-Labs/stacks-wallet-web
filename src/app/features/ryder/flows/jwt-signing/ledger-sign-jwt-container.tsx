@@ -162,7 +162,7 @@ export function LedgerSignJwtContainer() {
         account.stxPublicKey,
         getAddressFromPublicKey(account.stxPublicKey, TransactionVersion.Mainnet),
         account.dataPublicKey,
-        getAddressFromPublicKey(account.dataPublicKey, TransactionVersion.Mainnet),
+        getAddressFromPublicKey(account.dataPublicKey, TransactionVersion.Mainnet)
       );
       await delay(600);
       keyActions.switchAccount(accountIndex);

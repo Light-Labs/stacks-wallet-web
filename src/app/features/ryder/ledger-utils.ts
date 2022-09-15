@@ -147,7 +147,7 @@ export async function pullKeysFromLedgerDevice(stacksApp: StacksApp): PullKeysFr
   for (let index = 0; index < amountOfKeysToExtractFromDevice; index++) {
     console.log({ index });
     const stxPublicKeyResp = await requestPublicKeyForStxAccount(stacksApp)(index);
-    console.log("something that takes looooooooooooooooooong", stxPublicKeyResp);
+    console.log('something that takes looooooooooooooooooong', stxPublicKeyResp);
     await new Promise(r => setTimeout(r, 1000));
     const dataPublicKeyResp = await requestPublicKeyForIdentityAccount(stacksApp)(index);
     console.log({ stxPublicKeyResp, dataPublicKeyResp });

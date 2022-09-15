@@ -10,7 +10,6 @@ import { DeviceOperationApprovalStatus } from '@app/features/ryder/components/de
 import SignLedgerTransaction from '@assets/images/ryder/ryder-logo.png';
 import { colourhash_to_svg, hex_to_byte_array } from '@app/colourhash-ts/colourhash';
 
-
 export function SignJwtHash() {
   const { jwtPayloadHash } = useContext(ledgerJwtSigningContext);
   const hasApprovedOperation = useHasApprovedOperation();
@@ -41,7 +40,7 @@ export function SignJwtHash() {
           tooltipLabel="This is a Sha256 hash of the JSON Web Token payload returned to the connecting app, which proves to the app you own the corresponding private key"
         >
           <div
-            style={{ padding: '1em', background: "#000" }}
+            style={{ padding: '1em', background: '#000' }}
             dangerouslySetInnerHTML={{
               __html: colourhash_to_svg(new Uint8Array(hex_to_byte_array(jwtPayloadHash || '')), {
                 rows: 2,
