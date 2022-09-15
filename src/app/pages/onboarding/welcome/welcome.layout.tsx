@@ -38,7 +38,13 @@ interface WelcomeLayoutProps {
   onRestoreWallet(): void;
 }
 export function WelcomeLayout(props: WelcomeLayoutProps): JSX.Element {
-  const { isGeneratingWallet, onStartOnboarding, onSelectConnectLedger, onSelectConnectRyder, onRestoreWallet } = props;
+  const {
+    isGeneratingWallet,
+    onStartOnboarding,
+    onSelectConnectLedger,
+    onSelectConnectRyder,
+    onRestoreWallet,
+  } = props;
 
   return (
     <CenteredPageContainer>
@@ -79,7 +85,7 @@ export function WelcomeLayout(props: WelcomeLayoutProps): JSX.Element {
               mt={['base', null, 'loose']}
               onClick={onStartOnboarding}
             >
-              Create new wallet
+              Setup Ryder device
             </PrimaryButton>
           </Box>
 

@@ -27,13 +27,14 @@ const response_errors: Record<number, string> = {
   246: 'RESPONSE_ERROR_NOT_IMPLEMENTED',
   245: 'RESPONSE_ERROR_INPUT_TOO_LONG',
   // 244
-  243: 'RESPONSE_ERROR_DEPRECATED'
+  243: 'RESPONSE_ERROR_DEPRECATED',
 };
 
 const enum State {
   IDLE,
   SENDING,
   READING,
+  WAITING_FOR_USER_CONFIRM,
 }
 
 const state_symbol = Symbol('state');
@@ -124,6 +125,9 @@ export default class RyderSerial extends Events.EventEmitter {
   // transaction commands
   static readonly COMMAND_REQUEST_TRANSACTION_SIGN = 50;
 
+  // sign structed message command
+  static readonly COMMAND_REQUEST_STRUCTURED_MESSAGE_SIGN = 51;
+
   // sign message commands
   static readonly COMMAND_REQUEST_IDENTITY_MESSAGE_SIGN = 60;
 
@@ -183,7 +187,7 @@ export default class RyderSerial extends Events.EventEmitter {
     this.next();
   }
 
-  private serial_data(dataArray: Uint8Array): void {
+  private async serial_data(dataArray: Uint8Array): Promise<void> {
     const data = Buffer.from(dataArray);
     this.log(LogLevel.DEBUG, 'data from Ryder', {
       data: '0x' + Buffer.from(data).toString('hex'),
@@ -197,6 +201,10 @@ export default class RyderSerial extends Events.EventEmitter {
       }
       const { resolve, reject } = this.#train.peek_front();
       let offset = 0;
+      if (this[state_symbol] === State.WAITING_FOR_USER_CONFIRM) {
+        // user has confirmed, now continue with reading the data for the last command
+        this[state_symbol] = State.READING;
+      }
       if (this[state_symbol] === State.SENDING) {
         this.log(LogLevel.DEBUG, `-> SENDING... ryderserial is trying to send data ${data[0]}`);
         if (data[0] === RESPONSE_LOCKED) {
@@ -247,6 +255,12 @@ export default class RyderSerial extends Events.EventEmitter {
             this.log(LogLevel.DEBUG, 'ryderserial more in buffer');
             return this.serial_data.bind(this)(data.slice(1)); // more responses in the buffer
           }
+          this[state_symbol] = State.WAITING_FOR_USER_CONFIRM;
+          ++offset;
+          do {
+            await new Promise(r => setTimeout(r, 5000));
+            this.send_empty_message();
+          } while (this[state_symbol] === State.WAITING_FOR_USER_CONFIRM);
           return;
         } else {
           // error
@@ -269,7 +283,10 @@ export default class RyderSerial extends Events.EventEmitter {
           return;
         }
       }
-      if (this[state_symbol] === State.READING) {
+      if (
+        this[state_symbol] === State.READING ||
+        this[state_symbol] === State.WAITING_FOR_USER_CONFIRM
+      ) {
         this.log(
           LogLevel.INFO,
           '---> (during response_output): READING... ryderserial is trying to read data'
@@ -305,6 +322,22 @@ export default class RyderSerial extends Events.EventEmitter {
     }
   }
 
+  private send_empty_message() {
+    try {
+      if (this.connection) {
+        this.connection.write(Buffer.from([]));
+        this.log(LogLevel.DEBUG, `sent empty message`);
+      } else {
+        this.log(LogLevel.ERROR, `no connection`);
+        this.serial_error(new Error('no connection'));
+      }
+    } catch (error) {
+      this.log(LogLevel.ERROR, `encountered error while sending data: ${error}`);
+      this.serial_error(error as Error);
+      return;
+    }
+  }
+
   /**
    * Attempts to (re)open a new connection to serial port and initialize Event listeners.
    *
@@ -314,7 +347,7 @@ export default class RyderSerial extends Events.EventEmitter {
    * @param options Specific options to drive behavior. If omitted, fallback to `this.options` or `DEFAULT_OPTIONS`
    */
   public open(port?: string, options?: Options): void {
-    this.log(LogLevel.DEBUG, 'ryderserial attempt open');
+    this.log(LogLevel.DEBUG, `ryderserial attempt open ${this.connection?.isOpen()}`);
     this.closing = false;
 
     // if connection is already open
@@ -337,7 +370,7 @@ export default class RyderSerial extends Events.EventEmitter {
       this.options.lock = true;
     }
     if (!this.options.reconnect_time) {
-      this.options.reconnect_time = 1_000;
+      this.options.reconnect_time = 2_000;
     }
     this.connection = new WSConnection(this.port, this.options);
 
@@ -473,7 +506,7 @@ export default class RyderSerial extends Events.EventEmitter {
     this.#log_level == LogLevel.DEBUG &&
       this.log(LogLevel.DEBUG, 'queue data for Ryder: ' + buff.length + ' byte(s)', {
         bytes: buff.toString('hex'),
-        data
+        data,
       });
     return new Promise((resolve, reject) => {
       const c: Entry = {

@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { ClarityValue, createStacksPrivateKey } from '@stacks/transactions';
+import { ClarityValue, createStacksPrivateKey, cvToHex } from '@stacks/transactions';
 import { Button, Stack } from '@stacks/ui';
 import { TupleCV } from '@stacks/transactions/dist/esm/clarity';
 
@@ -12,6 +12,7 @@ import { signMessage, signStructuredDataMessage } from '@shared/crypto/sign-mess
 import { logger } from '@shared/logger';
 import { SignatureMessage } from '@shared/signature/types';
 import { isString } from '@shared/utils';
+import { prepareLedgerDeviceConnection } from '@app/features/ryder/ledger-utils';
 
 function useSignMessageSoftwareWallet() {
   const account = useCurrentAccount();
@@ -44,16 +45,24 @@ export function SignAction(props: SignatureMessage): JSX.Element | null {
   const sign = async () => {
     setIsLoading(true);
     void analytics.track('request_signature_sign');
-    const messageSignature = signSoftwareWalletMessage({ message, domain });
-    if (!messageSignature) {
-      logger.error('Cannot sign message, no account in state');
-      void analytics.track('request_signature_cannot_sign_message_no_account');
-      return;
+    const stacksApp = await prepareLedgerDeviceConnection({
+      setLoadingState: () => {},
+      onError: () => {},
+    });
+
+    if (stacksApp) {
+      const accountIndex = 0; // FIXME
+      const signature = await stacksApp.sign_msg(
+        `m/44'/5757'/0'/0/${accountIndex}`,
+        domain as TupleCV,
+        message as ClarityValue
+      );
+      console.log({ signature });
+      const messageSignature = ''; // FIXME
+      // Since the signature is really fast, we add a delay to improve the UX
+      setIsLoading(false);
+      finalizeMessageSignature({ requestPayload: requestToken, tabId, data: messageSignature });
     }
-    // Since the signature is really fast, we add a delay to improve the UX
-    await delay(1000);
-    setIsLoading(false);
-    finalizeMessageSignature({ requestPayload: requestToken, tabId, data: messageSignature });
   };
 
   const cancel = () => {

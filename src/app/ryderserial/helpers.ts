@@ -6,5 +6,5 @@
  * @param _x The variable with no remaining values
  */
 export function assertNever(_x: never): never {
-    throw new Error("Unexpected value. Should have been never.");
+  throw new Error('Unexpected value. Should have been never.');
 }

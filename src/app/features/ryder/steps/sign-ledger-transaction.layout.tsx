@@ -21,7 +21,7 @@ export function SignLedgerTransactionLayout({
   status,
   txid,
 }: SignLedgerTransactionLayoutProps) {
-  console.log({txid});
+  console.log({ txid });
   return (
     <LedgerWrapper>
       <Box mt="tight">
@@ -41,7 +41,7 @@ export function SignLedgerTransactionLayout({
         width="100%"
       >
         <div
-          style={{ padding: '1em' }}
+          style={{ padding: '1em', background: '#000' }}
           dangerouslySetInnerHTML={{
             __html: colourhash_to_svg(new Uint8Array(hex_to_byte_array(txid || '')), {
               rows: 2,
