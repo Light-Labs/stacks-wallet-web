@@ -198,7 +198,7 @@ export function LedgerSignJwtContainer() {
         isWaitingOnPerformedAction={awaitingDeviceConnection || awaitingSignedJwt}
         onClose={onCancelConnectLedger}
         pauseOnClickOutside
-        waitingOnPerformedActionMessage="Ledger device in use"
+        waitingOnPerformedActionMessage="Ryder device in use"
       >
         <Outlet />
       </BaseDrawer>
