@@ -103,15 +103,6 @@ export function WelcomeLayout(props: WelcomeLayoutProps): JSX.Element {
               <Link fontSize="inherit" onClick={onSelectConnectRyder}>
                 connect your Ryder
               </Link>
-              {featureFlags.ledgerEnabled && (
-                <>
-                  {' '}
-                  or{' '}
-                  <Link fontSize="inherit" onClick={onSelectConnectLedger}>
-                    connect your Ledger
-                  </Link>
-                </>
-              )}
             </Box>
           </Flex>
         </Flex>
