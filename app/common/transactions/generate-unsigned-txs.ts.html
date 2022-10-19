@@ -30,9 +30,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">42.85% </span>
+                <span class="strong">38.46% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>3/7</span>
+                <span class='fraction'>5/13</span>
             </div>
         
             
@@ -182,7 +182,43 @@
 <a name='L117'></a><a href='#L117'>117</a>
 <a name='L118'></a><a href='#L118'>118</a>
 <a name='L119'></a><a href='#L119'>119</a>
-<a name='L120'></a><a href='#L120'>120</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L120'></a><a href='#L120'>120</a>
+<a name='L121'></a><a href='#L121'>121</a>
+<a name='L122'></a><a href='#L122'>122</a>
+<a name='L123'></a><a href='#L123'>123</a>
+<a name='L124'></a><a href='#L124'>124</a>
+<a name='L125'></a><a href='#L125'>125</a>
+<a name='L126'></a><a href='#L126'>126</a>
+<a name='L127'></a><a href='#L127'>127</a>
+<a name='L128'></a><a href='#L128'>128</a>
+<a name='L129'></a><a href='#L129'>129</a>
+<a name='L130'></a><a href='#L130'>130</a>
+<a name='L131'></a><a href='#L131'>131</a>
+<a name='L132'></a><a href='#L132'>132</a>
+<a name='L133'></a><a href='#L133'>133</a>
+<a name='L134'></a><a href='#L134'>134</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -213,18 +249,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
@@ -244,6 +268,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -263,6 +289,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -303,9 +331,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import BN from 'bn.js';
 import {
-  ContractCallPayload,
-  ContractDeployPayload,
-  STXTransferPayload,
+  ContractCallPayload as ConnectContractCallPayload,
+  ContractDeployPayload as ConnectContractDeployPayload,
+  STXTransferPayload as ConnectSTXTransferPayload,
   TransactionTypes,
 } from '@stacks/connect';
 import {
@@ -319,9 +347,16 @@ import {
 import { hexToBuff } from '@app/common/utils';
 import { getPostConditions } from './post-condition-utils';
 import { isTransactionTypeSupported } from './transaction-utils';
+import { StacksNetwork } from '@stacks/network';
 &nbsp;
 function initNonce(nonce?: number) {
   return nonce !== undefined ? new BN(nonce, 10) : <span class="branch-1 cbranch-no" title="branch not covered" >undefined;</span>
+}
+&nbsp;
+// This type exists to bridge the gap while @stacks/connect uses an outdated
+// version of @stacks/network
+interface TempCorrectNetworkPackageType {
+  network?: StacksNetwork;
 }
 &nbsp;
 interface GenerateUnsignedTxArgs&lt;TxPayload&gt; {
@@ -331,6 +366,8 @@ interface GenerateUnsignedTxArgs&lt;TxPayload&gt; {
   nonce?: number;
 }
 &nbsp;
+type ContractCallPayload = Omit&lt;ConnectContractCallPayload, 'network'&gt; &amp;
+  TempCorrectNetworkPackageType;
 type GenerateUnsignedContractCallTxArgs = GenerateUnsignedTxArgs&lt;ContractCallPayload&gt;;
 &nbsp;
 function generateUnsignedContractCallTx(args: GenerateUnsignedContractCallTxArgs) {
@@ -344,6 +381,7 @@ function generateUnsignedContractCallTx(args: GenerateUnsignedContractCallTxArgs
     postConditionMode,
     postConditions,
     network,
+    anchorMode,
   } = txData;
 &nbsp;
   const fnArgs = functionArgs.map(<span class="fstat-no" title="function not covered" >ar</span>g =&gt; <span class="cstat-no" title="statement not covered" >deserializeCV(hexToBuff(arg)))</span>;
@@ -353,10 +391,10 @@ function generateUnsignedContractCallTx(args: GenerateUnsignedContractCallTxArgs
     contractAddress,
     functionName,
     publicKey,
-    anchorMode: AnchorMode.Any,
+    anchorMode: anchorMode ?? AnchorMode.Any,
     functionArgs: fnArgs,
-    nonce: initNonce(nonce),
-    fee: new BN(fee, 10),
+    nonce: initNonce(nonce)?.toString(),
+    fee: new BN(fee, 10).toString(),
     postConditionMode: postConditionMode,
     postConditions: getPostConditions(postConditions),
     network,
@@ -365,18 +403,20 @@ function generateUnsignedContractCallTx(args: GenerateUnsignedContractCallTxArgs
   return makeUnsignedContractCall(options);
 }
 &nbsp;
+type ContractDeployPayload = Omit&lt;ConnectContractDeployPayload, 'network'&gt; &amp;
+  TempCorrectNetworkPackageType;
 type GenerateUnsignedContractDeployTxArgs = GenerateUnsignedTxArgs&lt;ContractDeployPayload&gt;;
 &nbsp;
 function <span class="fstat-no" title="function not covered" >generateUnsignedContractDeployTx(</span>args: GenerateUnsignedContractDeployTxArgs) {
   const { txData, publicKey, nonce, fee } = <span class="cstat-no" title="statement not covered" >args;</span>
-  const { contractName, codeBody, network, postConditions, postConditionMode } = <span class="cstat-no" title="statement not covered" >txData;</span>
+  const { contractName, codeBody, network, postConditions, postConditionMode, anchorMode } = <span class="cstat-no" title="statement not covered" >txData;</span>
   const options = <span class="cstat-no" title="statement not covered" >{</span>
     contractName,
     codeBody,
-    nonce: initNonce(nonce),
-    fee: new BN(fee, 10),
+    nonce: initNonce(nonce)?.toString(),
+    fee: new BN(fee, 10)?.toString(),
     publicKey,
-    anchorMode: AnchorMode.Any,
+    anchorMode: anchorMode ?? AnchorMode.Any,
     postConditionMode: postConditionMode,
     postConditions: getPostConditions(postConditions),
     network,
@@ -384,19 +424,21 @@ function <span class="fstat-no" title="function not covered" >generateUnsignedCo
 <span class="cstat-no" title="statement not covered" >  return makeUnsignedContractDeploy(options);</span>
 }
 &nbsp;
+type STXTransferPayload = Omit&lt;ConnectSTXTransferPayload, 'network'&gt; &amp;
+  TempCorrectNetworkPackageType;
 type GenerateUnsignedStxTransferTxArgs = GenerateUnsignedTxArgs&lt;STXTransferPayload&gt;;
 &nbsp;
 function <span class="fstat-no" title="function not covered" >generateUnsignedStxTransferTx(</span>args: GenerateUnsignedStxTransferTxArgs) {
   const { txData, publicKey, nonce, fee } = <span class="cstat-no" title="statement not covered" >args;</span>
-  const { recipient, memo, amount, network } = <span class="cstat-no" title="statement not covered" >txData;</span>
+  const { recipient, memo, amount, network, anchorMode } = <span class="cstat-no" title="statement not covered" >txData;</span>
   const options = <span class="cstat-no" title="statement not covered" >{</span>
     recipient,
     memo,
     publicKey,
-    anchorMode: AnchorMode.Any,
-    amount: new BN(amount),
-    nonce: initNonce(nonce),
-    fee: new BN(fee, 10),
+    anchorMode: anchorMode ?? AnchorMode.Any,
+    amount: new BN(amount).toString(),
+    nonce: initNonce(nonce)?.toString(),
+    fee: new BN(fee, 10).toString(),
     network,
   };
 <span class="cstat-no" title="statement not covered" >  return makeUnsignedSTXTokenTransfer(options);</span>
@@ -427,7 +469,7 @@ export async function generateUnsignedTransaction(options: GenerateUnsignedTrans
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at Tue May 31 2022 12:43:23 GMT+0000 (Coordinated Universal Time)
+                at 2022-10-19T21:39:08.189Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

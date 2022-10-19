@@ -32,7 +32,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/8</span>
+                <span class='fraction'>0/10</span>
             </div>
         
             
@@ -143,11 +143,7 @@
 <a name='L78'></a><a href='#L78'>78</a>
 <a name='L79'></a><a href='#L79'>79</a>
 <a name='L80'></a><a href='#L80'>80</a>
-<a name='L81'></a><a href='#L81'>81</a>
-<a name='L82'></a><a href='#L82'>82</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L81'></a><a href='#L81'>81</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -184,12 +180,10 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -203,11 +197,15 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -236,7 +234,6 @@ import {
   useEncryptedSecretKeyState,
   useFinishSignInCallback,
   useSecretKey,
-  useSetLatestNonceCallback,
   useWalletState,
 } from '@app/store/wallet/wallet.hooks';
 import {
@@ -245,44 +242,46 @@ import {
   useCurrentAccountStxAddressState,
   useTransactionNetworkVersion,
 } from '@app/store/accounts/account.hooks';
-import {
-  useCurrentNetworkKey,
-  useCurrentNetworkState,
-  useNetworkState,
-} from '@app/store/network/networks.hooks';
-import { finalizeAuthResponse } from '@app/common/actions/finalize-auth-response';
+import { useCurrentNetworkState } from '@app/store/networks/networks.hooks';
+import { finalizeAuthResponse } from '@shared/actions/finalize-auth-response';
 import { getAccountDisplayName } from '../utils/get-account-display-name';
+import { useDefaultRequestParams } from './use-default-request-search-params';
+import { useCurrentNetworkId, useNetworks } from '@app/store/networks/networks.selectors';
 &nbsp;
 export function <span class="fstat-no" title="function not covered" >useWallet(</span>) {
-  const [wallet, setWallet] = <span class="cstat-no" title="statement not covered" >useWalletState();</span>
+  const wallet = <span class="cstat-no" title="statement not covered" >useWalletState();</span>
   const secretKey = <span class="cstat-no" title="statement not covered" >useSecretKey();</span>
   const encryptedSecretKey = <span class="cstat-no" title="statement not covered" >useEncryptedSecretKeyState();</span>
   const currentAccountIndex = <span class="cstat-no" title="statement not covered" >useCurrentAccountIndex();</span>
   const currentAccount = <span class="cstat-no" title="statement not covered" >useCurrentAccount();</span>
   const currentAccountStxAddress = <span class="cstat-no" title="statement not covered" >useCurrentAccountStxAddressState();</span>
   const transactionVersion = <span class="cstat-no" title="statement not covered" >useTransactionNetworkVersion();</span>
-  const networks = <span class="cstat-no" title="statement not covered" >useNetworkState();</span>
+  const networks = <span class="cstat-no" title="statement not covered" >useNetworks();</span>
+  const currentNetworkId = <span class="cstat-no" title="statement not covered" >useCurrentNetworkId();</span>
   const currentNetwork = <span class="cstat-no" title="statement not covered" >useCurrentNetworkState();</span>
-  const currentNetworkKey = <span class="cstat-no" title="statement not covered" >useCurrentNetworkKey();</span>
   const keyActions = <span class="cstat-no" title="statement not covered" >useKeyActions();</span>
-&nbsp;
+  const { origin, tabId } = <span class="cstat-no" title="statement not covered" >useDefaultRequestParams();</span>
   const currentAccountDisplayName = <span class="cstat-no" title="statement not covered" >currentAccount</span>
     ? getAccountDisplayName(currentAccount)
     : undefined;
 &nbsp;
   const { decodedAuthRequest, authRequest } = <span class="cstat-no" title="statement not covered" >useOnboardingState();</span>
 &nbsp;
-  const hasGeneratedWallet = <span class="cstat-no" title="statement not covered" >!!wallet;</span>
-&nbsp;
-  const setLatestNonce = <span class="cstat-no" title="statement not covered" >useSetLatestNonceCallback();</span>
+  const hasGeneratedWallet = <span class="cstat-no" title="statement not covered" >!!currentAccount;</span>
 &nbsp;
   const cancelAuthentication = <span class="cstat-no" title="statement not covered" >useCallback(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    if (!decodedAuthRequest || !authRequest) {</span>
+<span class="cstat-no" title="statement not covered" >    if (!decodedAuthRequest || !authRequest || !origin || !tabId) {</span>
 <span class="cstat-no" title="statement not covered" >      return;</span>
     }
     const authResponse = <span class="cstat-no" title="statement not covered" >'cancel';</span>
-<span class="cstat-no" title="statement not covered" >    finalizeAuthResponse({ decodedAuthRequest, authRequest, authResponse });</span>
-  }, [decodedAuthRequest, authRequest]);
+<span class="cstat-no" title="statement not covered" >    finalizeAuthResponse({</span>
+      decodedAuthRequest,
+      authRequest,
+      authResponse,
+      requestingOrigin: origin,
+      tabId,
+    });
+  }, [decodedAuthRequest, authRequest, origin, tabId]);
 &nbsp;
   const finishSignIn = <span class="cstat-no" title="statement not covered" >useFinishSignInCallback();</span>
 &nbsp;
@@ -296,12 +295,10 @@ export function <span class="fstat-no" title="function not covered" >useWallet(<
     currentAccountDisplayName,
     transactionVersion,
     networks,
+    currentNetworkId,
     currentNetwork,
-    currentNetworkKey,
     encryptedSecretKey,
     finishSignIn,
-    setLatestNonce,
-    setWallet,
     cancelAuthentication,
     ...keyActions,
   };
@@ -313,7 +310,7 @@ export function <span class="fstat-no" title="function not covered" >useWallet(<
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at Tue May 31 2022 12:43:23 GMT+0000 (Coordinated Universal Time)
+                at 2022-10-19T21:39:08.189Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

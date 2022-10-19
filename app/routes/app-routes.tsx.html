@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/14</span>
+                <span class='fraction'>0/13</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/11</span>
+                <span class='fraction'>0/9</span>
             </div>
         
             
@@ -238,7 +238,29 @@
 <a name='L173'></a><a href='#L173'>173</a>
 <a name='L174'></a><a href='#L174'>174</a>
 <a name='L175'></a><a href='#L175'>175</a>
-<a name='L176'></a><a href='#L176'>176</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L176'></a><a href='#L176'>176</a>
+<a name='L177'></a><a href='#L177'>177</a>
+<a name='L178'></a><a href='#L178'>178</a>
+<a name='L179'></a><a href='#L179'>179</a>
+<a name='L180'></a><a href='#L180'>180</a>
+<a name='L181'></a><a href='#L181'>181</a>
+<a name='L182'></a><a href='#L182'>182</a>
+<a name='L183'></a><a href='#L183'>183</a>
+<a name='L184'></a><a href='#L184'>184</a>
+<a name='L185'></a><a href='#L185'>185</a>
+<a name='L186'></a><a href='#L186'>186</a>
+<a name='L187'></a><a href='#L187'>187</a>
+<a name='L188'></a><a href='#L188'>188</a>
+<a name='L189'></a><a href='#L189'>189</a>
+<a name='L190'></a><a href='#L190'>190</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -277,19 +299,25 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -416,8 +444,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Suspense, useEffect } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 &nbsp;
+import { RouteUrls } from '@shared/route-urls';
 import { useAnalytics } from '@app/common/hooks/analytics/use-analytics';
-import { Container } from '@app/components/container/container';
+import { Container } from '@app/features/container/container';
 import { LoadingSpinner } from '@app/components/loading-spinner';
 import { MagicRecoveryCode } from '@app/pages/onboarding/magic-recovery-code/magic-recovery-code';
 import { ChooseAccount } from '@app/pages/choose-account/choose-account';
@@ -426,42 +455,44 @@ import { SignatureRequest } from '@app/pages/signature-request/signature-request
 import { SignIn } from '@app/pages/onboarding/sign-in/sign-in';
 import { ReceiveTokens } from '@app/pages/receive-tokens/receive-tokens';
 import { AddNetwork } from '@app/pages/add-network/add-network';
+&nbsp;
 import { SetPasswordPage } from '@app/pages/onboarding/set-password/set-password';
 import { SendTokensForm } from '@app/pages/send-tokens/send-tokens';
 import { ViewSecretKey } from '@app/pages/view-secret-key/view-secret-key';
-import { useSaveAuthRequest } from '@app/common/hooks/auth/use-save-auth-request-callback';
 import { AccountGate } from '@app/routes/account-gate';
 import { Unlock } from '@app/pages/unlock';
 import { Home } from '@app/pages/home/home';
 import { SignOutConfirmDrawer } from '@app/pages/sign-out-confirm/sign-out-confirm';
 import { AllowDiagnosticsPage } from '@app/pages/allow-diagnostics/allow-diagnostics';
-import { BuyPage } from '@app/pages/buy/buy';
+import { FundPage } from '@app/pages/fund/fund';
 import { BackUpSecretKeyPage } from '@app/pages/onboarding/back-up-secret-key/back-up-secret-key';
 import { WelcomePage } from '@app/pages/onboarding/welcome/welcome';
+&nbsp;
 import { useHasStateRehydrated } from '@app/store';
 import { UnauthorizedRequest } from '@app/pages/unauthorized-request/unauthorized-request';
-import { RouteUrls } from '@shared/route-urls';
+&nbsp;
+import { IncreaseFeeDrawer } from '@app/features/increase-fee-drawer/increase-fee-drawer';
+import { ledgerJwtSigningRoutes } from '@app/features/ledger/flows/jwt-signing/ledger-sign-jwt.routes';
+import { ledgerTxSigningRoutes } from '@app/features/ledger/flows/tx-signing/ledger-sign-tx.routes';
+import { ledgerRequestKeysRoutes } from '@app/features/ledger/flows/request-keys/ledger-request-keys.routes';
 &nbsp;
 import { useOnWalletLock } from './hooks/use-on-wallet-lock';
 import { useOnSignOut } from './hooks/use-on-sign-out';
 import { OnboardingGate } from './onboarding-gate';
+import { ledgerMessageSigningRoutes } from '@app/features/ledger/flows/message-signing/ledger-sign-msg.routes';
+import { BroadcastErrorDrawer } from '@app/components/broadcast-error-drawer/broadcast-error-drawer';
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >AppRoutes(</span>): JSX.Element | null {
+export function <span class="fstat-no" title="function not covered" >AppRoutes(</span>) {
   const { pathname } = <span class="cstat-no" title="statement not covered" >useLocation();</span>
   const navigate = <span class="cstat-no" title="statement not covered" >useNavigate();</span>
   const analytics = <span class="cstat-no" title="statement not covered" >useAnalytics();</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  useSaveAuthRequest();</span>
-&nbsp;
 <span class="cstat-no" title="statement not covered" >  useOnWalletLock(<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >navigate(RouteUrls.Unlock))</span>;</span>
 <span class="cstat-no" title="statement not covered" >  useOnSignOut(<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >window.close())</span>;</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  useEffect(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    void analytics.page('view', `${pathname}`);</span>
-  }, [analytics, pathname]);
+<span class="cstat-no" title="statement not covered" >  useEffect(<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >void analytics.page('view', `${pathname}`),</span> [analytics, pathname]);</span>
 &nbsp;
   const hasStateRehydrated = <span class="cstat-no" title="statement not covered" >useHasStateRehydrated();</span>
-&nbsp;
 <span class="cstat-no" title="statement not covered" >  if (!hasStateRehydrated) <span class="cstat-no" title="statement not covered" >return &lt;LoadingSpinner /&gt;;</span></span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  return (</span>
@@ -477,7 +508,12 @@ export function <span class="fstat-no" title="function not covered" >AppRoutes(<
             &lt;/AccountGate&gt;
           }
         &gt;
+          &lt;Route path={RouteUrls.IncreaseFee} element={&lt;IncreaseFeeDrawer /&gt;}&gt;
+            {ledgerTxSigningRoutes}
+          &lt;/Route&gt;
+          &lt;Route path={RouteUrls.Receive} element={&lt;ReceiveTokens /&gt;} /&gt;
           &lt;Route path={RouteUrls.SignOutConfirm} element={&lt;SignOutConfirmDrawer /&gt;} /&gt;
+          {ledgerTxSigningRoutes}
         &lt;/Route&gt;
         &lt;Route
           path={RouteUrls.Onboarding}
@@ -486,7 +522,9 @@ export function <span class="fstat-no" title="function not covered" >AppRoutes(<
               &lt;WelcomePage /&gt;
             &lt;/OnboardingGate&gt;
           }
-        /&gt;
+        &gt;
+          {ledgerRequestKeysRoutes}
+        &lt;/Route&gt;
         &lt;Route
           path={RouteUrls.BackUpSecretKey}
           element={
@@ -515,16 +553,6 @@ export function <span class="fstat-no" title="function not covered" >AppRoutes(<
           }
         /&gt;
         &lt;Route
-          path={RouteUrls.Buy}
-          element={
-            &lt;AccountGate&gt;
-              &lt;Suspense fallback={&lt;&gt;&lt;/&gt;}&gt;
-                &lt;BuyPage /&gt;
-              &lt;/Suspense&gt;
-            &lt;/AccountGate&gt;
-          }
-        /&gt;
-        &lt;Route
           path={RouteUrls.ChooseAccount}
           element={
             &lt;AccountGate&gt;
@@ -533,15 +561,21 @@ export function <span class="fstat-no" title="function not covered" >AppRoutes(<
               &lt;/Suspense&gt;
             &lt;/AccountGate&gt;
           }
-        /&gt;
+        &gt;
+          {ledgerJwtSigningRoutes}
+        &lt;/Route&gt;
         &lt;Route
-          path={RouteUrls.Receive}
+          path={RouteUrls.Fund}
           element={
             &lt;AccountGate&gt;
-              &lt;ReceiveTokens /&gt;
+              &lt;Suspense fallback={&lt;&gt;&lt;/&gt;}&gt;
+                &lt;FundPage /&gt;
+              &lt;/Suspense&gt;
             &lt;/AccountGate&gt;
           }
-        /&gt;
+        &gt;
+          &lt;Route path={RouteUrls.FundReceive} element={&lt;ReceiveTokens /&gt;} /&gt;
+        &lt;/Route&gt;
         &lt;Route
           path={RouteUrls.Send}
           element={
@@ -551,7 +585,10 @@ export function <span class="fstat-no" title="function not covered" >AppRoutes(<
               &lt;/Suspense&gt;
             &lt;/AccountGate&gt;
           }
-        /&gt;
+        &gt;
+          {ledgerTxSigningRoutes}
+          &lt;Route path={RouteUrls.TransactionBroadcastError} element={&lt;BroadcastErrorDrawer /&gt;} /&gt;
+        &lt;/Route&gt;
         &lt;Route
           path={RouteUrls.TransactionRequest}
           element={
@@ -561,7 +598,10 @@ export function <span class="fstat-no" title="function not covered" >AppRoutes(<
               &lt;/Suspense&gt;
             &lt;/AccountGate&gt;
           }
-        /&gt;
+        &gt;
+          {ledgerTxSigningRoutes}
+          &lt;Route path={RouteUrls.TransactionBroadcastError} element={&lt;BroadcastErrorDrawer /&gt;} /&gt;
+        &lt;/Route&gt;
         &lt;Route path={RouteUrls.UnauthorizedRequest} element={&lt;UnauthorizedRequest /&gt;} /&gt;
         &lt;Route
           path={RouteUrls.SignatureRequest}
@@ -572,7 +612,9 @@ export function <span class="fstat-no" title="function not covered" >AppRoutes(<
               &lt;/Suspense&gt;
             &lt;/AccountGate&gt;
           }
-        /&gt;
+        &gt;
+          {ledgerMessageSigningRoutes}
+        &lt;/Route&gt;
         &lt;Route
           path={RouteUrls.ViewSecretKey}
           element={
@@ -595,7 +637,7 @@ export function <span class="fstat-no" title="function not covered" >AppRoutes(<
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at Tue May 31 2022 12:43:23 GMT+0000 (Coordinated Universal Time)
+                at 2022-10-19T21:39:08.189Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

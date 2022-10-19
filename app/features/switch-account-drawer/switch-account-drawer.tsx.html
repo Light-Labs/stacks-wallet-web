@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/18</span>
+                <span class='fraction'>0/19</span>
             </div>
         
             
@@ -114,7 +114,13 @@
 <a name='L49'></a><a href='#L49'>49</a>
 <a name='L50'></a><a href='#L50'>50</a>
 <a name='L51'></a><a href='#L51'>51</a>
-<a name='L52'></a><a href='#L52'>52</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -130,16 +136,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -147,6 +143,17 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -155,6 +162,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -166,10 +178,12 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { memo } from 'react';
+import { Box } from '@stacks/ui';
 &nbsp;
 import { useAnalytics } from '@app/common/hooks/analytics/use-analytics';
 import { useCreateAccount } from '@app/common/hooks/account/use-create-account';
-import { ControlledDrawer } from '@app/components/drawer/controlled';
+import { useWalletType } from '@app/common/use-wallet-type';
+import { ControlledDrawer } from '@app/components/drawer/controlled-drawer';
 import {
   useAccounts,
   useCurrentAccountIndex,
@@ -177,7 +191,7 @@ import {
 } from '@app/store/accounts/account.hooks';
 import { useShowSwitchAccountsState } from '@app/store/ui/ui.hooks';
 &nbsp;
-import { AccountList } from './components/account-list';
+import { SwitchAccountList } from './components/switch-account-list';
 import { AccountListUnavailable } from './components/account-list-unavailable';
 import { CreateAccountAction } from './components/create-account-action';
 &nbsp;
@@ -188,10 +202,9 @@ export const SwitchAccountDrawer = <span class="cstat-no" title="statement not c
   const analytics = <span class="cstat-no" title="statement not covered" >useAnalytics();</span>
   const createAccount = <span class="cstat-no" title="statement not covered" >useCreateAccount();</span>
   const [, setHasCreatedAccount] = <span class="cstat-no" title="statement not covered" >useHasCreatedAccount();</span>
+  const { whenWallet } = <span class="cstat-no" title="statement not covered" >useWalletType();</span>
 &nbsp;
-  const onClose = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    setShowSwitchAccountsState(false);</span>
-  };
+  const onClose = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >setShowSwitchAccountsState(false);</span></span>
 &nbsp;
   const onCreateAccount = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    void analytics.track('choose_to_create_account');</span>
@@ -207,12 +220,17 @@ export const SwitchAccountDrawer = <span class="cstat-no" title="statement not c
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  return isShowing &amp;&amp; accounts ? (</span>
     &lt;ControlledDrawer title="Switch account" isShowing={isShowing} onClose={onClose}&gt;
-      &lt;AccountList
-        accounts={accounts}
-        currentAccountIndex={currentAccountIndex}
-        handleClose={onClose}
-      /&gt;
-      &lt;CreateAccountAction onCreateAccount={onCreateAccount} /&gt;
+      &lt;Box mb={whenWallet({ ledger: 'base', software: '' })}&gt;
+        &lt;SwitchAccountList
+          accounts={accounts}
+          currentAccountIndex={currentAccountIndex}
+          handleClose={onClose}
+        /&gt;
+        {whenWallet({
+          software: &lt;CreateAccountAction onCreateAccount={onCreateAccount} /&gt;,
+          ledger: &lt;&gt;&lt;/&gt;,
+        })}
+      &lt;/Box&gt;
     &lt;/ControlledDrawer&gt;
   ) : null;
 });
@@ -223,7 +241,7 @@ export const SwitchAccountDrawer = <span class="cstat-no" title="statement not c
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at Tue May 31 2022 12:43:23 GMT+0000 (Coordinated Universal Time)
+                at 2022-10-19T21:39:08.189Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

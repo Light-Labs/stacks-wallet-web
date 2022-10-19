@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/28</span>
+                <span class='fraction'>0/29</span>
             </div>
         
             
@@ -39,14 +39,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/12</span>
+                <span class='fraction'>0/14</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/26</span>
+                <span class='fraction'>0/24</span>
             </div>
         
             
@@ -146,12 +146,7 @@
 <a name='L81'></a><a href='#L81'>81</a>
 <a name='L82'></a><a href='#L82'>82</a>
 <a name='L83'></a><a href='#L83'>83</a>
-<a name='L84'></a><a href='#L84'>84</a>
-<a name='L85'></a><a href='#L85'>85</a>
-<a name='L86'></a><a href='#L86'>86</a>
-<a name='L87'></a><a href='#L87'>87</a>
-<a name='L88'></a><a href='#L88'>88</a>
-<a name='L89'></a><a href='#L89'>89</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L84'></a><a href='#L84'>84</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -167,12 +162,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -193,7 +182,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -205,14 +193,14 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -238,34 +226,30 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { useMemo } from 'react';
-import { useAtomValue, useUpdateAtom } from 'jotai/utils';
-import { baseAssetsAnchoredState, mergeAssetBalances } from '@app/store/assets/tokens';
+import { mergeAssetBalances } from '@app/store/assets/tokens';
 import type { Asset, AssetWithMeta } from '@app/common/asset-types';
-import { selectedAssetIdState } from './asset-search';
 import {
   useAddressAnchoredAvailableStxBalance,
   useAddressBalances,
   useCurrentAccountAnchoredBalances,
   useCurrentAccountUnanchoredBalances,
-} from '@app/query/balance/balance.hooks';
+} from '@app/query/stacks/balance/balance.hooks';
 import { useCurrentAccountStxAddressState } from '../accounts/account.hooks';
 import { transformAssets } from './utils';
 import {
   useAssetsWithMetadata,
   useFungibleTokenMetadata,
-} from '@app/query/tokens/fungible-token-metadata.hook';
+} from '@app/query/stacks/fungible-tokens/fungible-token-metadata.hooks';
 import { formatContractId, getFullyQualifiedAssetName } from '@app/common/utils';
 import { isTransferableAsset } from '@app/common/transactions/is-transferable-asset';
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >useAssets(</span>) {
-<span class="cstat-no" title="statement not covered" >  return useAtomValue(baseAssetsAnchoredState);</span>
-}
-&nbsp;
 export function <span class="fstat-no" title="function not covered" >useTransferableAssets(</span>) {
   const assets = <span class="cstat-no" title="statement not covered" >useAssetsWithMetadata();</span>
-<span class="cstat-no" title="statement not covered" >  return assets.filter(<span class="fstat-no" title="function not covered" >as</span>set =&gt; <span class="cstat-no" title="statement not covered" >isTransferableAsset(asset))</span>;</span>
+<span class="cstat-no" title="statement not covered" >  return useMemo(<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >assets.filter(<span class="fstat-no" title="function not covered" >as</span>set =&gt; <span class="cstat-no" title="statement not covered" >isTransferableAsset(asset))</span>,</span> [assets]);</span>
 }
 &nbsp;
 export function <span class="fstat-no" title="function not covered" >useAssetWithMetadata(</span>asset: Asset) {
@@ -279,8 +263,7 @@ export function <span class="fstat-no" title="function not covered" >useAssetWit
 <span class="cstat-no" title="statement not covered" >  return asset as AssetWithMeta;</span>
 }
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >useSelectedAssetItem(</span>) {
-  const selectedAssetId = <span class="cstat-no" title="statement not covered" >useAtomValue(selectedAssetIdState);</span>
+export function <span class="fstat-no" title="function not covered" >useSelectedAssetMetadata(</span>selectedAssetId: string) {
   const assetsWithMetadata = <span class="cstat-no" title="statement not covered" >useAssetsWithMetadata();</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  return useMemo(</span>
@@ -288,12 +271,10 @@ export function <span class="fstat-no" title="function not covered" >useSelected
 <span class="cstat-no" title="statement not covered" >      assetsWithMetadata?.find(</span>
 <span class="fstat-no" title="function not covered" >        as</span>set =&gt; <span class="cstat-no" title="statement not covered" >getFullyQualifiedAssetName(asset) === selectedAssetId</span>
       ) as AssetWithMeta,
-    [assetsWithMetadata, selectedAssetId]
+    // Render loop occurs when `assetsWithMetadata` in dep array
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [selectedAssetId]
   );
-}
-&nbsp;
-export function <span class="fstat-no" title="function not covered" >useUpdateSelectedAsset(</span>) {
-<span class="cstat-no" title="statement not covered" >  return useUpdateAtom(selectedAssetIdState);</span>
 }
 &nbsp;
 export function <span class="fstat-no" title="function not covered" >useStxTokenState(</span>address: string) {
@@ -304,7 +285,9 @@ export function <span class="fstat-no" title="function not covered" >useStxToken
     type: 'stx',
     contractAddress: '',
     balance: balance,
-    subBalance: unanchoredBalances?.stx?.balance.minus(unanchoredBalances?.stx.locked) || undefined,
+    subBalance:
+      unanchoredBalances?.stx?.balance.amount.minus(unanchoredBalances?.stx.locked.amount) ||
+      undefined,
     subtitle: 'STX',
     name: 'Stacks Token',
   } as AssetWithMeta;
@@ -312,20 +295,22 @@ export function <span class="fstat-no" title="function not covered" >useStxToken
 &nbsp;
 function <span class="fstat-no" title="function not covered" >useBaseAssetsAnchoredState(</span>) {
   const balances = <span class="cstat-no" title="statement not covered" >useCurrentAccountAnchoredBalances();</span>
-<span class="cstat-no" title="statement not covered" >  return transformAssets(balances);</span>
+<span class="cstat-no" title="statement not covered" >  return useMemo(<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >transformAssets(balances),</span> [balances]);</span>
 }
 &nbsp;
 function <span class="fstat-no" title="function not covered" >useBaseAssetsUnanchoredState(</span>) {
   const { data: balances } = <span class="cstat-no" title="statement not covered" >useCurrentAccountUnanchoredBalances();</span>
-<span class="cstat-no" title="statement not covered" >  return transformAssets(balances);</span>
+<span class="cstat-no" title="statement not covered" >  return useMemo(<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >transformAssets(balances),</span> [balances]);</span>
 }
 &nbsp;
 export function <span class="fstat-no" title="function not covered" >useFungibleTokenBaseState(</span>) {
   const principal = <span class="cstat-no" title="statement not covered" >useCurrentAccountStxAddressState();</span>
   const anchoredAssets = <span class="cstat-no" title="statement not covered" >useBaseAssetsAnchoredState();</span>
   const unanchoredAssets = <span class="cstat-no" title="statement not covered" >useBaseAssetsUnanchoredState();</span>
-<span class="cstat-no" title="statement not covered" >  if (!principal) <span class="cstat-no" title="statement not covered" >return [];</span></span>
-<span class="cstat-no" title="statement not covered" >  return mergeAssetBalances(anchoredAssets, unanchoredAssets, 'ft');</span>
+<span class="cstat-no" title="statement not covered" >  return useMemo(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    if (!principal) <span class="cstat-no" title="statement not covered" >return [];</span></span>
+<span class="cstat-no" title="statement not covered" >    return mergeAssetBalances(anchoredAssets, unanchoredAssets, 'ft');</span>
+  }, [anchoredAssets, principal, unanchoredAssets]);
 }
 &nbsp;</pre></td></tr></table></pre>
 
@@ -334,7 +319,7 @@ export function <span class="fstat-no" title="function not covered" >useFungible
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at Tue May 31 2022 12:43:23 GMT+0000 (Coordinated Universal Time)
+                at 2022-10-19T21:39:08.189Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

@@ -25,14 +25,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/15</span>
+                <span class='fraction'>0/14</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>0/8</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/15</span>
+                <span class='fraction'>0/14</span>
             </div>
         
             
@@ -108,8 +108,7 @@
 <a name='L43'></a><a href='#L43'>43</a>
 <a name='L44'></a><a href='#L44'>44</a>
 <a name='L45'></a><a href='#L45'>45</a>
-<a name='L46'></a><a href='#L46'>46</a>
-<a name='L47'></a><a href='#L47'>47</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L46'></a><a href='#L46'>46</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -135,7 +134,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -144,22 +142,22 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { broadcastRawTransaction } from '@stacks/transactions';
-import { Buffer } from 'buffer';
 import { logger } from '@shared/logger';
 import { validateTxId } from '@app/common/validation/validate-tx-id';
 import { delay } from '@app/common/utils';
+import { getErrorMessage } from '@app/common/get-error-message';
 &nbsp;
 async function <span class="fstat-no" title="function not covered" >simulateShortDelayToAvoidUndefinedTabId(</span>) {
 <span class="cstat-no" title="statement not covered" >  await delay(1000);</span>
@@ -167,7 +165,7 @@ async function <span class="fstat-no" title="function not covered" >simulateShor
 &nbsp;
 interface BroadcastTransactionOptions {
   txRaw: string;
-  serialized: Buffer;
+  serialized: Uint8Array;
   isSponsored: boolean;
   attachment?: string;
   networkUrl: string;
@@ -180,26 +178,25 @@ export async function <span class="fstat-no" title="function not covered" >broad
 <span class="cstat-no" title="statement not covered" >    return { txRaw };</span>
   }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  try {</span>
-    const response = <span class="cstat-no" title="statement not covered" >await broadcastRawTransaction(</span>
-      serialized,
-      `${networkUrl}/v2/transactions`,
-      attachment ? Buffer.from(attachment, 'hex') : undefined
-    );
+  const response = <span class="cstat-no" title="statement not covered" >await broadcastRawTransaction(</span>
+    serialized,
+    `${networkUrl}/v2/transactions`,
+    attachment ? Buffer.from(attachment, 'hex') : undefined
+  );
 &nbsp;
-    const isValidTxId = <span class="cstat-no" title="statement not covered" >validateTxId(response.txid);</span>
-<span class="cstat-no" title="statement not covered" >    if (isValidTxId)</span>
-<span class="cstat-no" title="statement not covered" >      return {</span>
-        txId: response.txid,
-        txRaw,
-      };
+<span class="cstat-no" title="statement not covered" >  if ('error' in response) {</span>
 <span class="cstat-no" title="statement not covered" >    logger.error(`Error broadcasting raw transaction -- ${response}`);</span>
-<span class="cstat-no" title="statement not covered" >    throw new Error((response as any).error);</span>
-  } catch (e) {
-<span class="cstat-no" title="statement not covered" >    logger.error('Error broadcasting raw transaction');</span>
-<span class="cstat-no" title="statement not covered" >    logger.error(e);</span>
-<span class="cstat-no" title="statement not covered" >    throw new Error(e as any);</span>
+    const message = <span class="cstat-no" title="statement not covered" >getErrorMessage(response.reason as any);</span>
+<span class="cstat-no" title="statement not covered" >    throw new Error(`${message} - ${(response as any).error}`);</span>
+  } else <span class="cstat-no" title="statement not covered" >if (!validateTxId(response.txid)) {</span>
+<span class="cstat-no" title="statement not covered" >    logger.error(`Error broadcasting raw transaction -- ${response}`);</span>
+<span class="cstat-no" title="statement not covered" >    throw new Error('Invalid txid for transaction');</span>
   }
+&nbsp;
+<span class="cstat-no" title="statement not covered" >  return {</span>
+    txId: response.txid,
+    txRaw,
+  };
 }
 &nbsp;</pre></td></tr></table></pre>
 
@@ -208,7 +205,7 @@ export async function <span class="fstat-no" title="function not covered" >broad
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at Tue May 31 2022 12:43:23 GMT+0000 (Coordinated Universal Time)
+                at 2022-10-19T21:39:08.189Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

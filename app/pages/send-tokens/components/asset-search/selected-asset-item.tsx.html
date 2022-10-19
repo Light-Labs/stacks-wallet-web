@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/10</span>
+                <span class='fraction'>0/11</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/9</span>
+                <span class='fraction'>0/10</span>
             </div>
         
             
@@ -134,10 +134,31 @@
 <a name='L69'></a><a href='#L69'>69</a>
 <a name='L70'></a><a href='#L70'>70</a>
 <a name='L71'></a><a href='#L71'>71</a>
-<a name='L72'></a><a href='#L72'>72</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -148,23 +169,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -206,12 +210,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { memo } from 'react';
+import { useField } from 'formik';
 import { Box, ChevronIcon, Text, color, Stack, BoxProps } from '@stacks/ui';
 &nbsp;
-import { formatContractId } from '@app/common/utils';
 import { AssetAvatar } from '@app/components/stx-avatar';
 import { Caption } from '@app/components/typography';
 import { useSelectedAsset } from '@app/pages/send-tokens/hooks/use-selected-asset';
+import { gradientStringForAsset, imageCanonicalUriFromFtMetadata } from '@app/common/token-utils';
 &nbsp;
 interface SelectedAssetItemProps extends BoxProps {
   hideArrow?: boolean;
@@ -219,12 +224,12 @@ interface SelectedAssetItemProps extends BoxProps {
 }
 export const SelectedAssetItem = <span class="cstat-no" title="statement not covered" >memo(</span>
 <span class="fstat-no" title="function not covered" >  ({</span> hideArrow, onClearSearch, ...rest }: SelectedAssetItemProps) =&gt; {
-    const { name, selectedAsset, ticker } = <span class="cstat-no" title="statement not covered" >useSelectedAsset();</span>
-&nbsp;
+    const [field] = <span class="cstat-no" title="statement not covered" >useField('assetId');</span>
+    const { name, selectedAsset, ticker } = <span class="cstat-no" title="statement not covered" >useSelectedAsset(field.value);</span>
 <span class="cstat-no" title="statement not covered" >    if (!selectedAsset) <span class="cstat-no" title="statement not covered" >return null;</span></span>
-    const { contractAddress, contractName, name: _name } = <span class="cstat-no" title="statement not covered" >selectedAsset;</span>
     const isStx = <span class="cstat-no" title="statement not covered" >name === 'Stacks Token';</span>
-    const gradientString = <span class="cstat-no" title="statement not covered" >`${formatContractId(contractAddress, contractName)}::${_name}`;</span>
+    const gradientString = <span class="cstat-no" title="statement not covered" >gradientStringForAsset(selectedAsset);</span>
+    const imageCanonicalUri = <span class="cstat-no" title="statement not covered" >imageCanonicalUriFromFtMetadata(selectedAsset.meta);</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    return (</span>
       &lt;Box
@@ -242,6 +247,7 @@ export const SelectedAssetItem = <span class="cstat-no" title="statement not cov
           &lt;AssetAvatar
             useStx={isStx}
             gradientString={gradientString}
+            imageCanonicalUri={imageCanonicalUri}
             mr="tight"
             size="36px"
             color="white"
@@ -283,7 +289,7 @@ export const SelectedAssetItem = <span class="cstat-no" title="statement not cov
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at Tue May 31 2022 12:43:23 GMT+0000 (Coordinated Universal Time)
+                at 2022-10-19T21:39:08.189Z
             </div>
         <script src="../../../../../prettify.js"></script>
         <script>

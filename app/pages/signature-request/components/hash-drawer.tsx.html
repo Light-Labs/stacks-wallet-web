@@ -120,10 +120,7 @@
 <a name='L55'></a><a href='#L55'>55</a>
 <a name='L56'></a><a href='#L56'>56</a>
 <a name='L57'></a><a href='#L57'>57</a>
-<a name='L58'></a><a href='#L58'>58</a>
-<a name='L59'></a><a href='#L59'>59</a>
-<a name='L60'></a><a href='#L60'>60</a>
-<a name='L61'></a><a href='#L61'>61</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L58'></a><a href='#L58'>58</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -139,15 +136,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -183,7 +175,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Stack, Flex, Box, Text } from '@stacks/ui';
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Flex, Box, Text } from '@stacks/ui';
 import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import { useState } from 'react';
 &nbsp;
@@ -198,27 +192,26 @@ const ShowHashButton = <span class="cstat-no" title="statement not covered" ><sp
 interface HashDrawerProps {
   hash: string;
 }
-&nbsp;
-export function <span class="fstat-no" title="function not covered" >HashDrawer(</span>props: HashDrawerProps): JSX.Element | null {
+export function <span class="fstat-no" title="function not covered" >HashDrawer(</span>props: HashDrawerProps) {
   const { hash } = <span class="cstat-no" title="statement not covered" >props;</span>
   const [showHash, setShowHash] = <span class="cstat-no" title="statement not covered" >useState(false);</span>
   const [displayHash, setDisplayHash] = <span class="cstat-no" title="statement not covered" >useState(hash);</span>
 <span class="cstat-no" title="statement not covered" >  return (</span>
-    &lt;Stack px="loose" spacing="loose"&gt;
-      &lt;Flex marginBottom="0px !important"&gt;
+    &lt;Box px="loose"&gt;
+      &lt;Flex
+        as="button"
+        width="100%"
+        _hover={{ cursor: 'pointer' }}
+        _focus={{ outline: 0, textDecoration: 'underline' }}
+        onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; {
+<span class="cstat-no" title="statement not covered" >          setDisplayHash(showHash ? '' : hash);</span>
+<span class="cstat-no" title="statement not covered" >          setShowHash(!showHash);</span>
+        }}
+      &gt;
         &lt;Text display="block" fontSize={1} py="tight"&gt;
           {showHash ? 'Hide hash' : 'Show hash'}
         &lt;/Text&gt;
-        &lt;Box
-          _hover={{ cursor: 'pointer' }}
-          marginLeft={'auto'}
-          marginTop={'auto'}
-          marginBottom={'auto'}
-          onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; {
-<span class="cstat-no" title="statement not covered" >            setDisplayHash(showHash ? '' : hash);</span>
-<span class="cstat-no" title="statement not covered" >            setShowHash(!showHash);</span>
-          }}
-        &gt;
+        &lt;Box marginLeft="auto" marginTop="auto" marginBottom="auto"&gt;
           &lt;ShowHashButton expanded={showHash} /&gt;
         &lt;/Box&gt;
       &lt;/Flex&gt;
@@ -227,20 +220,18 @@ export function <span class="fstat-no" title="function not covered" >HashDrawer(
         height={showHash ? '100%' : '0'}
         visibility={showHash ? 'visible' : 'hidden'}
       &gt;
-        &lt;Stack spacing="base-tight"&gt;
-          &lt;Text
-            display="block"
-            color="#74777D"
-            fontSize={1}
-            lineHeight="1.6"
-            wordBreak="break-all"
-            fontFamily={'Fira Code'}
-          &gt;
-            {displayHash}
-          &lt;/Text&gt;
-        &lt;/Stack&gt;
+        &lt;Text
+          display="block"
+          color="#74777D"
+          fontSize={1}
+          lineHeight="1.6"
+          wordBreak="break-all"
+          fontFamily="Fira Code"
+        &gt;
+          {displayHash}
+        &lt;/Text&gt;
       &lt;/Box&gt;
-    &lt;/Stack&gt;
+    &lt;/Box&gt;
   );
 }
 &nbsp;</pre></td></tr></table></pre>
@@ -250,7 +241,7 @@ export function <span class="fstat-no" title="function not covered" >HashDrawer(
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at Tue May 31 2022 12:43:23 GMT+0000 (Coordinated Universal Time)
+                at 2022-10-19T21:39:08.189Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>
