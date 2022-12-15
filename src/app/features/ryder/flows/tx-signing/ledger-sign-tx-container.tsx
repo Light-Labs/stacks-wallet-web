@@ -1,27 +1,36 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { LedgerError } from '@zondax/ledger-blockstack';
+
+import { deserializeTransaction } from '@stacks/transactions';
+import { LedgerError } from '@zondax/ledger-stacks';
 import get from 'lodash.get';
 
+import { logger } from '@shared/logger';
+import { RouteUrls } from '@shared/route-urls';
+
+import { useScrollLock } from '@app/common/hooks/use-scroll-lock';
 import { delay } from '@app/common/utils';
+import { BaseDrawer } from '@app/components/drawer/base-drawer';
+import {
+  LedgerTxSigningContext,
+  LedgerTxSigningProvider,
+  createWaitForUserToSeeWarningScreen,
+} from '@app/features/ryder/flows/tx-signing/ledger-sign-tx.context';
 import {
   getAppVersion,
+  isVersionOfLedgerStacksAppWithContractPrincipalBug,
   prepareLedgerDeviceConnection,
   signLedgerTransaction,
   signTransactionWithSignature,
+  useActionCancellableByUser,
   useLedgerResponseState,
 } from '@app/features/ryder/ledger-utils';
-import { deserializeTransaction } from '@stacks/transactions';
-import { LedgerTxSigningProvider } from '@app/features/ryder/ledger-tx-signing.context';
 import { useCurrentAccount } from '@app/store/accounts/account.hooks';
-import { BaseDrawer } from '@app/components/drawer/base-drawer';
-import { useScrollLock } from '@app/common/hooks/use-scroll-lock';
-import { useHardwareWalletTransactionBroadcast } from '@app/store/transactions/transaction.hooks';
-import { logger } from '@shared/logger';
+import { useTransactionBroadcast } from '@app/store/transactions/transaction.hooks';
 
-import { useLedgerNavigate } from '../../hooks/use-ledger-navigate';
 import { useLedgerAnalytics } from '../../hooks/use-ledger-analytics.hook';
-import { RouteUrls } from '@shared/route-urls';
+import { useLedgerNavigate } from '../../hooks/use-ledger-navigate';
+import { useVerifyMatchingLedgerPublicKey } from '../../hooks/use-verify-matching-public-key';
 
 export function LedgerSignTxContainer() {
   const location = useLocation();
@@ -30,9 +39,12 @@ export function LedgerSignTxContainer() {
   const ledgerAnalytics = useLedgerAnalytics();
   useScrollLock(true);
   const account = useCurrentAccount();
-  const hwWalletTxBroadcast = useHardwareWalletTransactionBroadcast();
-
+  const hwWalletTxBroadcast = useTransactionBroadcast();
+  const canUserCancelAction = useActionCancellableByUser();
+  const verifyLedgerPublicKey = useVerifyMatchingLedgerPublicKey();
   const [unsignedTransaction, setUnsignedTransaction] = useState<null | string>(null);
+
+  const hasUserSkippedBuggyAppWarning = useMemo(() => createWaitForUserToSeeWarningScreen(), []);
 
   useEffect(() => {
     const tx = get(location.state, 'tx');
@@ -44,8 +56,6 @@ export function LedgerSignTxContainer() {
   const [latestDeviceResponse, setLatestDeviceResponse] = useLedgerResponseState();
 
   const [awaitingDeviceConnection, setAwaitingDeviceConnection] = useState(false);
-  const [awaitingKeyVerification, setAwaitingKeyVerification] = useState(false);
-  const [awaitingSignedTransaction, setAwaitingSignedTransaction] = useState(false);
 
   const signTransaction = async () => {
     if (!account) return;
@@ -56,8 +66,6 @@ export function LedgerSignTxContainer() {
         ledgerNavigate.toErrorStep();
       },
     });
-
-    if (!stacksApp) return;
 
     const versionInfo = await getAppVersion(stacksApp);
     ledgerAnalytics.trackDeviceVersionInfo(versionInfo);
@@ -73,13 +81,20 @@ export function LedgerSignTxContainer() {
       return;
     }
 
-    setAwaitingKeyVerification(true);
-    ledgerNavigate.toActivityHappeningOnDeviceStep();
-    await delay(1000);
-    setAwaitingKeyVerification(false);
+    if (isVersionOfLedgerStacksAppWithContractPrincipalBug(versionInfo)) {
+      navigate(RouteUrls.LedgerOutdatedAppWarning);
+      const response = await hasUserSkippedBuggyAppWarning.wait();
+
+      if (response === 'cancelled-operation') {
+        ledgerNavigate.cancelLedgerAction();
+        return;
+      }
+    }
+
+    ledgerNavigate.toDeviceBusyStep('Verifying public key on Ryder…');
+    await verifyLedgerPublicKey(stacksApp);
 
     try {
-      setAwaitingSignedTransaction(true);
       ledgerNavigate.toConnectionSuccessStep();
       await delay(1000);
       if (!unsignedTransaction) throw new Error('No unsigned tx');
@@ -91,27 +106,20 @@ export function LedgerSignTxContainer() {
         account.index
       );
 
-      // eslint-disable-next-line no-console
-      console.log('sign-tx-container', resp);
-
       // Assuming here that public keys are wrong. Alternatively, we may want
       // to proactively check the key before signing
       if (resp.returnCode === LedgerError.DataIsInvalid) {
-        setAwaitingSignedTransaction(false);
-        ledgerNavigate.toDeviceInvalidTx();
+        ledgerNavigate.toDevicePayloadInvalid();
         return;
       }
 
       if (resp.returnCode === LedgerError.TransactionRejected) {
-        setAwaitingSignedTransaction(false);
-        ledgerNavigate.toTransactionRejectedStep();
+        ledgerNavigate.toOperationRejectedStep();
         ledgerAnalytics.transactionSignedOnLedgerRejected();
-
         return;
       }
 
       if (resp.returnCode !== LedgerError.NoErrors) {
-        setAwaitingSignedTransaction(false);
         throw new Error('Some other error');
       }
 
@@ -119,33 +127,31 @@ export function LedgerSignTxContainer() {
 
       await delay(1000);
 
-      // Ryder returns signed tx
-      // Ledger returns signature only: const signedTx =  signTransactionWithSignature(unsignedTransaction, resp.signatureVRS);
-      const signedTx = deserializeTransaction(Buffer.from(resp.data).toString('hex'));
-      // eslint-disable-next-line no-console
-      console.log({ signedTx });
+      const signedTx = signTransactionWithSignature(unsignedTransaction, resp.signatureVRS);
       ledgerAnalytics.transactionSignedOnLedgerSuccessfully();
 
-      await hwWalletTxBroadcast({ signedTx });
-      setAwaitingSignedTransaction(false);
-      navigate(RouteUrls.Home);
+      try {
+        await hwWalletTxBroadcast({ signedTx });
+        navigate(RouteUrls.Home);
+      } catch (e) {
+        navigate(RouteUrls.TransactionBroadcastError);
+        return;
+      }
     } catch (e) {
-      setAwaitingSignedTransaction(false);
       ledgerNavigate.toDeviceDisconnectStep();
+    } finally {
+      await stacksApp.transport.close();
     }
   };
 
   const allowUserToGoBack = get(location.state, 'goBack');
-  const onCancelConnectLedger = allowUserToGoBack
-    ? ledgerNavigate.cancelLedgerActionAndReturnHome
-    : ledgerNavigate.cancelLedgerAction;
 
-  const ledgerContextValue = {
+  const ledgerContextValue: LedgerTxSigningContext = {
     transaction: unsignedTransaction ? deserializeTransaction(unsignedTransaction) : null,
     signTransaction,
     latestDeviceResponse,
     awaitingDeviceConnection,
-    onCancelConnectLedger,
+    hasUserSkippedBuggyAppWarning,
   };
 
   return (
@@ -153,12 +159,10 @@ export function LedgerSignTxContainer() {
       <BaseDrawer
         enableGoBack={allowUserToGoBack}
         isShowing
-        isWaitingOnPerformedAction={
-          awaitingDeviceConnection || awaitingKeyVerification || awaitingSignedTransaction
-        }
-        onClose={onCancelConnectLedger}
+        isWaitingOnPerformedAction={awaitingDeviceConnection || canUserCancelAction}
+        onClose={ledgerNavigate.cancelLedgerAction}
         pauseOnClickOutside
-        waitingOnPerformedActionMessage="Ryder device in use"
+        waitingOnPerformedActionMessage="Ledger device in use"
       >
         <Outlet />
       </BaseDrawer>

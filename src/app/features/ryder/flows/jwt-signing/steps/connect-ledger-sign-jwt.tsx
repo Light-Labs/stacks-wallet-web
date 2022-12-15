@@ -1,24 +1,16 @@
 import { useContext } from 'react';
-import { useLocation } from 'react-router-dom';
-import get from 'lodash.get';
-
-import { ConnectLedgerLayout } from '@app/features/ryder/steps/connect-ledger.layout';
 
 import { CommonLedgerDeviceInlineWarnings } from '@app/features/ryder/components/ledger-inline-warnings';
-import { ledgerJwtSigningContext } from '@app/features/ryder/ledger-jwt-signing.context';
+import { ledgerJwtSigningContext } from '@app/features/ryder/flows/jwt-signing/ledger-sign-jwt.context';
+import { ConnectLedgerLayout } from '@app/features/ryder/generic-steps';
 
 export function ConnectLedgerSignJwt() {
-  const location = useLocation();
-
   const { signJwtPayload, latestDeviceResponse, awaitingDeviceConnection } =
     useContext(ledgerJwtSigningContext);
-
-  const isLookingForLedger = get(location, 'state.isLookingForLedger');
 
   return (
     <ConnectLedgerLayout
       awaitingLedgerConnection={awaitingDeviceConnection}
-      isLookingForLedger={isLookingForLedger}
       warning={<CommonLedgerDeviceInlineWarnings latestDeviceResponse={latestDeviceResponse} />}
       onConnectLedger={signJwtPayload}
       showInstructions={false}

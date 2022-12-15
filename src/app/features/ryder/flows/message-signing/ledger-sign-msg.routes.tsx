@@ -12,23 +12,21 @@ import {
   OperationRejected,
   UnsupportedBrowserLayout,
 } from '../../generic-steps';
-import { LedgerSignTxContainer } from './ledger-sign-tx-container';
-import { ApproveSignLedgerTx } from './steps/approve-sign-ledger-tx';
-import { ConnectLedgerSignTx } from './steps/connect-ledger-sign-tx';
-import { ContractPrincipalBugWarning } from './steps/contract-principal-bug-warning';
+import { LedgerSignMsgContainer } from './ledger-sign-msg-container';
+import { ConnectLedgerSignMsg } from './steps/connect-ledger-sign-msg';
+import { SignLedgerMessage } from './steps/sign-ledger-message';
 
-export const ledgerTxSigningRoutes = (
-  <Route element={<LedgerSignTxContainer />}>
-    <Route path={RouteUrls.ConnectLedger} element={<ConnectLedgerSignTx />} />
+export const ledgerMessageSigningRoutes = (
+  <Route element={<LedgerSignMsgContainer />}>
+    <Route path={RouteUrls.ConnectLedger} element={<ConnectLedgerSignMsg />} />
     <Route path={RouteUrls.DeviceBusy} element={<DeviceBusy />} />
     <Route path={RouteUrls.ConnectLedgerError} element={<ConnectLedgerError />} />
-    <Route path={RouteUrls.LedgerUnsupportedBrowser} element={<UnsupportedBrowserLayout />} />
     <Route path={RouteUrls.ConnectLedgerSuccess} element={<ConnectLedgerSuccessLayout />} />
-    <Route path={RouteUrls.AwaitingDeviceUserAction} element={<ApproveSignLedgerTx />} />
+    <Route path={RouteUrls.AwaitingDeviceUserAction} element={<SignLedgerMessage />} />
     <Route path={RouteUrls.LedgerDisconnected} element={<LedgerDisconnected />} />
     <Route path={RouteUrls.LedgerOperationRejected} element={<OperationRejected />} />
     <Route path={RouteUrls.LedgerPublicKeyMismatch} element={<LedgerPublicKeyMismatch />} />
+    <Route path={RouteUrls.LedgerUnsupportedBrowser} element={<UnsupportedBrowserLayout />} />
     <Route path={RouteUrls.LedgerDevicePayloadInvalid} element={<LedgerDeviceInvalidPayload />} />
-    <Route path={RouteUrls.LedgerOutdatedAppWarning} element={<ContractPrincipalBugWarning />} />
   </Route>
 );

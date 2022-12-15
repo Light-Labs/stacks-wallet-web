@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 
 import { useAnalytics } from '@app/common/hooks/analytics/use-analytics';
+
 import { getAppVersion } from '../ledger-utils';
 
 export function useLedgerAnalytics() {
@@ -15,6 +16,12 @@ export function useLedgerAnalytics() {
       },
       transactionSignedOnLedgerRejected() {
         void analytics.track('ledger_transaction_signed_rejected');
+      },
+      messageSignedOnLedgerSuccessfully() {
+        void analytics.track('ledger_message_signed_approved');
+      },
+      messageSignedOnLedgerRejected() {
+        void analytics.track('ledger_message_signed_rejected');
       },
       publicKeysPulledFromLedgerSuccessfully() {
         void analytics.track('ledger_public_keys_pulled_from_device');

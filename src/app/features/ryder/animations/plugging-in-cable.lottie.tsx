@@ -1,4 +1,5 @@
 import Lottie, { Options } from 'react-lottie';
+
 import { Box, BoxProps } from '@stacks/ui';
 
 import * as animationData from './plugging-in-cable.lottie.json';
@@ -12,6 +13,7 @@ const options: Options = {
   },
 };
 
+// Required for interop with `React.lazy`
 // ts-unused-exports:disable-next-line
 export default function PluggingInLedgerCableAnimation(props: BoxProps) {
   return (

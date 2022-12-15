@@ -1,28 +1,26 @@
-/* eslint-disable no-console */
 import { useState } from 'react';
-import { LedgerError, ResponseVersion } from '@zondax/ledger-blockstack';
-import ecdsaFormat from 'ecdsa-sig-formatter';
-import { compare } from 'compare-versions';
-import * as secp from '@noble/secp256k1';
-import { sha256 } from 'sha.js';
+import { useLocation } from 'react-router-dom';
 
+import Transport from '@ledgerhq/hw-transport-webusb';
 import {
   AddressVersion,
+  SingleSigSpendingCondition,
   createMessageSignature,
   deserializeTransaction,
-  SingleSigSpendingCondition,
 } from '@stacks/transactions';
+import { safeAwait } from '@stacks/ui';
+import StacksApp, { LedgerError, ResponseSign, ResponseVersion } from '@zondax/ledger-stacks';
+import { compare } from 'compare-versions';
+
+import { RouteUrls } from '@shared/route-urls';
 
 import { delay } from '@app/common/utils';
-import { safeAwait } from '@stacks/ui';
-import { LedgerTxSigningProvider } from './ledger-tx-signing.context';
-import { logger } from '@shared/logger';
-import { StacksApp } from './ryder-utils';
-import { encryptContent, encryptECIES } from '@stacks/encryption';
 
-function decompressSecp256k1PublicKey(publicKey: string) {
-  const point = secp.Point.fromHex(publicKey);
-  return secp.utils.bytesToHex(point.toRawBytes(false));
+import { LedgerTxSigningContext } from './flows/tx-signing/ledger-sign-tx.context';
+
+export interface BaseLedgerOperationContext {
+  latestDeviceResponse: null | Awaited<ReturnType<typeof getAppVersion>>;
+  awaitingDeviceConnection: boolean;
 }
 
 const stxDerivationWithAccount = `m/44'/5757'/0'/0/{account}`;
@@ -35,16 +33,11 @@ function getAccountIndexFromDerivationPathFactory(derivationPath: string) {
 
 const getStxDerivationPath = getAccountIndexFromDerivationPathFactory(stxDerivationWithAccount);
 
-const getIdentityDerivationPath = getAccountIndexFromDerivationPathFactory(
+export const getIdentityDerivationPath = getAccountIndexFromDerivationPathFactory(
   identityDerivationWithAccount
 );
 
-async function connectLedger() {
-  const transport = null; //await Transport.create();
-  return new StacksApp(transport);
-}
-
-function requestPublicKeyForStxAccount(app: StacksApp) {
+export function requestPublicKeyForStxAccount(app: StacksApp) {
   return async (index: number) =>
     app.getAddressAndPubKey(
       getStxDerivationPath(index),
@@ -54,8 +47,14 @@ function requestPublicKeyForStxAccount(app: StacksApp) {
     );
 }
 
-function requestPublicKeyForIdentityAccount(app: StacksApp) {
-  return async (index: number) => app.getIdentityPubKey(getIdentityDerivationPath(index));
+export interface StxAndIdentityPublicKeys {
+  stxPublicKey: string;
+  dataPublicKey: string;
+}
+
+async function connectLedger() {
+  const transport = await Transport.create();
+  return new StacksApp(transport);
 }
 
 export async function getAppVersion(app: StacksApp) {
@@ -68,7 +67,7 @@ export function extractDeviceNameFromKnownTargetIds(_: string) {
 
 interface PrepareLedgerDeviceConnectionArgs {
   setLoadingState(loadingState: boolean): void;
-  onError(): void;
+  onError(error?: Error): void;
 }
 export async function prepareLedgerDeviceConnection(args: PrepareLedgerDeviceConnectionArgs) {
   const { setLoadingState, onError } = args;
@@ -77,9 +76,9 @@ export async function prepareLedgerDeviceConnection(args: PrepareLedgerDeviceCon
   await delay(1000);
   setLoadingState(false);
 
-  if (error) {
-    onError();
-    return;
+  if (error || !stacks) {
+    onError(error);
+    throw new Error('Unable to initiate device');
   }
 
   return stacks;
@@ -90,12 +89,9 @@ export function signLedgerTransaction(app: StacksApp) {
     app.sign(stxDerivationWithAccount.replace('{account}', accountIndex.toString()), payload);
 }
 
-export function signLedgerJwtHash(app: StacksApp) {
-  return async (payload: string, accountIndex: number) =>
-    app.sign_jwt(
-      identityDerivationWithAccount.replace('{account}', accountIndex.toString()),
-      payload
-    );
+export function signLedgerUtf8Message(app: StacksApp) {
+  return async (payload: string, accountIndex: number): Promise<ResponseSign> =>
+    app.sign_msg(getStxDerivationPath(accountIndex), payload);
 }
 
 export function exportEncryptedAppPrivateKey(app: StacksApp) {
@@ -112,6 +108,9 @@ export function exportEncryptedAppPrivateKey(app: StacksApp) {
     const encryptedJSON = JSON.stringify(encryptedObj);
     return Buffer.from(encryptedJSON).toString('hex');
   };
+export function signLedgerStructuredMessage(app: StacksApp) {
+  return async (domain: string, payload: string, accountIndex: number): Promise<ResponseSign> =>
+    app.sign_structured_msg(getStxDerivationPath(accountIndex), domain, payload);
 }
 
 export function signTransactionWithSignature(transaction: string, signatureVRS: Buffer) {
@@ -122,60 +121,17 @@ export function signTransactionWithSignature(transaction: string, signatureVRS: 
   return deserialzedTx;
 }
 
-export interface StxAndIdentityPublicKeys {
-  stxPublicKey: string;
-  dataPublicKey: string;
-}
-
-interface PullKeysFromLedgerSuccess {
-  status: 'success';
-  publicKeys: StxAndIdentityPublicKeys[];
-}
-
-interface PullKeysFromLedgerFailure {
-  status: 'failure';
-  errorMessage: string;
-  returnCode: number;
-}
-
-type PullKeysFromLedgerResponse = Promise<PullKeysFromLedgerSuccess | PullKeysFromLedgerFailure>;
-
-export async function pullKeysFromLedgerDevice(stacksApp: StacksApp): PullKeysFromLedgerResponse {
-  const publicKeys = [];
-  const amountOfKeysToExtractFromDevice = 1;
-  console.log('pull keys');
-  for (let index = 0; index < amountOfKeysToExtractFromDevice; index++) {
-    console.log({ index });
-    const stxPublicKeyResp = await requestPublicKeyForStxAccount(stacksApp)(index);
-    console.log('something that takes looooooooooooooooooong', stxPublicKeyResp);
-    await new Promise(r => setTimeout(r, 1000));
-    const dataPublicKeyResp = await requestPublicKeyForIdentityAccount(stacksApp)(index);
-    console.log({ stxPublicKeyResp, dataPublicKeyResp });
-    if (!stxPublicKeyResp.publicKey) return { status: 'failure', ...stxPublicKeyResp };
-
-    if (!dataPublicKeyResp.publicKey) return { status: 'failure', ...dataPublicKeyResp };
-
-    try {
-      publicKeys.push({
-        stxPublicKey: stxPublicKeyResp.publicKey.toString('hex'),
-        // We return a decompressed public key, to match the behaviour of
-        // @stacks/wallet-sdk. I'm not sure why we return an uncompressed key
-        // typically compressed keys are used
-        // dataPublicKey:
-        // decompressSecp256k1PublicKey(dataPublicKeyResp.publicKey.toString('hex')),
-        dataPublicKey: dataPublicKeyResp.publicKey.toString('hex'),
-      });
-    } catch (e) {
-      console.log(e);
-    }
-  }
-  logger.info(publicKeys);
-  await delay(1000);
-  return { status: 'success', publicKeys };
-}
-
 export function useLedgerResponseState() {
-  return useState<LedgerTxSigningProvider['latestDeviceResponse']>(null);
+  return useState<LedgerTxSigningContext['latestDeviceResponse']>(null);
+}
+
+export function useActionCancellableByUser() {
+  const { pathname } = useLocation();
+  return (
+    pathname.includes(RouteUrls.DeviceBusy) ||
+    pathname.includes(RouteUrls.ConnectLedgerSuccess) ||
+    pathname.includes(RouteUrls.AwaitingDeviceUserAction)
+  );
 }
 
 export function isStacksLedgerAppClosed(response: ResponseVersion) {
@@ -184,32 +140,6 @@ export function isStacksLedgerAppClosed(response: ResponseVersion) {
     response.returnCode === LedgerError.AppDoesNotSeemToBeOpen ||
     response.returnCode === anotherUnknownErrorCodeMeaningAppClosed
   );
-}
-
-function reformatDerSignatureToJose(derSignature: Uint8Array) {
-  // Stacks authentication uses `ES256k`, however `ecdsa-sig-formatter` doesn't
-  // accept this. As it only uses this to validate key length, and the key
-  // lengths are the same, it works despite this confusing disparity.
-  return ecdsaFormat.derToJose(Buffer.from(derSignature), 'ES256');
-}
-
-export function addSignatureToAuthResponseJwt(authResponse: string, signature: Uint8Array) {
-  try {
-    const resultingSig = Buffer.from(signature)
-      .slice(1) // FIXME after fixing https://github.com/Light-Labs/stacks-wallet-web/issues/9
-      .toString('base64')
-      .replace(/=/g, '')
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_');
-    return [authResponse, resultingSig].join('.');
-  } catch (e) {
-    console.log(e);
-    return authResponse;
-  }
-}
-
-export function getSha256HashOfJwtAuthPayload(payload: string) {
-  return new sha256().update(payload).digest('hex');
 }
 
 type SemVerObject = Record<'major' | 'minor' | 'patch', number>;
@@ -221,12 +151,23 @@ function versionObjectToVersionString(version: SemVerObject) {
 const ledgerStacksAppVersionFromWhichJwtAuthIsSupported = '0.22.5';
 
 export function doesLedgerStacksAppVersionSupportJwtAuth(versionInfo: SemVerObject) {
-  return (
-    false &&
-    compare(
-      ledgerStacksAppVersionFromWhichJwtAuthIsSupported,
-      versionObjectToVersionString(versionInfo),
-      '>'
-    )
+  return compare(
+    ledgerStacksAppVersionFromWhichJwtAuthIsSupported,
+    versionObjectToVersionString(versionInfo),
+    '>'
+  );
+}
+
+// https://github.com/Zondax/ledger-stacks/issues/119
+// https://github.com/hirosystems/stacks-wallet-web/issues/2567
+const versionFromWhichContractPrincipalBugIsFixed = '0.23.3';
+
+export function isVersionOfLedgerStacksAppWithContractPrincipalBug(
+  currentDeviceVersion: SemVerObject
+) {
+  return compare(
+    versionObjectToVersionString(currentDeviceVersion),
+    versionFromWhichContractPrincipalBugIsFixed,
+    '<'
   );
 }
