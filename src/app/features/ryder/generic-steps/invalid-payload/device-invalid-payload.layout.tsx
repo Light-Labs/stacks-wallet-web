@@ -1,4 +1,4 @@
-import LedgerWithRedOutline from '@assets/images/ledger/ledger-red-outline.png';
+import LedgerWithRedOutline from '@assets/images/ryder/ryder-logo.png';
 import { Box, Button, Flex, Text, color } from '@stacks/ui';
 
 import { Title } from '@app/components/typography';

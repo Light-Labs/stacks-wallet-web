@@ -1,4 +1,4 @@
-import UnsupportedBrowserImg from '@assets/images/ledger/unsupported-browser.png';
+import UnsupportedBrowserImg from '@assets/images/ryder/ryder-logo.png';
 import { Box, Flex, Text } from '@stacks/ui';
 
 import { ExternalLink } from '@app/components/external-link';

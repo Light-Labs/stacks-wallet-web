@@ -15,7 +15,7 @@ import { useFeeSchema } from '@app/common/validation/use-fee-schema';
 import { LoadingSpinner } from '@app/components/loading-spinner';
 import { StacksTransactionItem } from '@app/components/stacks-transaction-item/stacks-transaction-item';
 import { Caption } from '@app/components/typography';
-import { useLedgerNavigate } from '@app/features/ledger/hooks/use-ledger-navigate';
+import { useLedgerNavigate } from '@app/features/ryder/hooks/use-ledger-navigate';
 import { useCurrentStacksAccountAnchoredBalances } from '@app/query/stacks/balance/balance.hooks';
 import { useSubmittedTransactionsActions } from '@app/store/submitted-transactions/submitted-transactions.hooks';
 import { useReplaceByFeeSoftwareWalletSubmitCallBack } from '@app/store/transactions/fees.hooks';

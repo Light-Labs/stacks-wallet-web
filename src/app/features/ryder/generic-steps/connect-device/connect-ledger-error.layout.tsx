@@ -1,6 +1,6 @@
 import { FiCircle } from 'react-icons/fi';
 
-import ConnectLedgerError from '@assets/images/ledger/connect-ledger-error.png';
+import ConnectLedgerError from '@assets/images/ryder/ryder-logo.png';
 import { Box, Flex, Stack, color } from '@stacks/ui';
 
 import { ErrorLabel } from '@app/components/error-label';
@@ -42,7 +42,7 @@ export function ConnectLedgerErrorLayout(props: ConnectLedgerErrorLayoutProps) {
         <img src={ConnectLedgerError} width="247px" />
       </Box>
       <LedgerTitle mt="45px" mx="50px">
-        We're unable to connect to your Ledger device
+        We're unable to connect to your Ryder device
       </LedgerTitle>
       {warningText ? (
         <WarningLabel mt="base" px="extra-loose" fontSize="14px">

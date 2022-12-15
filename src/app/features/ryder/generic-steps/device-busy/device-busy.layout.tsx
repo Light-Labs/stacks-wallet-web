@@ -1,4 +1,4 @@
-import ConnectLedgerSuccess from '@assets/images/ledger/connect-ledger-success.png';
+import ConnectLedgerSuccess from '@assets/images/ryder/ryder-logo.png';
 
 import { LedgerConnectInstructionTitle } from '../../components/ledger-title';
 import { LedgerWrapper } from '../../components/ledger-wrapper';

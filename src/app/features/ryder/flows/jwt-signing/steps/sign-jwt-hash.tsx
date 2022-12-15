@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 
-import SignLedgerTransaction from '@assets/images/ledger/sign-ledger-transaction.png';
+import SignLedgerTransaction from '@assets/images/ryder/ryder-logo.png';
 import { Box, Flex, color } from '@stacks/ui';
 
 import { DeviceOperationApprovalStatus } from '@app/features/ryder/components/device-approval-status';

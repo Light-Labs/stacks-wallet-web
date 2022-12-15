@@ -1,4 +1,4 @@
-import LedgerTxRejected from '@assets/images/ledger/transaction-rejected.png';
+import LedgerTxRejected from '@assets/images/ryder/ryder-logo.png';
 import { Box, Button, Flex, Text, color } from '@stacks/ui';
 
 import { LedgerTitle } from '../../components/ledger-title';

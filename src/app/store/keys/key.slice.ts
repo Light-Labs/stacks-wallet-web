@@ -1,6 +1,6 @@
 import { PayloadAction, createEntityAdapter, createSlice } from '@reduxjs/toolkit';
 
-import { StxAndIdentityPublicKeys } from '@app/features/ledger/ledger-utils';
+import { StxAndIdentityPublicKeys } from '@app/features/ryder/ledger-utils';
 
 import { migrateVaultReducerStoreToNewStateStructure } from '../utils/vault-reducer-migration';
 

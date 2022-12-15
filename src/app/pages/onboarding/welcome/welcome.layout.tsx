@@ -87,7 +87,7 @@ export function WelcomeLayout(props: WelcomeLayoutProps): JSX.Element {
               mt={['base', null, 'loose']}
               onClick={onStartOnboarding}
             >
-              Setup Ryder device
+              Create new wallet
             </PrimaryButton>
           </Box>
 

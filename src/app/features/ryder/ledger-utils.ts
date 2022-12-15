@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
 import Transport from '@ledgerhq/hw-transport-webusb';
+import { encryptECIES } from '@stacks/encryption';
 import {
   AddressVersion,
   SingleSigSpendingCondition,
@@ -9,7 +10,7 @@ import {
   deserializeTransaction,
 } from '@stacks/transactions';
 import { safeAwait } from '@stacks/ui';
-import StacksApp, { LedgerError, ResponseSign, ResponseVersion } from '@zondax/ledger-stacks';
+import { LedgerError, ResponseSign, ResponseVersion } from '@zondax/ledger-stacks';
 import { compare } from 'compare-versions';
 
 import { RouteUrls } from '@shared/route-urls';
@@ -17,6 +18,7 @@ import { RouteUrls } from '@shared/route-urls';
 import { delay } from '@app/common/utils';
 
 import { LedgerTxSigningContext } from './flows/tx-signing/ledger-sign-tx.context';
+import { StacksApp } from './ryder-utils';
 
 export interface BaseLedgerOperationContext {
   latestDeviceResponse: null | Awaited<ReturnType<typeof getAppVersion>>;
@@ -53,8 +55,8 @@ export interface StxAndIdentityPublicKeys {
 }
 
 async function connectLedger() {
-  const transport = await Transport.create();
-  return new StacksApp(transport);
+  //const transport = await Transport.create();
+  return new StacksApp(null);
 }
 
 export async function getAppVersion(app: StacksApp) {
@@ -91,7 +93,11 @@ export function signLedgerTransaction(app: StacksApp) {
 
 export function signLedgerUtf8Message(app: StacksApp) {
   return async (payload: string, accountIndex: number): Promise<ResponseSign> =>
-    app.sign_msg(getStxDerivationPath(accountIndex), payload);
+    // TODO: not supported
+    //app.sign_msg(getStxDerivationPath(accountIndex), payload);
+    {
+      throw new Error('Unsupported call: app.sign_msg');
+    };
 }
 
 export function exportEncryptedAppPrivateKey(app: StacksApp) {
@@ -108,6 +114,8 @@ export function exportEncryptedAppPrivateKey(app: StacksApp) {
     const encryptedJSON = JSON.stringify(encryptedObj);
     return Buffer.from(encryptedJSON).toString('hex');
   };
+}
+
 export function signLedgerStructuredMessage(app: StacksApp) {
   return async (domain: string, payload: string, accountIndex: number): Promise<ResponseSign> =>
     app.sign_structured_msg(getStxDerivationPath(accountIndex), domain, payload);
@@ -149,10 +157,12 @@ function versionObjectToVersionString(version: SemVerObject) {
 }
 
 const ledgerStacksAppVersionFromWhichJwtAuthIsSupported = '0.22.5';
+const ryderFirmwareVersionWhichJwtAuthIsSupported = '0.0.5';
 
 export function doesLedgerStacksAppVersionSupportJwtAuth(versionInfo: SemVerObject) {
+  console.log("versionInfo", versionInfo)
   return compare(
-    ledgerStacksAppVersionFromWhichJwtAuthIsSupported,
+    ryderFirmwareVersionWhichJwtAuthIsSupported,
     versionObjectToVersionString(versionInfo),
     '>'
   );

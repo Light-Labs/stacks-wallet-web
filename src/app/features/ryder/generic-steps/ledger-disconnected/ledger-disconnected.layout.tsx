@@ -1,4 +1,4 @@
-import LedgerDisconnected from '@assets/images/ledger/ledger-disconnected.png';
+import LedgerDisconnected from '@assets/images/ryder/ryder-logo.png';
 import { Box, Button, Stack } from '@stacks/ui';
 
 import { PrimaryButton } from '@app/components/primary-button';

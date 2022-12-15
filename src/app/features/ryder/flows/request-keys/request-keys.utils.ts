@@ -1,5 +1,4 @@
 import * as secp from '@noble/secp256k1';
-import StacksApp from '@zondax/ledger-stacks';
 
 import { delay } from '@app/common/utils';
 
@@ -8,6 +7,7 @@ import {
   getIdentityDerivationPath,
   requestPublicKeyForStxAccount,
 } from '../../ledger-utils';
+import { StacksApp } from '../../ryder-utils';
 
 function requestPublicKeyForIdentityAccount(app: StacksApp) {
   return async (index: number) => app.getIdentityPubKey(getIdentityDerivationPath(index));

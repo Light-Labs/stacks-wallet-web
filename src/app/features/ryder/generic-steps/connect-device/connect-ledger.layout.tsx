@@ -9,10 +9,7 @@ import { Caption } from '@app/components/typography';
 
 import { LedgerConnectInstructionTitle } from '../../components/ledger-title';
 import { LedgerWrapper } from '../../components/ledger-wrapper';
-
-const PluggingInLedgerCableAnimation = lazy(
-  () => import('../../animations/plugging-in-cable.lottie')
-);
+import RyderLogo from '@assets/images/ryder/ryder-logo.png';
 
 interface ConnectLedgerLayoutProps {
   awaitingLedgerConnection: boolean;
@@ -26,9 +23,7 @@ export function ConnectLedgerLayout(props: ConnectLedgerLayoutProps) {
   return (
     <LedgerWrapper>
       <Box position="relative" width="100%" minHeight="120px">
-        <Suspense fallback={null}>
-          <PluggingInLedgerCableAnimation position="absolute" top="-80px" />
-        </Suspense>
+      <img src={RyderLogo} />
       </Box>
       {/* <img src={ConnectLedger} width="299" height="97" /> */}
       <LedgerConnectInstructionTitle mt="extra-loose" mx="50px" />
@@ -47,13 +42,13 @@ export function ConnectLedgerLayout(props: ConnectLedgerLayoutProps) {
         <Box width="100%">
           <Divider />
           <Caption mb="tight" mt="loose">
-            First time using Ledger on Hiro Wallet?
+            First time using Ryder on Hiro Wallet?
           </Caption>
           <ExternalLink
-            href="https://www.hiro.so/wallet-faq/how-can-i-use-my-ledger-device-with-hiro-wallet"
+            href="https://github.com/light-labs/stacks-wallet-web"
             fontSize={1}
           >
-            See how to download the Stacks app
+            Learn about the current state
           </ExternalLink>
         </Box>
       ) : null}

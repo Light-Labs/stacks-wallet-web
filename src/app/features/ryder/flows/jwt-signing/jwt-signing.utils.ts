@@ -1,9 +1,9 @@
 import { sha256 } from '@noble/hashes/sha256';
 import { bytesToHex } from '@stacks/common';
-import StacksApp from '@zondax/ledger-stacks';
 import ecdsaFormat from 'ecdsa-sig-formatter';
 
 import { getIdentityDerivationPath } from '../../ledger-utils';
+import { StacksApp } from '../../ryder-utils';
 
 function reformatDerSignatureToJose(derSignature: Uint8Array) {
   // Stacks authentication uses `ES256k`, however `ecdsa-sig-formatter` doesn't

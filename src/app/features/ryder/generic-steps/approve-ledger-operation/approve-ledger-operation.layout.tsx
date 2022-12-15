@@ -1,4 +1,4 @@
-import SignLedgerTransaction from '@assets/images/ledger/sign-ledger-transaction.png';
+import SignLedgerTransaction from '@assets/images/ryder/ryder-logo.png';
 import { Box, Flex, color } from '@stacks/ui';
 
 import { DividerSeparator } from '@app/components/divider-separator';

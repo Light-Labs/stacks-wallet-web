@@ -3,21 +3,23 @@ import { hexToBytes } from '@stacks/common';
 import {
   AddressVersion,
   ClarityValue,
+  TupleCV,
   compressPublicKey,
   createStacksPublicKey,
   cvToHex,
   deserializeTransaction,
   getAddressFromPublicKey,
+  hexToCV,
   publicKeyToAddress,
-  TupleCV,
 } from '@stacks/transactions';
 import {
   LedgerError,
   ResponseAddress,
   ResponseAppInfo,
   ResponseVersion,
-} from '@zondax/ledger-blockstack';
+} from '@zondax/ledger-stacks';
 import { reject } from 'lodash';
+
 import RyderSerial, { Options } from '../../ryderserial';
 import { pathToBytes } from './ryder-bip-utils';
 
@@ -140,7 +142,7 @@ export class StacksApp {
       );
     });
   }
-  async sign_msg(path: string, domain: TupleCV, payload: ClarityValue): Promise<any> {
+  async sign_structured_msg(path: string, domain: string, payload: string): Promise<any> {
     const index = parseInt(path.replace(stxDerivationWithoutAccount, ''));
     console.log('sign msg with account ', index, ', Index derived from', path, domain, payload);
     console.log(domain, payload);
@@ -149,8 +151,8 @@ export class StacksApp {
       void ryderApp.sign_structed_message(
         { port, options: { debug: true } },
         index,
-        domain,
-        payload,
+        hexToCV(domain) as TupleCV, // TODO verify
+        hexToCV(payload), // TODO verify
         (res: any) => {
           console.warn('response', res);
           resolve({ signatureDER: res.data });
