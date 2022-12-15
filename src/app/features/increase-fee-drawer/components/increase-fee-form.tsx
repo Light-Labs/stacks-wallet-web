@@ -1,33 +1,36 @@
 import { useCallback, useEffect } from 'react';
-import * as yup from 'yup';
-import { Formik } from 'formik';
-import BigNumber from 'bignumber.js';
 import { toast } from 'react-hot-toast';
+
 import { Stack } from '@stacks/ui';
+import BigNumber from 'bignumber.js';
+import { Formik } from 'formik';
+import * as yup from 'yup';
 
-import { microStxToStx, stacksValue, stxToMicroStx } from '@app/common/stacks-utils';
 import { useRefreshAllAccountData } from '@app/common/hooks/account/use-refresh-all-account-data';
-import { useFeeSchema } from '@app/common/validation/use-fee-schema';
+import { microStxToStx, stxToMicroStx } from '@app/common/money/unit-conversion';
+import { stacksValue } from '@app/common/stacks-utils';
 import { useWalletType } from '@app/common/use-wallet-type';
-import { Caption } from '@app/components/typography';
-import { TransactionItem } from '@app/components/transaction/components/transaction-item';
-import { useLedgerNavigate } from '@app/features/ledger/hooks/use-ledger-navigate';
-import { useRawDeserializedTxState, useRawTxIdState } from '@app/store/transactions/raw.hooks';
-import { useReplaceByFeeSoftwareWalletSubmitCallBack } from '@app/store/transactions/fees.hooks';
 import { safelyFormatHexTxid } from '@app/common/utils/safe-handle-txid';
+import { useFeeSchema } from '@app/common/validation/use-fee-schema';
+import { LoadingSpinner } from '@app/components/loading-spinner';
+import { StacksTransactionItem } from '@app/components/stacks-transaction-item/stacks-transaction-item';
+import { Caption } from '@app/components/typography';
+import { useLedgerNavigate } from '@app/features/ledger/hooks/use-ledger-navigate';
+import { useCurrentStacksAccountAnchoredBalances } from '@app/query/stacks/balance/balance.hooks';
 import { useSubmittedTransactionsActions } from '@app/store/submitted-transactions/submitted-transactions.hooks';
-import { useCurrentAccountAvailableStxBalance } from '@app/query/balance/balance.hooks';
+import { useReplaceByFeeSoftwareWalletSubmitCallBack } from '@app/store/transactions/fees.hooks';
+import { useRawDeserializedTxState, useRawTxIdState } from '@app/store/transactions/raw.hooks';
 
+import { useSelectedTx } from '../hooks/use-selected-tx';
 import { IncreaseFeeActions } from './increase-fee-actions';
 import { IncreaseFeeField } from './increase-fee-field';
-import { useSelectedTx } from '../hooks/use-selected-tx';
 
-export function IncreaseFeeForm(): JSX.Element | null {
+export function IncreaseFeeForm() {
   const refreshAccountData = useRefreshAllAccountData();
   const tx = useSelectedTx();
   const [, setTxId] = useRawTxIdState();
   const replaceByFee = useReplaceByFeeSoftwareWalletSubmitCallBack();
-  const stxBalance = useCurrentAccountAvailableStxBalance();
+  const { data: balances } = useCurrentStacksAccountAnchoredBalances();
   const submittedTransactionsActions = useSubmittedTransactionsActions();
   const feeSchema = useFeeSchema();
   const rawTx = useRawDeserializedTxState();
@@ -52,10 +55,10 @@ export function IncreaseFeeForm(): JSX.Element | null {
       submittedTransactionsActions.transactionReplacedByFee(txId);
       whenWallet({
         software: async () => {
-          await replaceByFee(values);
+          await replaceByFee(rawTx);
         },
         ledger: () => {
-          ledgerNavigate.toConnectAndSignStep(rawTx, true);
+          ledgerNavigate.toConnectAndSignTransactionStep(rawTx);
         },
       })();
     },
@@ -70,7 +73,7 @@ export function IncreaseFeeForm(): JSX.Element | null {
     ]
   );
 
-  if (!tx || !fee) return null;
+  if (!tx || !fee) return <LoadingSpinner />;
 
   return (
     <Formik
@@ -83,11 +86,14 @@ export function IncreaseFeeForm(): JSX.Element | null {
     >
       {() => (
         <Stack spacing="extra-loose">
-          {tx && <TransactionItem position="relative" transaction={tx} zIndex={99} />}
+          {tx && <StacksTransactionItem position="relative" transaction={tx} zIndex={99} />}
           <Stack spacing="base">
             <IncreaseFeeField currentFee={fee} />
-            {stxBalance && (
-              <Caption>Balance: {stacksValue({ value: stxBalance, fixedDecimals: true })}</Caption>
+            {balances?.stx.availableStx.amount && (
+              <Caption>
+                Balance:{' '}
+                {stacksValue({ value: balances?.stx.availableStx.amount, fixedDecimals: true })}
+              </Caption>
             )}
           </Stack>
           <IncreaseFeeActions currentFee={fee} />

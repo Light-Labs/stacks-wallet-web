@@ -1,19 +1,21 @@
 import { memo, useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { useRouteHeader } from '@app/common/hooks/use-route-header';
+import { RouteUrls } from '@shared/route-urls';
+
 import { useAnalytics } from '@app/common/hooks/analytics/use-analytics';
 import { useOnboardingState } from '@app/common/hooks/auth/use-onboarding-state';
-import { Header } from '@app/components/header';
-import { RouteUrls } from '@shared/route-urls';
-import { WelcomeLayout } from './welcome.layout';
-import { useHasAllowedDiagnostics } from '@app/store/onboarding/onboarding.hooks';
 import { useKeyActions } from '@app/common/hooks/use-key-actions';
+import { useRouteHeader } from '@app/common/hooks/use-route-header';
 import { doesBrowserSupportWebUsbApi, whenPageMode } from '@app/common/utils';
 import { openIndexPageInNewTab } from '@app/common/utils/open-in-new-tab';
-import { prepareLedgerDeviceConnection } from '@app/features/ryder/ledger-utils';
+import { Header } from '@app/components/header';
+import { useHasUserRespondedToAnalyticsConsent } from '@app/store/settings/settings.selectors';
+
+import { WelcomeLayout } from './welcome.layout';
+
 export const WelcomePage = memo(() => {
-  const [hasAllowedDiagnostics] = useHasAllowedDiagnostics();
+  const hasResponded = useHasUserRespondedToAnalyticsConsent();
   const navigate = useNavigate();
   const { decodedAuthRequest } = useOnboardingState();
   const analytics = useAnalytics();
@@ -25,22 +27,16 @@ export const WelcomePage = memo(() => {
 
   const startOnboarding = useCallback(async () => {
     setIsGeneratingWallet(true);
-
-    const stacksApp = await prepareLedgerDeviceConnection({
-      setLoadingState: () => {},
-      onError() {
-        console.log('error');
-      },
-    });
-
-    if (!stacksApp) return;
-    const result = await stacksApp.setupDevice();
-    console.log(result);
-    navigate(RouteUrls.Home);
-  }, [navigate]);
+    keyActions.generateWalletKey();
+    void analytics.track('generate_new_secret_key');
+    if (decodedAuthRequest) {
+      navigate(RouteUrls.SetPassword);
+    }
+    navigate(RouteUrls.BackUpSecretKey);
+  }, [keyActions, analytics, decodedAuthRequest, navigate]);
 
   useEffect(() => {
-    if (hasAllowedDiagnostics === undefined) navigate(RouteUrls.RequestDiagnostics);
+    if (!hasResponded) navigate(RouteUrls.RequestDiagnostics);
 
     return () => setIsGeneratingWallet(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps

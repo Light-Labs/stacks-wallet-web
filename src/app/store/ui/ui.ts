@@ -1,5 +1,6 @@
-import { atomFamily, atomWithStorage } from 'jotai/utils';
 import { atom } from 'jotai';
+import { atomFamily, atomWithStorage } from 'jotai/utils';
+
 import { makeLocalDataKey } from '@app/common/store-utils';
 
 export const tabState = atomFamily(param => {
@@ -21,17 +22,10 @@ export const showSwitchAccountsState = atom(false);
 
 export const showHighFeeConfirmationState = atom(false);
 
-export const showNetworksStore = atom(false);
-
 export const showSettingsStore = atom(false);
 export const showEditNonceState = atom(false);
 export const showTxSettingsCallback = atom<(() => Promise<void>) | undefined>(undefined);
 
-export const showSignOut = atom(false);
-
 export const errorStackTraceState = atom<string | null>(null);
 
 export const routeHeaderState = atom<JSX.Element | null>(null);
-
-showNetworksStore.debugLabel = 'showNetworksStore';
-showSettingsStore.debugLabel = 'showSettingsStore';

@@ -1,45 +1,53 @@
 import { useCallback } from 'react';
 import * as React from 'react';
-import { FormikProps } from 'formik';
 
-import { microStxToStx } from '@app/common/stacks-utils';
-import { removeCommas } from '@app/common/token-utils';
-import { TransactionFormValues } from '@app/common/transactions/transaction-utils';
-import { useSelectedAsset } from '@app/pages/send-tokens/hooks/use-selected-asset';
-import { useCurrentAccountAvailableStxBalance } from '@app/query/balance/balance.hooks';
-import { useCurrentAccountMempoolTransactionsBalance } from '@app/query/mempool/mempool.hooks';
+import { useFormikContext } from 'formik';
 
-export function useSendAmountFieldActions({
-  setFieldValue,
-}: Pick<FormikProps<TransactionFormValues>, 'setFieldValue'>) {
-  const availableStxBalance = useCurrentAccountAvailableStxBalance();
+import { SendFormValues } from '@shared/models/form.model';
+
+import { useSelectedAssetBalance } from '@app/common/hooks/use-selected-asset-balance';
+import { convertAmountToBaseUnit } from '@app/common/money/calculate-money';
+import { microStxToStx } from '@app/common/money/unit-conversion';
+import { useCurrentStacksAccountAnchoredBalances } from '@app/query/stacks/balance/balance.hooks';
+import { useCurrentAccountMempoolTransactionsBalance } from '@app/query/stacks/mempool/mempool.hooks';
+
+export function useSendAmountFieldActions() {
+  const { setFieldValue, values } = useFormikContext<SendFormValues>();
+  const { data: stacksBalances } = useCurrentStacksAccountAnchoredBalances();
   const pendingTxsBalance = useCurrentAccountMempoolTransactionsBalance();
-  const { selectedAsset, balance } = useSelectedAsset();
-  const isStx = selectedAsset?.type === 'stx';
+  const { isStx, selectedAssetBalance } = useSelectedAssetBalance(values.assetId);
 
   const handleSetSendMax = useCallback(
     (fee: number | string) => {
-      if (!selectedAsset || !balance) return;
+      if (!selectedAssetBalance) return;
       if (isStx && fee) {
-        const stx = microStxToStx(availableStxBalance?.minus(pendingTxsBalance) || 0).minus(fee);
+        const stx = microStxToStx(
+          stacksBalances?.stx.availableStx.amount.minus(pendingTxsBalance) || 0
+        ).minus(fee);
         if (stx.isLessThanOrEqualTo(0)) return;
         return setFieldValue('amount', stx.toNumber());
-      } else {
-        if (balance) setFieldValue('amount', removeCommas(balance));
       }
+      setFieldValue('amount', convertAmountToBaseUnit(selectedAssetBalance.balance).toString());
     },
-    [selectedAsset, balance, isStx, availableStxBalance, pendingTxsBalance, setFieldValue]
+    [
+      selectedAssetBalance,
+      isStx,
+      setFieldValue,
+      stacksBalances?.stx.availableStx.amount,
+      pendingTxsBalance,
+    ]
   );
 
   const handleOnKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
       const hasDecimals =
-        typeof selectedAsset?.meta?.decimals === 'number' && selectedAsset?.meta.decimals !== 0;
+        typeof selectedAssetBalance?.asset.decimals === 'number' &&
+        selectedAssetBalance.asset.decimals !== 0;
       const { key } = event;
       const value = event.currentTarget.value;
       // leading zeros
       if (
-        selectedAsset?.type !== 'stx' &&
+        isStx &&
         // if no leading 0 of we don't know the status of decimals
         ((key === '0' && value.length === 0 && !hasDecimals) ||
           // only one leading zero allowed
@@ -48,7 +56,7 @@ export function useSendAmountFieldActions({
         return event.preventDefault();
       // decimals check
       if (key === '.') {
-        if (!hasDecimals && selectedAsset?.type !== 'stx') return event.preventDefault();
+        if (!hasDecimals && !isStx) return event.preventDefault();
         const hasPeriod = value.includes('.');
         // only one period allowed
         if (hasPeriod && key === '.') {
@@ -56,7 +64,7 @@ export function useSendAmountFieldActions({
         }
       }
     },
-    [selectedAsset]
+    [isStx, selectedAssetBalance]
   );
   return {
     handleSetSendMax,

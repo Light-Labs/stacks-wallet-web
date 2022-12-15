@@ -1,8 +1,9 @@
 import { ReactNode } from 'react';
-import { Box, Flex, Text, color, Button } from '@stacks/ui';
+
+import GenericError from '@assets/images/generic-error.png';
+import { Box, Button, Flex, Text, color } from '@stacks/ui';
 
 import { Title } from '@app/components/typography';
-import GenericError from '@assets/images/generic-error.png';
 
 interface ErrorProps {
   body: string;
@@ -46,17 +47,7 @@ export function GenericErrorLayout(props: ErrorProps) {
       >
         {helpTextList}
         <Box as="li" mt="base">
-          Still stuck? Reach out to{' '}
-          <Text
-            as="button"
-            color={color('accent')}
-            onClick={() => {
-              window.open('mailto:support@hiro.so');
-              window.close();
-            }}
-          >
-            support@hiro.so
-          </Text>
+          Still stuck? Reach out to support@hiro.so
         </Box>
       </Box>
       <Button fontSize="14px" mt="base-tight" onClick={onClose} p="base" variant="link">

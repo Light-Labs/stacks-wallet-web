@@ -1,49 +1,63 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { atomWithStore } from 'jotai/redux';
+
 import { devToolsEnhancer } from '@redux-devtools/remote';
-import { AnyAction, combineReducers, configureStore, ThunkAction } from '@reduxjs/toolkit';
+import { Action, AnyAction, ThunkAction, combineReducers, configureStore } from '@reduxjs/toolkit';
+import { atomWithStore } from 'jotai/redux';
 import {
-  persistStore,
-  persistReducer,
   FLUSH,
-  REHYDRATE,
   PAUSE,
   PERSIST,
   PURGE,
   REGISTER,
+  REHYDRATE,
+  persistReducer,
+  persistStore,
 } from 'redux-persist';
+import { PersistPartial } from 'redux-persist/es/persistReducer';
 
 import { IS_DEV_ENV } from '@shared/environment';
+import { persistConfig } from '@shared/storage';
 
-import { keySlice } from './keys/key.slice';
-import { stxChainSlice } from './chains/stx-chain.slice';
-import { broadcastActionTypeToOtherFramesMiddleware } from './utils/broadcast-action-types';
-import { inMemoryKeySlice } from './in-memory-key/in-memory-key.slice';
-import { ExtensionStorage } from './utils/extension-storage';
-import { onboardingSlice } from './onboarding/onboarding.slice';
 import { analyticsSlice } from './analytics/analytics.slice';
+import { stxChainSlice } from './chains/stx-chain.slice';
+import { inMemoryKeySlice } from './in-memory-key/in-memory-key.slice';
+import { keySlice } from './keys/key.slice';
+import { networksSlice } from './networks/networks.slice';
+import { onboardingSlice } from './onboarding/onboarding.slice';
+import { settingsSlice } from './settings/settings.slice';
 import { submittedTransactionsSlice } from './submitted-transactions/submitted-transactions.slice';
+import { broadcastActionTypeToOtherFramesMiddleware } from './utils/broadcast-action-types';
 
-const storage = new ExtensionStorage(chrome.storage.local, chrome.runtime);
+export interface RootState {
+  analytics: ReturnType<typeof analyticsSlice.reducer>;
+  chains: {
+    stx: ReturnType<typeof stxChainSlice.reducer>;
+  };
+  inMemoryKeys: ReturnType<typeof inMemoryKeySlice.reducer>;
+  keys: ReturnType<typeof keySlice.reducer>;
+  networks: ReturnType<typeof networksSlice.reducer>;
+  onboarding: ReturnType<typeof onboardingSlice.reducer>;
+  submittedTransactions: ReturnType<typeof submittedTransactionsSlice.reducer>;
+  settings: ReturnType<typeof settingsSlice.reducer>;
+}
 
-const rootReducer = combineReducers({
-  keys: keySlice.reducer,
+const appReducer = combineReducers({
+  analytics: analyticsSlice.reducer,
   chains: combineReducers({
     stx: stxChainSlice.reducer,
   }),
   inMemoryKeys: inMemoryKeySlice.reducer,
+  keys: keySlice.reducer,
+  networks: networksSlice.reducer,
   onboarding: onboardingSlice.reducer,
-  analytics: analyticsSlice.reducer,
   submittedTransactions: submittedTransactionsSlice.reducer,
+  settings: settingsSlice.reducer,
 });
 
-const persistConfig = {
-  key: 'root',
-  version: 1,
-  storage,
-  serialize: true,
-  whitelist: ['keys', 'chains', 'onboarding', 'analytics'],
-};
+function rootReducer(state: RootState | undefined, action: Action) {
+  if (action.type === 'keys/signOut') return appReducer(undefined, action);
+  return appReducer(state, action);
+}
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
@@ -70,17 +84,15 @@ export const store = configureStore({
 
 export const persistor = persistStore(store);
 
-export type RootState = ReturnType<typeof persistedReducer>;
-
 export type AppThunk<ReturnType = void> = ThunkAction<ReturnType, RootState, unknown, AnyAction>;
 
-type AppDispatch = typeof store.dispatch;
+type AppDispatch = typeof store.dispatch & ((action: AppThunk) => void);
 
-export const useAppDispatch = () => useDispatch<AppDispatch>();
+export const useAppDispatch: () => AppDispatch = useDispatch;
 
 export const storeAtom = atomWithStore(store);
 
-const selectHasRehydrated = (state: RootState) => state._persist.rehydrated;
+const selectHasRehydrated = (state: RootState & PersistPartial) => state._persist.rehydrated;
 
 export function useHasStateRehydrated() {
   return useSelector(selectHasRehydrated);

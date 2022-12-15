@@ -9,6 +9,8 @@ import {
 } from '@shared/message-types';
 import { sendMessage } from '@shared/messages';
 import { RouteUrls } from '@shared/route-urls';
+import { getCoreApiUrl, getPayloadFromToken } from '@shared/utils/requests';
+
 import { popupCenter } from './popup-center';
 
 const IS_TEST_ENV = process.env.TEST_ENV === 'true';
@@ -22,7 +24,7 @@ async function openRequestInFullPage(path: string, urlParams: URLSearchParams) {
   });
 }
 
-export function inferLegacyMessage(message: any): message is LegacyMessageFromContentScript {
+export function isLegacyMessage(message: any): message is LegacyMessageFromContentScript {
   // Now that we use a RPC communication style, we can infer
   // legacy message types by presence of an id
   const hasIdProp = 'id' in message;
@@ -38,10 +40,9 @@ function getOriginFromPort(port: chrome.runtime.Port) {
   return port.sender?.origin;
 }
 
-function makeSearchParamsWithDefaults(
-  port: chrome.runtime.Port,
-  otherParams: [string, string][] = []
-) {
+type OtherParams = [string, string][];
+
+function makeSearchParamsWithDefaults(port: chrome.runtime.Port, otherParams: OtherParams = []) {
   const urlParams = new URLSearchParams();
   // All actions must have a corresponding `origin` and `tabId`
   const origin = getOriginFromPort(port);
@@ -77,9 +78,19 @@ function listenForOriginTabClose({ tabId }: ListenForOriginTabCloseArgs) {
   });
 }
 
-async function triggerRequstWindowOpen(path: RouteUrls, urlParams: URLSearchParams) {
+async function triggerRequestWindowOpen(path: RouteUrls, urlParams: URLSearchParams) {
   if (IS_TEST_ENV) return openRequestInFullPage(path, urlParams);
   return popupCenter({ url: `/popup-center.html#${path}?${urlParams.toString()}` });
+}
+
+function getNetworkParamsFromPayload(payload: string): [string, string][] {
+  const { network } = getPayloadFromToken(payload);
+  if (!network) return [];
+  const developerDefinedApiUrl = getCoreApiUrl(network);
+  return [
+    ['coreApiUrl', developerDefinedApiUrl],
+    ['networkChainId', network.chainId.toString()],
+  ];
 }
 
 export async function handleLegacyExternalMethodFormat(
@@ -90,9 +101,13 @@ export async function handleLegacyExternalMethodFormat(
 
   switch (message.method) {
     case ExternalMethods.authenticationRequest: {
-      const { urlParams, tabId } = makeSearchParamsWithDefaults(port, [['authRequest', payload]]);
+      const otherParams: OtherParams = [
+        ['authRequest', payload],
+        ['flow', ExternalMethods.authenticationRequest],
+      ];
+      const { urlParams, tabId } = makeSearchParamsWithDefaults(port, otherParams);
 
-      const { id } = await triggerRequstWindowOpen(RouteUrls.ChooseAccount, urlParams);
+      const { id } = await triggerRequestWindowOpen(RouteUrls.ChooseAccount, urlParams);
       listenForPopupClose({
         id,
         tabId,
@@ -103,9 +118,14 @@ export async function handleLegacyExternalMethodFormat(
     }
 
     case ExternalMethods.transactionRequest: {
-      const { urlParams, tabId } = makeSearchParamsWithDefaults(port, [['request', payload]]);
+      const otherParams: OtherParams = [
+        ['request', payload],
+        ['flow', ExternalMethods.transactionRequest],
+        ...getNetworkParamsFromPayload(payload),
+      ];
+      const { urlParams, tabId } = makeSearchParamsWithDefaults(port, otherParams);
 
-      const { id } = await triggerRequstWindowOpen(RouteUrls.TransactionRequest, urlParams);
+      const { id } = await triggerRequestWindowOpen(RouteUrls.TransactionRequest, urlParams);
       listenForPopupClose({
         id,
         tabId,
@@ -116,12 +136,15 @@ export async function handleLegacyExternalMethodFormat(
     }
 
     case ExternalMethods.signatureRequest: {
-      const { urlParams, tabId } = makeSearchParamsWithDefaults(port, [
+      const otherParams: OtherParams = [
         ['request', payload],
         ['messageType', 'utf8'],
-      ]);
+        ['flow', ExternalMethods.signatureRequest],
+        ...getNetworkParamsFromPayload(payload),
+      ];
+      const { urlParams, tabId } = makeSearchParamsWithDefaults(port, otherParams);
 
-      const { id } = await triggerRequstWindowOpen(RouteUrls.SignatureRequest, urlParams);
+      const { id } = await triggerRequestWindowOpen(RouteUrls.SignatureRequest, urlParams);
       listenForPopupClose({
         id,
         tabId,
@@ -132,12 +155,15 @@ export async function handleLegacyExternalMethodFormat(
     }
 
     case ExternalMethods.structuredDataSignatureRequest: {
-      const { urlParams, tabId } = makeSearchParamsWithDefaults(port, [
+      const otherParams: OtherParams = [
         ['request', payload],
         ['messageType', 'structured'],
-      ]);
+        ['flow', ExternalMethods.structuredDataSignatureRequest],
+        ...getNetworkParamsFromPayload(payload),
+      ];
+      const { urlParams, tabId } = makeSearchParamsWithDefaults(port, otherParams);
 
-      const { id } = await triggerRequstWindowOpen(RouteUrls.SignatureRequest, urlParams);
+      const { id } = await triggerRequestWindowOpen(RouteUrls.SignatureRequest, urlParams);
       listenForPopupClose({
         id,
         tabId,

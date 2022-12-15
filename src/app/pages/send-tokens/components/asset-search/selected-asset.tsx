@@ -1,8 +1,10 @@
 import { memo } from 'react';
-import { Text, Stack, StackProps } from '@stacks/ui';
 
+import { Stack, StackProps, Text } from '@stacks/ui';
+import { useField } from 'formik';
+
+import { useSelectedAssetBalance } from '@app/common/hooks/use-selected-asset-balance';
 import { Caption } from '@app/components/typography';
-import { useSelectedAsset } from '@app/pages/send-tokens/hooks/use-selected-asset';
 
 import { SelectedAssetItem } from './selected-asset-item';
 
@@ -11,9 +13,8 @@ interface SelectedAssetProps extends StackProps {
   onClearSearch(): void;
 }
 export const SelectedAsset = memo(({ hideArrow, onClearSearch, ...rest }: SelectedAssetProps) => {
-  const { balance, selectedAsset, ticker } = useSelectedAsset();
-
-  if (!selectedAsset) return null;
+  const [field] = useField('assetId');
+  const { balanceFormatted: balance } = useSelectedAssetBalance(field.value);
 
   return (
     <Stack spacing="base-loose" flexDirection="column" {...rest}>
@@ -23,11 +24,7 @@ export const SelectedAsset = memo(({ hideArrow, onClearSearch, ...rest }: Select
         </Text>
         <SelectedAssetItem hideArrow={hideArrow} onClearSearch={onClearSearch} />
       </Stack>
-      {balance && (
-        <Caption>
-          Balance: {balance} {ticker}
-        </Caption>
-      )}
+      {balance && <Caption>Balance: {balance}</Caption>}
     </Stack>
   );
 });

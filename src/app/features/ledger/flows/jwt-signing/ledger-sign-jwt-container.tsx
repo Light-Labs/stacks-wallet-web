@@ -1,32 +1,35 @@
 import { useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import { LedgerError } from '@zondax/ledger-blockstack';
-import { logger } from '@shared/logger';
+
+import { TransactionVersion, getAddressFromPublicKey } from '@stacks/transactions';
+import { LedgerError } from '@zondax/ledger-stacks';
 import get from 'lodash.get';
 
+import { finalizeAuthResponse } from '@shared/actions/finalize-auth-response';
+import { logger } from '@shared/logger';
+
+import { useOnboardingState } from '@app/common/hooks/auth/use-onboarding-state';
+import { useDefaultRequestParams } from '@app/common/hooks/use-default-request-search-params';
+import { useKeyActions } from '@app/common/hooks/use-key-actions';
+import { useScrollLock } from '@app/common/hooks/use-scroll-lock';
+import { makeLedgerCompatibleUnsignedAuthResponsePayload } from '@app/common/unsafe-auth-response';
 import { delay } from '@app/common/utils';
+import { BaseDrawer } from '@app/components/drawer/base-drawer';
 import {
-  addSignatureToAuthResponseJwt,
   getAppVersion,
-  getSha256HashOfJwtAuthPayload,
   prepareLedgerDeviceConnection,
-  signLedgerJwtHash,
+  useActionCancellableByUser,
   useLedgerResponseState,
 } from '@app/features/ledger/ledger-utils';
-import { getAddressFromPublicKey, TransactionVersion } from '@stacks/transactions';
-
 import { useAccounts, useCurrentAccount } from '@app/store/accounts/account.hooks';
-import { BaseDrawer } from '@app/components/drawer/base-drawer';
-import { makeLedgerCompatibleUnsignedAuthResponsePayload } from '@app/common/unsafe-auth-response';
-import { useKeyActions } from '@app/common/hooks/use-key-actions';
-
-import { finalizeAuthResponse } from '@shared/actions/finalize-auth-response';
-import { useOnboardingState } from '@app/common/hooks/auth/use-onboarding-state';
-import { useScrollLock } from '@app/common/hooks/use-scroll-lock';
 
 import { useLedgerNavigate } from '../../hooks/use-ledger-navigate';
-import { LedgerJwtSigningProvider } from '../../ledger-jwt-signing.context';
-import { useDefaultRequestParams } from '@app/common/hooks/use-default-request-search-params';
+import {
+  addSignatureToAuthResponseJwt,
+  getSha256HashOfJwtAuthPayload,
+  signLedgerJwtHash,
+} from './jwt-signing.utils';
+import { LedgerJwtSigningContext, LedgerJwtSigningProvider } from './ledger-sign-jwt.context';
 
 export function LedgerSignJwtContainer() {
   const location = useLocation();
@@ -37,6 +40,7 @@ export function LedgerSignJwtContainer() {
   const accounts = useAccounts();
 
   const keyActions = useKeyActions();
+  const canUserCancelAction = useActionCancellableByUser();
   const { decodedAuthRequest, authRequest } = useOnboardingState();
 
   const [accountIndex, setAccountIndex] = useState<null | number>(null);
@@ -49,7 +53,7 @@ export function LedgerSignJwtContainer() {
   const [latestDeviceResponse, setLatestDeviceResponse] = useLedgerResponseState();
 
   const [awaitingDeviceConnection, setAwaitingDeviceConnection] = useState(false);
-  const [awaitingSignedJwt, setAwaitingSignedJwt] = useState(false);
+
   const [jwtPayloadHash, setJwtPayloadHash] = useState<null | string>(null);
   const { origin, tabId } = useDefaultRequestParams();
 
@@ -67,6 +71,7 @@ export function LedgerSignJwtContainer() {
         decodedAuthRequest,
         authRequest,
         accounts,
+        tabId,
       });
       return;
     }
@@ -85,7 +90,6 @@ export function LedgerSignJwtContainer() {
       },
     });
 
-    if (!stacks) return;
     const versionInfo = await getAppVersion(stacks);
     setLatestDeviceResponse(versionInfo);
 
@@ -100,7 +104,6 @@ export function LedgerSignJwtContainer() {
     }
 
     try {
-      setAwaitingSignedJwt(true);
       ledgerNavigate.toConnectionSuccessStep();
       await delay(1000);
 
@@ -121,8 +124,7 @@ export function LedgerSignJwtContainer() {
       const resp = await signLedgerJwtHash(stacks)(authResponsePayload, accountIndex);
 
       if (resp.returnCode === LedgerError.TransactionRejected) {
-        setAwaitingSignedJwt(false);
-        ledgerNavigate.toTransactionRejectedStep();
+        ledgerNavigate.toOperationRejectedStep();
         return;
       }
 
@@ -137,29 +139,27 @@ export function LedgerSignJwtContainer() {
         requestingOrigin: origin,
         tabId,
       });
-      setAwaitingSignedJwt(false);
+
       await stacks.transport.close();
     } catch (e) {
-      setAwaitingSignedJwt(false);
       ledgerNavigate.toDeviceDisconnectStep();
     }
   };
 
   const onCancelConnectLedger = ledgerNavigate.cancelLedgerAction;
 
-  const ledgerContextValue = {
+  const ledgerContextValue: LedgerJwtSigningContext = {
     signJwtPayload,
     jwtPayloadHash,
     latestDeviceResponse,
     awaitingDeviceConnection,
-    onCancelConnectLedger,
   };
 
   return (
     <LedgerJwtSigningProvider value={ledgerContextValue}>
       <BaseDrawer
         isShowing
-        isWaitingOnPerformedAction={awaitingDeviceConnection || awaitingSignedJwt}
+        isWaitingOnPerformedAction={awaitingDeviceConnection || canUserCancelAction}
         onClose={onCancelConnectLedger}
         pauseOnClickOutside
         waitingOnPerformedActionMessage="Ledger device in use"

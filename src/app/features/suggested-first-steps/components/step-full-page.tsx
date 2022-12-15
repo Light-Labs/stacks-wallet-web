@@ -1,13 +1,14 @@
 import { FiArrowRight } from 'react-icons/fi';
-import { Box, color, Flex, Stack } from '@stacks/ui';
 
+import { Box, Flex, Stack, color } from '@stacks/ui';
+import { OnboardingSelectors } from '@tests-legacy/integration/onboarding/onboarding.selectors';
+
+import { Link } from '@app/components/link';
 import { Tooltip } from '@app/components/tooltip';
 import { Body, Text, Title } from '@app/components/typography';
-import { Link } from '@app/components/link';
-import { OnboardingSelectors } from '@tests/integration/onboarding/onboarding.selectors';
 
 import { StepDoneBadge } from './step-done-badge';
-import { externalLinkInfo, StepIllustration } from './suggested-first-step';
+import { StepIllustration, externalLinkInfo } from './suggested-first-step';
 
 interface StepFullPageProps {
   action: string;

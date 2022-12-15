@@ -35,9 +35,9 @@ import {
   stacksMainnetNetwork as network,
   stacksTestnetNetwork,
 } from '@common/utils';
-import { TransactionSigningSelectors } from '@tests/page-objects/transaction-signing.selectors';
+import { TransactionSigningSelectors } from '@tests-legacy/page-objects/transaction-signing.selectors';
 
-import { WalletPageSelectors } from '@tests/page-objects/wallet.selectors';
+import { WalletPageSelectors } from '@tests-legacy/page-objects/wallet.selectors';
 import { ExplorerLink } from './explorer-link';
 
 export const Debugger = () => {
@@ -88,7 +88,7 @@ export const Debugger = () => {
       postConditions: [
         createNonFungiblePostCondition(
           address || '', // the sender
-          NonFungibleConditionCode.DoesNotOwn, // will not own this NFT anymore
+          NonFungibleConditionCode.Sends, // will not own this NFT anymore
           createAssetInfo('ST000000000000000000002AMW42H', 'bns', 'names'), // bns NFT
           tupleCV({
             name: bufferCVFromString('stella'),

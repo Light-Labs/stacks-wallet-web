@@ -1,11 +1,17 @@
-import { ChainID } from '@stacks/transactions';
-import { Input, Stack } from '@stacks/ui';
-import { Formik } from 'formik';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { useRouteHeader } from '@app/common/hooks/use-route-header';
+import { ChainID } from '@stacks/transactions';
+import { Input, Stack } from '@stacks/ui';
+import { NetworkSelectors } from '@tests-legacy/integration/network.selectors';
+import { Formik } from 'formik';
+
+import { DefaultNetworkConfigurations } from '@shared/constants';
+import { RouteUrls } from '@shared/route-urls';
 import { isValidUrl } from '@shared/utils/validate-url';
+
+import { useRouteHeader } from '@app/common/hooks/use-route-header';
+import { removeTrailingSlash } from '@app/common/url-join';
 import { CenteredPageContainer } from '@app/components/centered-page-container';
 import { ErrorLabel } from '@app/components/error-label';
 import { CENTERED_FULL_PAGE_MAX_WIDTH } from '@app/components/global-styles/full-page-styles';
@@ -14,11 +20,8 @@ import { PrimaryButton } from '@app/components/primary-button';
 import { Text } from '@app/components/typography';
 import {
   useCurrentStacksNetworkState,
-  useUpdateCurrentNetworkKey,
-  useUpdateNetworkState,
-} from '@app/store/network/networks.hooks';
-import { RouteUrls } from '@shared/route-urls';
-import { NetworkSelectors } from '@tests/integration/network.selectors';
+  useNetworksActions,
+} from '@app/store/networks/networks.hooks';
 
 interface AddNetworkFormValues {
   key: string;
@@ -31,9 +34,8 @@ export const AddNetwork = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const setNetworks = useUpdateNetworkState();
-  const setNetworkKey = useUpdateCurrentNetworkKey();
   const network = useCurrentStacksNetworkState();
+  const networksActions = useNetworksActions();
 
   useRouteHeader(<Header title="Add a network" onClose={() => navigate(RouteUrls.Home)} />);
 
@@ -50,22 +52,17 @@ export const AddNetwork = () => {
           setLoading(true);
           setError('');
           try {
-            const origin = new URL(url).origin;
-            const response = await network.fetchFn(`${origin}/v2/info`);
+            const path = removeTrailingSlash(new URL(url).href);
+            const response = await network.fetchFn(`${path}/v2/info`);
             const chainInfo = await response.json();
             const networkId = chainInfo?.network_id && parseInt(chainInfo?.network_id);
             if (networkId === ChainID.Mainnet || networkId === ChainID.Testnet) {
-              setNetworks(networks => {
-                return {
-                  ...networks,
-                  [key]: {
-                    url: origin,
-                    name,
-                    chainId: networkId,
-                  },
-                };
+              networksActions.addNetwork({
+                chainId: networkId,
+                id: key as DefaultNetworkConfigurations,
+                name,
+                url: path,
               });
-              setNetworkKey(key);
               navigate(RouteUrls.Home);
               return;
             }

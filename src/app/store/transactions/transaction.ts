@@ -1,15 +1,15 @@
-import { atom } from 'jotai';
-
 import {
+  AddressVersion,
   AuthType,
   ChainID,
   StacksTransaction,
   TransactionVersion,
-  AddressVersion,
 } from '@stacks/transactions';
+import { atom } from 'jotai';
 
-import { stacksTransactionToHex, whenChainId } from '@app/common/transactions/transaction-utils';
-import { currentNetworkState } from '@app/store/network/networks';
+import { stacksTransactionToHex } from '@app/common/transactions/stacks/transaction.utils';
+import { whenStxChainId } from '@app/common/utils';
+import { currentNetworkAtom } from '@app/store/networks/networks';
 
 export function prepareTxDetailsForBroadcast(tx: StacksTransaction) {
   const serialized = tx.serialize();
@@ -23,23 +23,21 @@ export function prepareTxDetailsForBroadcast(tx: StacksTransaction) {
 }
 
 export const transactionNetworkVersionState = atom(get => {
-  const chainId = get(currentNetworkState)?.chainId;
+  const chainId = get(currentNetworkAtom)?.chain.stacks.chainId;
 
   const defaultChainId = TransactionVersion.Testnet;
   if (!chainId) return defaultChainId;
 
-  return whenChainId(chainId)({
+  return whenStxChainId(chainId)({
     [ChainID.Mainnet]: TransactionVersion.Mainnet,
     [ChainID.Testnet]: TransactionVersion.Testnet,
   });
 });
 
 export const addressNetworkVersionState = atom(get => {
-  const chainId = get(currentNetworkState)?.chainId;
-  return whenChainId(chainId)({
+  const chainId = get(currentNetworkAtom)?.chain.stacks.chainId;
+  return whenStxChainId(chainId)({
     [ChainID.Mainnet]: AddressVersion.MainnetSingleSig,
     [ChainID.Testnet]: AddressVersion.TestnetSingleSig,
   });
 });
-
-export const transactionBroadcastErrorState = atom<string | null>(null);

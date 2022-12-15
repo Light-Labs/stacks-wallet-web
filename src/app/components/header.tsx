@@ -1,17 +1,19 @@
 import { memo, useMemo } from 'react';
+import { FiArrowLeft, FiMoreHorizontal } from 'react-icons/fi';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { color, Box, Flex, FlexProps, IconButton, Stack, Text, useMediaQuery } from '@stacks/ui';
-import { FiMoreHorizontal, FiArrowLeft } from 'react-icons/fi';
 
+import { Box, Flex, FlexProps, IconButton, Stack, Text, color, useMediaQuery } from '@stacks/ui';
+import { OnboardingSelectors } from '@tests-legacy/integration/onboarding/onboarding.selectors';
+import { SettingsSelectors } from '@tests-legacy/integration/settings.selectors';
+
+import { BRANCH } from '@shared/environment';
+import { RouteUrls } from '@shared/route-urls';
+
+import { useDrawers } from '@app/common/hooks/use-drawers';
 import { DESKTOP_VIEWPORT_MIN_WIDTH } from '@app/components/global-styles/full-page-styles';
 import { HiroWalletLogo } from '@app/components/hiro-wallet-logo';
-import { useDrawers } from '@app/common/hooks/use-drawers';
 import { NetworkModeBadge } from '@app/components/network-mode-badge';
 import { Title } from '@app/components/typography';
-import { OnboardingSelectors } from '@tests/integration/onboarding/onboarding.selectors';
-import { RouteUrls } from '@shared/route-urls';
-import { SettingsSelectors } from '@tests/integration/settings.selectors';
-import { BRANCH } from '@shared/environment';
 
 interface HeaderProps extends FlexProps {
   actionButton?: JSX.Element;
@@ -21,7 +23,7 @@ interface HeaderProps extends FlexProps {
 }
 export const Header: React.FC<HeaderProps> = memo(props => {
   const { actionButton, hideActions, onClose, title, ...rest } = props;
-  const { showSettings, setShowSettings } = useDrawers();
+  const { isShowingSettings, setIsShowingSettings } = useDrawers();
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
@@ -97,7 +99,6 @@ export const Header: React.FC<HeaderProps> = memo(props => {
           fontSize="16px"
           fontWeight={500}
           lineHeight="24px"
-          pr={hideActions ? '36px' : 'unset'}
           textAlign="center"
           {...rest}
         >
@@ -113,8 +114,8 @@ export const Header: React.FC<HeaderProps> = memo(props => {
             data-testid={SettingsSelectors.MenuBtn}
             iconSize="16px"
             icon={FiMoreHorizontal}
-            onMouseUp={showSettings ? undefined : () => setShowSettings(true)}
-            pointerEvents={showSettings ? 'none' : 'all'}
+            onMouseUp={isShowingSettings ? undefined : () => setIsShowingSettings(true)}
+            pointerEvents={isShowingSettings ? 'none' : 'all'}
           />
         )}
         {actionButton ? actionButton : null}

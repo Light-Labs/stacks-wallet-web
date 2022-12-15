@@ -1,56 +1,63 @@
-import { Suspense, useEffect, useMemo } from 'react';
-import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { Suspense, useEffect } from 'react';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 
 import { RouteUrls } from '@shared/route-urls';
-import { useAnalytics } from '@app/common/hooks/analytics/use-analytics';
-import { useNextTxNonce } from '@app/common/hooks/account/use-next-tx-nonce';
-import { Container } from '@app/features/container/container';
-import { LoadingSpinner } from '@app/components/loading-spinner';
-import { MagicRecoveryCode } from '@app/pages/onboarding/magic-recovery-code/magic-recovery-code';
-import { ChooseAccount } from '@app/pages/choose-account/choose-account';
-import { TransactionRequest } from '@app/pages/transaction-request/transaction-request';
-import { SignatureRequest } from '@app/pages/signature-request/signature-request';
-import { SignIn } from '@app/pages/onboarding/sign-in/sign-in';
-import { ReceiveTokens } from '@app/pages/receive-tokens/receive-tokens';
-import { AddNetwork } from '@app/pages/add-network/add-network';
 
+import { useAnalytics } from '@app/common/hooks/analytics/use-analytics';
+import { BroadcastErrorDrawer } from '@app/components/broadcast-error-drawer/broadcast-error-drawer';
+import { FullPageWithHeaderLoadingSpinner, LoadingSpinner } from '@app/components/loading-spinner';
+import { Container } from '@app/features/container/container';
+import { IncreaseFeeDrawer } from '@app/features/increase-fee-drawer/increase-fee-drawer';
+import { ledgerJwtSigningRoutes } from '@app/features/ledger/flows/jwt-signing/ledger-sign-jwt.routes';
+import { ledgerMessageSigningRoutes } from '@app/features/ledger/flows/message-signing/ledger-sign-msg.routes';
+import { ledgerRequestKeysRoutes } from '@app/features/ledger/flows/request-keys/ledger-request-keys.routes';
+import { ledgerTxSigningRoutes } from '@app/features/ledger/flows/tx-signing/ledger-sign-tx.routes';
+import { ThemesDrawer } from '@app/features/theme-drawer/theme-drawer';
+import { AddNetwork } from '@app/pages/add-network/add-network';
+import { AllowDiagnosticsPage } from '@app/pages/allow-diagnostics/allow-diagnostics';
+import { ChooseAccount } from '@app/pages/choose-account/choose-account';
+import { SendCryptoAsset } from '@app/pages/crypto-asset-list/send-crypto-asset';
+import { FundPage } from '@app/pages/fund/fund';
+import { Home } from '@app/pages/home/home';
+import { MessageSigningRequest } from '@app/pages/message-signing-request/message-signing-request';
+import { BackUpSecretKeyPage } from '@app/pages/onboarding/back-up-secret-key/back-up-secret-key';
+import { MagicRecoveryCode } from '@app/pages/onboarding/magic-recovery-code/magic-recovery-code';
 import { SetPasswordPage } from '@app/pages/onboarding/set-password/set-password';
+import { SignIn } from '@app/pages/onboarding/sign-in/sign-in';
+import { WelcomePage } from '@app/pages/onboarding/welcome/welcome';
+import { ReceiveTokens } from '@app/pages/receive-tokens/receive-tokens';
+import { SelectNetwork } from '@app/pages/select-network/select-network';
+import { SendCryptoAssetForm } from '@app/pages/send-crypto-asset/send-crypto-asset-form';
 import { SendTokensForm } from '@app/pages/send-tokens/send-tokens';
+import { SignOutConfirmDrawer } from '@app/pages/sign-out-confirm/sign-out-confirm';
+import { TransactionRequest } from '@app/pages/transaction-request/transaction-request';
+import { UnauthorizedRequest } from '@app/pages/unauthorized-request/unauthorized-request';
+import { Unlock } from '@app/pages/unlock';
 import { ViewSecretKey } from '@app/pages/view-secret-key/view-secret-key';
 import { AccountGate } from '@app/routes/account-gate';
-import { Unlock } from '@app/pages/unlock';
-import { Home } from '@app/pages/home/home';
-import { SignOutConfirmDrawer } from '@app/pages/sign-out-confirm/sign-out-confirm';
-import { AllowDiagnosticsPage } from '@app/pages/allow-diagnostics/allow-diagnostics';
-import { FundPage } from '@app/pages/fund/fund';
-import { BackUpSecretKeyPage } from '@app/pages/onboarding/back-up-secret-key/back-up-secret-key';
-import { WelcomePage } from '@app/pages/onboarding/welcome/welcome';
-
 import { useHasStateRehydrated } from '@app/store';
-import { UnauthorizedRequest } from '@app/pages/unauthorized-request/unauthorized-request';
+import { useHasUserRespondedToAnalyticsConsent } from '@app/store/settings/settings.selectors';
 
-import { IncreaseFeeDrawer } from '@app/features/increase-fee-drawer/increase-fee-drawer';
-import { ledgerJwtSigningRoutes } from '@app/features/ryder/flows/jwt-signing/ledger-sign-jwt.routes';
-import { ledgerTxSigningRoutes } from '@app/features/ryder/flows/tx-signing/ledger-sign-tx.routes';
-import { ledgerRequestKeysRoutes } from '@app/features/ryder/flows/request-keys/ledger-request-keys.routes';
-
-import { useOnWalletLock } from './hooks/use-on-wallet-lock';
 import { useOnSignOut } from './hooks/use-on-sign-out';
+import { useOnWalletLock } from './hooks/use-on-wallet-lock';
 import { OnboardingGate } from './onboarding-gate';
 
-export function AppRoutes() {
+function AppRoutesAfterUserHasConsented() {
   const { pathname } = useLocation();
-  const navigate = useNavigate();
+
   const analytics = useAnalytics();
 
-  useOnWalletLock(() => navigate(RouteUrls.Unlock));
+  useOnWalletLock(() => window.close());
   useOnSignOut(() => window.close());
-
   useEffect(() => void analytics.page('view', `${pathname}`), [analytics, pathname]);
 
-  const hasStateRehydrated = useHasStateRehydrated();
-
-  if (!hasStateRehydrated) return <LoadingSpinner />;
+  const settingsModalRoutes = (
+    <>
+      <Route path={RouteUrls.SignOutConfirm} element={<SignOutConfirmDrawer />} />
+      <Route path={RouteUrls.ChangeTheme} element={<ThemesDrawer />} />
+      <Route path={RouteUrls.SelectNetwork} element={<SelectNetwork />} />
+    </>
+  );
 
   return (
     <Routes>
@@ -59,9 +66,7 @@ export function AppRoutes() {
           path={RouteUrls.Home}
           element={
             <AccountGate>
-              <Suspense fallback={<></>}>
-                <Home />
-              </Suspense>
+              <Home />
             </AccountGate>
           }
         >
@@ -69,7 +74,7 @@ export function AppRoutes() {
             {ledgerTxSigningRoutes}
           </Route>
           <Route path={RouteUrls.Receive} element={<ReceiveTokens />} />
-          <Route path={RouteUrls.SignOutConfirm} element={<SignOutConfirmDrawer />} />
+          {settingsModalRoutes}
           {ledgerTxSigningRoutes}
         </Route>
         <Route
@@ -113,9 +118,7 @@ export function AppRoutes() {
           path={RouteUrls.ChooseAccount}
           element={
             <AccountGate>
-              <Suspense fallback={<></>}>
-                <ChooseAccount />
-              </Suspense>
+              <ChooseAccount />
             </AccountGate>
           }
         >
@@ -137,14 +140,27 @@ export function AppRoutes() {
           path={RouteUrls.Send}
           element={
             <AccountGate>
-              <Suspense fallback={<LoadingSpinner />}>
+              <Suspense fallback={<FullPageWithHeaderLoadingSpinner />}>
                 <SendTokensForm />
               </Suspense>
             </AccountGate>
           }
         >
           {ledgerTxSigningRoutes}
+          <Route path={RouteUrls.TransactionBroadcastError} element={<BroadcastErrorDrawer />} />
         </Route>
+        <Route
+          path={RouteUrls.SendCryptoAsset}
+          element={
+            <AccountGate>
+              <Suspense fallback={<FullPageWithHeaderLoadingSpinner />}>
+                <SendCryptoAsset />
+              </Suspense>
+            </AccountGate>
+          }
+        />
+        <Route path={RouteUrls.SendCryptoAssetForm} element={<SendCryptoAssetForm />} />
+        <Route path={RouteUrls.SendCryptoAssetFormConfirmation} element={<>confirmation</>} />
         <Route
           path={RouteUrls.TransactionRequest}
           element={
@@ -156,6 +172,7 @@ export function AppRoutes() {
           }
         >
           {ledgerTxSigningRoutes}
+          <Route path={RouteUrls.TransactionBroadcastError} element={<BroadcastErrorDrawer />} />
         </Route>
         <Route path={RouteUrls.UnauthorizedRequest} element={<UnauthorizedRequest />} />
         <Route
@@ -163,11 +180,13 @@ export function AppRoutes() {
           element={
             <AccountGate>
               <Suspense fallback={<LoadingSpinner height="600px" />}>
-                <SignatureRequest />
+                <MessageSigningRequest />
               </Suspense>
             </AccountGate>
           }
-        />
+        >
+          {ledgerMessageSigningRoutes}
+        </Route>
         <Route
           path={RouteUrls.ViewSecretKey}
           element={
@@ -175,11 +194,35 @@ export function AppRoutes() {
               <ViewSecretKey />
             </AccountGate>
           }
-        />
-        <Route path={RouteUrls.Unlock} element={<Unlock />} />
+        >
+          {settingsModalRoutes}
+        </Route>
+        <Route path={RouteUrls.Unlock} element={<Unlock />}>
+          {settingsModalRoutes}
+        </Route>
         {/* Catch-all route redirects to onboarding */}
         <Route path="*" element={<Navigate replace to={RouteUrls.Onboarding} />} />
       </Route>
     </Routes>
   );
+}
+
+function AppRoutesBeforeUserHasConsented() {
+  return (
+    <Routes>
+      <Route path={RouteUrls.RequestDiagnostics} element={<AllowDiagnosticsPage />} />
+      <Route path="*" element={<Navigate replace to={RouteUrls.RequestDiagnostics} />} />
+    </Routes>
+  );
+}
+
+export function AppRoutes() {
+  const hasStateRehydrated = useHasStateRehydrated();
+  const hasResponded = useHasUserRespondedToAnalyticsConsent();
+
+  if (!hasStateRehydrated) return <LoadingSpinner />;
+
+  if (!hasResponded) return <AppRoutesBeforeUserHasConsented />;
+
+  return <AppRoutesAfterUserHasConsented />;
 }

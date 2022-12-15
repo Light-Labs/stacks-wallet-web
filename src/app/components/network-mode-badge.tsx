@@ -1,15 +1,24 @@
 import { memo, useMemo } from 'react';
-import { color, Flex, FlexProps, Text } from '@stacks/ui';
+import { useNavigate } from 'react-router-dom';
+
 import { ChainID } from '@stacks/transactions';
-import { useDrawers } from '@app/common/hooks/use-drawers';
-import { useCurrentNetwork } from '@app/common/hooks/use-current-network';
+import { Flex, FlexProps, Text, color } from '@stacks/ui';
+
+import { RouteUrls } from '@shared/route-urls';
+
+import { useCurrentNetworkState } from '@app/store/networks/networks.hooks';
 
 export const NetworkModeBadge = memo((props: FlexProps) => {
-  const { chainId, name } = useCurrentNetwork();
-  const isTestnetChain = useMemo(() => chainId === ChainID.Testnet, [chainId]);
-  const { setShowNetworks } = useDrawers();
+  const navigate = useNavigate();
+  const { chain, name } = useCurrentNetworkState();
+  const isTestnetChain = useMemo(
+    () => chain.stacks.chainId === ChainID.Testnet,
+    [chain.stacks.chainId]
+  );
 
-  return isTestnetChain ? (
+  if (!isTestnetChain) return null;
+
+  return (
     <Flex
       borderWidth="1px"
       borderColor={color('border')}
@@ -19,16 +28,13 @@ export const NetworkModeBadge = memo((props: FlexProps) => {
       px="12px"
       position="relative"
       zIndex={999}
-      _hover={{
-        cursor: 'pointer',
-        bg: color('bg-4'),
-      }}
-      onClick={() => setShowNetworks(true)}
+      _hover={{ cursor: 'pointer', bg: color('bg-4') }}
+      onClick={() => navigate(RouteUrls.SelectNetwork, { relative: 'path' })}
       {...props}
     >
       <Text fontSize="11px" fontWeight="500">
         {name}
       </Text>
     </Flex>
-  ) : null;
+  );
 });

@@ -1,12 +1,10 @@
-import { useEffect } from 'react';
-
+import { useOnMount } from '@app/common/hooks/use-on-mount';
 import { keyActions } from '@app/store/keys/key.actions';
 
 export function useOnSignOut(handler: () => void) {
-  useEffect(() => {
+  useOnMount(() => {
     chrome.runtime.onMessage.addListener(message => {
       if (message?.method === keyActions.signOut.type) handler();
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  });
 }

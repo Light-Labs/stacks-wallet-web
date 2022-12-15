@@ -3,10 +3,26 @@ module.exports = {
   extends: 'dependency-cruiser/configs/recommended',
 
   forbidden: [
+    // Note: this rule is intended to override the rule by the same name in the
+    // `dependency-cruiser/configs/recommended` set. It removes `punycode` from
+    // the path given this repo uses the third party `punycode` package, not
+    // Node.js' deprecated built-in with the same name.
+    {
+      name: 'no-deprecated-core',
+      comment:
+        'This module depends on a node core module that has been deprecated. Find an ' +
+        "alternative - these are bound to exist - node doesn't deprecate lightly.",
+      severity: 'error',
+      from: {},
+      to: {
+        dependencyTypes: ['core'],
+        path: '^(domain|constants|sys|_linklist|_stream_wrap)$',
+      },
+    },
     {
       name: 'no-orphans',
-      severity: 'warn',
-      from: { orphan: true },
+      severity: 'error',
+      from: { orphan: true, pathNot: ['^src/shared/models/global-types.ts'] },
       to: {},
     },
     {
@@ -14,7 +30,11 @@ module.exports = {
       comment: 'One script context must not depend on another',
       severity: 'error',
       from: { path: '(^src/)([^/]+)/' },
-      to: { path: '^$1', pathNot: ['$1$2', '^src/shared'] },
+      to: {
+        path: '^$1',
+        pathNot: ['$1$2', '^src/shared'],
+        dependencyTypesNot: ['type-only'],
+      },
     },
     {
       name: 'only-import-state-via-hooks',
@@ -87,7 +107,7 @@ module.exports = {
       name: 'no-using-pino-directly',
       comment: 'Enforce use of Pino logging library via @logger wrapper',
       severity: 'error',
-      from: { path: '^src', pathNot: ['^src/shared/logger.ts$'] },
+      from: { path: '^src', pathNot: ['^src/shared/logger*'] },
       to: { path: 'pino' },
     },
     {
@@ -116,6 +136,13 @@ module.exports = {
       severity: 'error',
       from: { pathNot: ['^src/app/features'] },
       to: { path: '^src/app/features/([^/]+)/components' },
+    },
+    {
+      name: 'no-logger-inpage-use',
+      comment: `Inpage cannot use logger, which uses unavailable APIs`,
+      severity: 'error',
+      from: { path: '^src/inpage' },
+      to: { path: '^src/shared/logger' },
     },
   ],
   options: {

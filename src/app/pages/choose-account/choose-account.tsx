@@ -1,14 +1,15 @@
 import { memo, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
+
 import { Flex, Stack, Text } from '@stacks/ui';
 
-import { useRouteHeader } from '@app/common/hooks/use-route-header';
-import { Title } from '@app/components/typography';
-import { AppIcon } from '@app/components/app-icon';
-import { useWallet } from '@app/common/hooks/use-wallet';
 import { useAppDetails } from '@app/common/hooks/auth/use-app-details';
+import { useRouteHeader } from '@app/common/hooks/use-route-header';
+import { useWallet } from '@app/common/hooks/use-wallet';
+import { AppIcon } from '@app/components/app-icon';
 import { Header } from '@app/components/header';
-import { Accounts } from '@app/pages/choose-account/components/accounts';
+import { Title } from '@app/components/typography';
+import { ChooseAccountsList } from '@app/pages/choose-account/components/accounts';
 import { useOnOriginTabClose } from '@app/routes/hooks/use-on-tab-closed';
 
 export const ChooseAccount = memo(() => {
@@ -36,7 +37,7 @@ export const ChooseAccount = memo(() => {
             <Text textStyle="caption">to connect to {appName}</Text>
           </Stack>
         </Stack>
-        <Accounts />
+        <ChooseAccountsList />
       </Flex>
       <Outlet />
     </>

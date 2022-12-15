@@ -1,9 +1,9 @@
 import { useCallback } from 'react';
 import { toast } from 'react-hot-toast';
-import { Box, ButtonProps, color } from '@stacks/ui';
 
-import { AssetWithMeta } from '@app/common/asset-types';
-import { SendFormSelectors } from '@tests/page-objects/send-form.selectors';
+import { Box, ButtonProps, color } from '@stacks/ui';
+import { SendFormSelectors } from '@tests-legacy/page-objects/send-form.selectors';
+
 import { isUndefined } from '@shared/utils';
 
 function SendMaxButtonAction(props: ButtonProps) {
@@ -31,12 +31,11 @@ function SendMaxButtonAction(props: ButtonProps) {
 
 interface SendMaxProps {
   fee: string | number | undefined;
+  isStx: boolean;
   onClick: () => void;
-  selectedAsset: AssetWithMeta | undefined;
 }
 export function SendMaxButton(props: SendMaxProps): JSX.Element | null {
-  const { fee, onClick, selectedAsset } = props;
-  const isStx = selectedAsset?.type === 'stx';
+  const { fee, isStx, onClick } = props;
 
   const fireInactiveSendMaxButtonToast = useCallback(() => {
     if (isUndefined(fee)) toast.error('Loading fee, try again');

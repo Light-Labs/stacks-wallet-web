@@ -1,8 +1,9 @@
-import { useFormikContext } from 'formik';
 import { Button, Stack } from '@stacks/ui';
+import { useFormikContext } from 'formik';
+
+import { TransactionFormValues } from '@shared/models/form.model';
 
 import { useDrawers } from '@app/common/hooks/use-drawers';
-import { TransactionFormValues } from '@app/common/transactions/transaction-utils';
 import { openInNewTab } from '@app/common/utils/open-in-new-tab';
 import { Link } from '@app/components/link';
 import { Caption, Title } from '@app/components/typography';
@@ -11,7 +12,7 @@ const url = 'https://hiro.so/questions/fee-estimates';
 
 export function HighFeeConfirmation(): JSX.Element | null {
   const { handleSubmit, values } = useFormikContext<TransactionFormValues>();
-  const { showHighFeeConfirmation, setShowHighFeeConfirmation } = useDrawers();
+  const { isShowingHighFeeConfirmation, setIsShowingHighFeeConfirmation } = useDrawers();
 
   return (
     <Stack px="loose" spacing="loose" pb="extra-loose">
@@ -28,7 +29,7 @@ export function HighFeeConfirmation(): JSX.Element | null {
         <Button
           borderRadius="10px"
           mode="tertiary"
-          onClick={() => setShowHighFeeConfirmation(!showHighFeeConfirmation)}
+          onClick={() => setIsShowingHighFeeConfirmation(!isShowingHighFeeConfirmation)}
           width="50%"
         >
           Edit fee
@@ -36,7 +37,7 @@ export function HighFeeConfirmation(): JSX.Element | null {
         <Button
           borderRadius="10px"
           onClick={() => {
-            setShowHighFeeConfirmation(!showHighFeeConfirmation);
+            setIsShowingHighFeeConfirmation(!isShowingHighFeeConfirmation);
             handleSubmit();
           }}
           width="50%"

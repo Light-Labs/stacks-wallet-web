@@ -1,16 +1,16 @@
 import { memo } from 'react';
+
 import { Box, Input, InputGroup, Stack, StackProps, Text } from '@stacks/ui';
+import { SendFormSelectors } from '@tests-legacy/page-objects/send-form.selectors';
 import { useFormikContext } from 'formik';
 
+import { SendFormValues } from '@shared/models/form.model';
+
 import { useAnalytics } from '@app/common/hooks/analytics/use-analytics';
-import {
-  useBaseAssetsUnanchored,
-  useCurrentAccountUnanchoredBalances,
-} from '@app/query/balance/balance.hooks';
-import { TransactionFormValues } from '@app/common/transactions/transaction-utils';
+import { useSelectedAssetBalance } from '@app/common/hooks/use-selected-asset-balance';
 import { ErrorLabel } from '@app/components/error-label';
-import { SendFormSelectors } from '@tests/page-objects/send-form.selectors';
-import { useSelectedAsset } from '@app/pages/send-tokens/hooks/use-selected-asset';
+import { useStacksFungibleTokenAssetBalancesUnanchored } from '@app/query/stacks/balance/crypto-asset-balances.hooks';
+import { useCurrentAccount } from '@app/store/accounts/account.hooks';
 
 import { useSendAmountFieldActions } from '../hooks/use-send-form';
 import { SendMaxButton } from './send-max-button';
@@ -23,14 +23,14 @@ interface AmountFieldProps extends StackProps {
 // TODO: this should use a new "Field" component (with inline label like in figma)
 function AmountFieldBase(props: AmountFieldProps) {
   const { error, value, ...rest } = props;
-  const { setFieldValue, handleChange, values } = useFormikContext<TransactionFormValues>();
+  const { handleChange, values } = useFormikContext<SendFormValues>();
   const analytics = useAnalytics();
-  const assets = useBaseAssetsUnanchored();
-  const balances = useCurrentAccountUnanchoredBalances();
-  const { selectedAsset, placeholder } = useSelectedAsset();
-  const { handleOnKeyDown, handleSetSendMax } = useSendAmountFieldActions({
-    setFieldValue,
-  });
+  const account = useCurrentAccount();
+  const { data: ftAssetBalances = [] } = useStacksFungibleTokenAssetBalancesUnanchored(
+    account?.address ?? ''
+  );
+  const { isStx, selectedAssetBalance, placeholder } = useSelectedAssetBalance(values.assetId);
+  const { handleOnKeyDown, handleSetSendMax } = useSendAmountFieldActions();
 
   const handleSetSendMaxTracked = () => {
     void analytics.track('select_maximum_amount_for_send');
@@ -51,7 +51,7 @@ function AmountFieldBase(props: AmountFieldProps) {
             width="100%"
             placeholder={placeholder || 'Select an asset first'}
             min="0"
-            autoFocus={assets?.length === 1}
+            autoFocus={ftAssetBalances.length === 0}
             value={value === 0 ? '' : value}
             onKeyDown={handleOnKeyDown}
             onChange={handleChange}
@@ -59,11 +59,11 @@ function AmountFieldBase(props: AmountFieldProps) {
             name="amount"
             data-testid={SendFormSelectors.InputAmountField}
           />
-          {balances && selectedAsset ? (
+          {selectedAssetBalance && selectedAssetBalance.asset ? (
             <SendMaxButton
               fee={values.fee}
+              isStx={isStx}
               onClick={() => handleSetSendMaxTracked()}
-              selectedAsset={selectedAsset}
             />
           ) : null}
         </Box>

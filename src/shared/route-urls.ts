@@ -18,8 +18,9 @@ export enum RouteUrls {
   LedgerDisconnected = 'your-ledger-disconnected',
   LedgerOperationRejected = 'action-rejected',
   LedgerPublicKeyMismatch = 'wrong-ledger-device',
-  LedgerDeviceTxInvalid = 'ledger-rejected-tx',
+  LedgerDevicePayloadInvalid = 'ledger-payload-invalid',
   LedgerUnsupportedBrowser = 'unsupported-browser',
+  LedgerOutdatedAppWarning = 'outdated-app-warning',
 
   // Active wallet routes
   Home = '/',
@@ -30,11 +31,22 @@ export enum RouteUrls {
   IncreaseFee = '/increase-fee',
   Receive = '/receive',
   Send = '/send-transaction',
-  SignOutConfirm = '/sign-out',
+
   TransactionRequest = '/transaction',
+  TransactionBroadcastError = 'broadcast-error',
   UnauthorizedRequest = '/unauthorized-request',
   ViewSecretKey = '/view-secret-key',
   // Locked wallet route
   Unlock = '/unlock',
   SignatureRequest = '/signature',
+
+  // Modal routes
+  SignOutConfirm = 'sign-out',
+  ChangeTheme = 'change-theme',
+  SelectNetwork = 'choose-network',
+
+  // Send crypto asset routes
+  SendCryptoAsset = '/send',
+  SendCryptoAssetForm = '/send/:symbol',
+  SendCryptoAssetFormConfirmation = '/send/:symbol/confirmation',
 }

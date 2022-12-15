@@ -1,8 +1,9 @@
 import BigNumber from 'bignumber.js';
 
-import { initBigNumber } from '@app/common/utils';
-import { microStxToStx } from '@app/common/stacks-utils';
 import { SendFormErrorMessages } from '@app/common/error-messages';
+import { initBigNumber } from '@app/common/utils';
+
+import { microStxToStx } from './money/unit-conversion';
 
 export function formatPrecisionError(symbol: string, decimals: number) {
   const error = SendFormErrorMessages.TooMuchPrecision;

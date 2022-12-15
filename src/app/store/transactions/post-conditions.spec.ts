@@ -1,7 +1,8 @@
-import { getPayloadFromToken } from '@app/store/transactions/utils';
-
 import { FungibleConditionCode, parsePrincipalString } from '@stacks/transactions';
-import { HEYSTACK_HEY_TX_REQUEST, HEYSTACK_HEY_TX_REQUEST_DECODED } from '@tests/mocks';
+import { HEYSTACK_HEY_TX_REQUEST, HEYSTACK_HEY_TX_REQUEST_DECODED } from '@tests-legacy/mocks';
+
+import { getPayloadFromToken } from '@shared/utils/requests';
+
 import { formatPostConditionState } from './post-conditions.hooks';
 
 describe(formatPostConditionState.name, () => {

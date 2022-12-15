@@ -1,18 +1,17 @@
 import { useEffect } from 'react';
+
 import { useAtom } from 'jotai';
 
 import {
   errorStackTraceState,
   loadingState,
-  showSwitchAccountsState,
-  showHighFeeConfirmationState,
-  showNetworksStore,
-  showSettingsStore,
-  tabState,
-  showEditNonceState,
-  showTxSettingsCallback,
-  showSignOut,
   routeHeaderState,
+  showEditNonceState,
+  showHighFeeConfirmationState,
+  showSettingsStore,
+  showSwitchAccountsState,
+  showTxSettingsCallback,
+  tabState,
 } from './ui';
 
 export function useShowHighFeeConfirmationState() {
@@ -23,20 +22,12 @@ export function useShowSwitchAccountsState() {
   return useAtom(showSwitchAccountsState);
 }
 
-export function useShowNetworksStore() {
-  return useAtom(showNetworksStore);
-}
-
 export function useShowSettingsStore() {
   return useAtom(showSettingsStore);
 }
 
 export function useShowEditNonceState() {
   return useAtom(showEditNonceState);
-}
-
-export function useShowSignOut() {
-  return useAtom(showSignOut);
 }
 
 export function useShowTxSettingsCallback() {

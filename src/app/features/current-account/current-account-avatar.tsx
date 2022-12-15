@@ -1,35 +1,26 @@
-import { memo, Suspense } from 'react';
-import { BoxProps } from '@stacks/ui';
-import { useCurrentAccount } from '@app/store/accounts/account.hooks';
-import { useCurrentAccountDisplayName } from '@app/common/hooks/account/use-account-names';
-import { AccountAvatar } from '@app/components/account-avatar/account-avatar';
-import { getAccountDisplayName } from '@app/common/utils/get-account-display-name';
+import { memo } from 'react';
 
-const AccountAvatarSuspense = memo((props: BoxProps) => {
-  const currentAccount = useCurrentAccount();
-  const name = useCurrentAccountDisplayName();
-  if (!currentAccount) return null;
-  return (
-    <AccountAvatar name={name} publicKey={currentAccount.stxPublicKey} flexShrink={0} {...props} />
-  );
-});
+import { BoxProps } from '@stacks/ui';
+
+import { useCurrentAccountDisplayName } from '@app/common/hooks/account/use-account-names';
+import { useDrawers } from '@app/common/hooks/use-drawers';
+import { AccountAvatar } from '@app/components/account/account-avatar/account-avatar';
+import { useCurrentAccount } from '@app/store/accounts/account.hooks';
 
 export const CurrentAccountAvatar = memo((props: BoxProps) => {
   const currentAccount = useCurrentAccount();
+  const name = useCurrentAccountDisplayName();
+  const { setIsShowingSwitchAccountsState } = useDrawers();
   if (!currentAccount) return null;
-  const defaultName = getAccountDisplayName(currentAccount);
   return (
-    <Suspense
-      fallback={
-        <AccountAvatar
-          name={defaultName}
-          publicKey={currentAccount.stxPublicKey}
-          flexShrink={0}
-          {...props}
-        />
-      }
-    >
-      <AccountAvatarSuspense {...props} />
-    </Suspense>
+    <AccountAvatar
+      onClick={() => setIsShowingSwitchAccountsState(true)}
+      cursor="pointer"
+      name={name}
+      publicKey={currentAccount.stxPublicKey}
+      index={currentAccount.index}
+      flexShrink={0}
+      {...props}
+    />
   );
 });

@@ -1,70 +1,70 @@
 import { useCallback, useMemo } from 'react';
 import { useAsync } from 'react-async-hook';
-import { atom } from 'jotai';
-import { useAtomValue, waitForAll } from 'jotai/utils';
+
+import { bytesToHex } from '@stacks/common';
 import { TransactionTypes } from '@stacks/connect';
 import {
-  bufferCVFromString,
   ClarityValue,
+  PostConditionMode,
+  bufferCVFromString,
   createAddress,
   createEmptyAddress,
   noneCV,
-  PostConditionMode,
   serializeCV,
   someCV,
   standardPrincipalCVFromAddress,
   uintCV,
 } from '@stacks/transactions';
 
-import { ftUnshiftDecimals, stxToMicroStx } from '@app/common/stacks-utils';
-import { TransactionFormValues } from '@app/common/transactions/transaction-utils';
-import { makePostCondition } from '@app/store/transactions/transaction.hooks';
-import { useNextNonce } from '@app/query/nonce/account-nonces.hooks';
-import { currentStacksNetworkState } from '@app/store/network/networks';
-import {
-  generateUnsignedTransaction,
-  GenerateUnsignedTransactionOptions,
-} from '@app/common/transactions/generate-unsigned-txs';
+import type { StacksFungibleTokenAssetBalance } from '@shared/models/crypto-asset-balance.model';
+import type { SendFormValues, TransactionFormValues } from '@shared/models/form.model';
 
-import { useSelectedAssetItem } from '../assets/asset.hooks';
+import { stxToMicroStx } from '@app/common/money/unit-conversion';
+import { ftUnshiftDecimals } from '@app/common/stacks-utils';
+import {
+  GenerateUnsignedTransactionOptions,
+  generateUnsignedTransaction,
+} from '@app/common/transactions/stacks/generate-unsigned-txs';
+import { useStacksCryptoAssetBalanceByAssetId } from '@app/query/stacks/balance/crypto-asset-balances.hooks';
+import { getStacksFungibleTokenCurrencyAssetBalance } from '@app/query/stacks/balance/crypto-asset-balances.utils';
+import { useNextNonce } from '@app/query/stacks/nonce/account-nonces.hooks';
+import { useCurrentStacksNetworkState } from '@app/store/networks/networks.hooks';
+import { makePostCondition } from '@app/store/transactions/transaction.hooks';
+
 import { useCurrentAccount } from '../accounts/account.hooks';
 
-function useMakeFungibleTokenTransfer() {
-  const asset = useSelectedAssetItem();
+function useMakeFungibleTokenTransfer(assetBalance?: StacksFungibleTokenAssetBalance) {
   const currentAccount = useCurrentAccount();
-  const network = useAtomValue(currentStacksNetworkState);
+  const network = useCurrentStacksNetworkState();
 
   return useMemo(() => {
-    if (asset && currentAccount && currentAccount.address) {
-      const { contractName, contractAddress, name: assetName } = asset;
+    if (assetBalance && currentAccount && currentAccount.address) {
+      const { contractAddress, contractAssetName, contractName } = assetBalance.asset;
       return {
-        asset,
-        stxAddress: currentAccount.address,
-        network,
-        assetName,
+        assetBalance,
+        contractAssetName,
         contractAddress,
         contractName,
+        network,
+        stxAddress: currentAccount.address,
       };
     }
     return;
-  }, [asset, currentAccount, network]);
+  }, [assetBalance, currentAccount, network]);
 }
-
-const stxTokenTransferAtomDeps = atom(get =>
-  get(waitForAll({ network: currentStacksNetworkState }))
-);
 
 export function useGenerateStxTokenTransferUnsignedTx() {
   const { nonce } = useNextNonce();
-  const { network } = useAtomValue(stxTokenTransferAtomDeps);
+  const network = useCurrentStacksNetworkState();
   const account = useCurrentAccount();
 
   return useCallback(
-    async (values?: TransactionFormValues) => {
+    async (values?: SendFormValues) => {
       if (!account) return;
+
       const options: GenerateUnsignedTransactionOptions = {
         publicKey: account.stxPublicKey,
-        nonce: Number(values?.nonce) || nonce,
+        nonce: Number(values?.nonce) ?? nonce,
         fee: stxToMicroStx(values?.fee || 0).toNumber(),
         txData: {
           txType: TransactionTypes.STXTransfer,
@@ -86,10 +86,10 @@ export function useGenerateStxTokenTransferUnsignedTx() {
   );
 }
 
-export function useStxTokenTransferUnsignedTxState(values?: TransactionFormValues) {
+export function useStxTokenTransferUnsignedTxState(values?: SendFormValues) {
   const generateTx = useGenerateStxTokenTransferUnsignedTx();
   const { nonce } = useNextNonce();
-  const { network } = useAtomValue(stxTokenTransferAtomDeps);
+  const network = useCurrentStacksNetworkState();
   const account = useCurrentAccount();
 
   const tx = useAsync(
@@ -100,31 +100,50 @@ export function useStxTokenTransferUnsignedTxState(values?: TransactionFormValue
   return tx.result;
 }
 
-export function useGenerateFtTokenTransferUnsignedTx() {
-  const assetTransferState = useMakeFungibleTokenTransfer();
+export function useGenerateFtTokenTransferUnsignedTx(selectedAssetId: string) {
   const { nonce } = useNextNonce();
-  const selectedAsset = useSelectedAssetItem();
   const account = useCurrentAccount();
+  const selectedAssetBalance = useStacksCryptoAssetBalanceByAssetId(selectedAssetId);
+  const tokenCurrencyAssetBalance =
+    getStacksFungibleTokenCurrencyAssetBalance(selectedAssetBalance);
+  const assetTransferState = useMakeFungibleTokenTransfer(tokenCurrencyAssetBalance);
 
   return useCallback(
-    async (values?: TransactionFormValues) => {
-      if (!assetTransferState || !selectedAsset || !account) return;
+    async (values?: SendFormValues | TransactionFormValues) => {
+      if (!assetTransferState || !account) return;
 
-      const { network, assetName, contractAddress, contractName, stxAddress } = assetTransferState;
+      const {
+        assetBalance,
+        network,
+        contractAddress,
+        contractAssetName,
+        contractName,
+        stxAddress,
+      } = assetTransferState;
 
       const functionName = 'transfer';
 
+      const recipient =
+        values && 'recipient' in values
+          ? createAddress(values.recipient || '')
+          : createEmptyAddress();
+      const amount = values && 'amount' in values ? values.amount : 0;
+      const memo =
+        values && 'memo' in values && values.memo !== ''
+          ? someCV(bufferCVFromString(values.memo || ''))
+          : noneCV();
+
       const realAmount =
-        selectedAsset.type === 'ft'
-          ? ftUnshiftDecimals(values?.amount || 0, selectedAsset?.meta?.decimals || 0)
-          : values?.amount || 0;
+        assetBalance.type === 'fungible-token'
+          ? ftUnshiftDecimals(amount, assetBalance.asset.decimals || 0)
+          : amount;
 
       const postConditionOptions = {
-        contractAddress,
-        contractName,
-        assetName,
-        stxAddress,
         amount: realAmount,
+        contractAddress,
+        contractAssetName,
+        contractName,
+        stxAddress,
       };
 
       const postConditions = [makePostCondition(postConditionOptions)];
@@ -133,15 +152,11 @@ export function useGenerateFtTokenTransferUnsignedTx() {
       const functionArgs: ClarityValue[] = [
         uintCV(realAmount),
         standardPrincipalCVFromAddress(createAddress(stxAddress)),
-        standardPrincipalCVFromAddress(
-          values ? createAddress(values?.recipient || '') : createEmptyAddress()
-        ),
+        standardPrincipalCVFromAddress(recipient),
       ];
 
-      if (selectedAsset.hasMemo) {
-        functionArgs.push(
-          values?.memo !== '' ? someCV(bufferCVFromString(values?.memo || '')) : noneCV()
-        );
+      if (assetBalance.asset.hasMemo) {
+        functionArgs.push(memo);
       }
 
       const options = {
@@ -150,7 +165,7 @@ export function useGenerateFtTokenTransferUnsignedTx() {
           contractAddress,
           contractName,
           functionName,
-          functionArgs: functionArgs.map(serializeCV).map(arg => arg.toString('hex')),
+          functionArgs: functionArgs.map(serializeCV).map(arg => bytesToHex(arg)),
           postConditions,
           postConditionMode: PostConditionMode.Deny,
           network,
@@ -163,18 +178,23 @@ export function useGenerateFtTokenTransferUnsignedTx() {
 
       return generateUnsignedTransaction(options);
     },
-    [assetTransferState, selectedAsset, account, nonce]
+    [account, assetTransferState, nonce]
   );
 }
 
-export function useFtTokenTransferUnsignedTx(values?: TransactionFormValues) {
-  const generateTx = useGenerateFtTokenTransferUnsignedTx();
+// TODO: Refactor when remove legacy send form?
+export function useFtTokenTransferUnsignedTx(selectedAssetId: string, values?: SendFormValues) {
+  const generateTx = useGenerateFtTokenTransferUnsignedTx(selectedAssetId);
   const account = useCurrentAccount();
-  const assetTransferState = useMakeFungibleTokenTransfer();
-  const selectedAsset = useSelectedAssetItem();
+  const selectedAssetBalance = useStacksCryptoAssetBalanceByAssetId(selectedAssetId);
+  const tokenCurrencyAssetBalance =
+    getStacksFungibleTokenCurrencyAssetBalance(selectedAssetBalance);
+  const assetTransferState = useMakeFungibleTokenTransfer(tokenCurrencyAssetBalance);
 
-  return useAsync(
+  const tx = useAsync(
     async () => generateTx(values ?? undefined),
-    [values, account, assetTransferState, selectedAsset]
-  ).result;
+    [account, assetTransferState, selectedAssetBalance, values]
+  );
+
+  return tx.result;
 }

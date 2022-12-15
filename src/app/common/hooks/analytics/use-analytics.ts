@@ -1,11 +1,19 @@
-import { useCurrentNetworkState } from '@app/store/network/networks.hooks';
+import { useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
-import { EventParams, PageParams } from '@segment/analytics-next/dist/pkg/core/arguments-resolver';
 
-import { analytics } from '@shared/utils/analytics';
-import { logger } from '@shared/logger';
-import { useWalletType } from '@app/common/use-wallet-type';
+import {
+  EventParams,
+  PageParams,
+} from '@segment/analytics-next/dist/types/core/arguments-resolver';
+
 import { IS_TEST_ENV } from '@shared/environment';
+import { logger } from '@shared/logger';
+import { analytics } from '@shared/utils/analytics';
+
+import { flow, origin } from '@app/common/initial-search-params';
+import { useWalletType } from '@app/common/use-wallet-type';
+import { useCurrentNetworkState } from '@app/store/networks/networks.hooks';
+import { useHasUserExplicitlyDeclinedAnalytics } from '@app/store/settings/settings.selectors';
 
 const IGNORED_PATH_REGEXPS = [/^\/$/];
 
@@ -22,38 +30,55 @@ export function useAnalytics() {
   const location = useLocation();
   const { walletType } = useWalletType();
 
-  const defaultProperties = {
-    network: currentNetwork.name.toLowerCase(),
-    usingDefaultHiroApi: isHiroApiUrl(currentNetwork.url),
-    route: location.pathname,
-    version: VERSION,
+  const hasDeclined = useHasUserExplicitlyDeclinedAnalytics();
+
+  return useMemo(() => {
+    const defaultProperties = {
+      network: currentNetwork.name.toLowerCase(),
+      usingDefaultHiroApi: isHiroApiUrl(currentNetwork.chain.stacks.url),
+      route: location.pathname,
+      version: VERSION,
+      walletType,
+      ...(flow && { flow }),
+      ...(origin && { origin }),
+    };
+
+    const defaultOptions = {
+      context: { ip: '0.0.0.0' },
+    };
+
+    return {
+      async page(...args: PageParams) {
+        const [category, name, properties, options, ...rest] = args;
+        const prop = { ...defaultProperties, ...properties };
+        const opts = { ...defaultOptions, ...options };
+        logger.info(`Analytics page view: ${name}`, properties);
+
+        if (!analytics) return;
+        if (hasDeclined) return;
+        if (IS_TEST_ENV) return;
+        if (typeof name === 'string' && isIgnoredPath(name)) return;
+
+        return analytics.page(category, name, prop, opts, ...rest).catch(logger.error);
+      },
+      async track(...args: EventParams) {
+        const [eventName, properties, options, ...rest] = args;
+        const prop = { ...defaultProperties, ...properties };
+        const opts = { ...defaultOptions, ...options };
+        logger.info(`Analytics event: ${eventName}`, properties);
+
+        if (!analytics) return;
+        if (hasDeclined) return;
+        if (IS_TEST_ENV) return;
+
+        return analytics.track(eventName, prop, opts, ...rest).catch(logger.error);
+      },
+    };
+  }, [
+    currentNetwork.chain.stacks.url,
+    currentNetwork.name,
+    location.pathname,
     walletType,
-  };
-
-  const defaultOptions = {
-    context: { ip: '0.0.0.0' },
-  };
-
-  return {
-    page: async (...args: PageParams) => {
-      if (!analytics || IS_TEST_ENV) return;
-      const [category, name, properties, options, ...rest] = args;
-
-      if (typeof name === 'string' && isIgnoredPath(name)) return;
-
-      const prop = { ...defaultProperties, ...properties };
-      const opts = { ...defaultOptions, ...options };
-
-      return analytics.page(category, name, prop, opts, ...rest).catch(logger.error);
-    },
-    track: async (...args: EventParams) => {
-      if (!analytics || IS_TEST_ENV) return;
-      const [eventName, properties, options, ...rest] = args;
-
-      const prop = { ...defaultProperties, ...properties };
-      const opts = { ...defaultOptions, ...options };
-
-      return analytics.track(eventName, prop, opts, ...rest).catch(logger.error);
-    },
-  };
+    hasDeclined,
+  ]);
 }

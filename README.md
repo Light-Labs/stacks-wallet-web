@@ -5,14 +5,13 @@
 [![coverage](https://raw.githubusercontent.com/hirosystems/stacks-wallet-web/gh-pages/badge.svg)](https://hirosystems.github.io/stacks-wallet-web/)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
-
 Hiro Wallet is a web extension for managing your digital assets, and connecting to apps built on the Stacks blockchain.
 
-To use this extension with your own Stacks App, we recommend  [@stacks/connect](https://github.com/hirosystems/connect).
+To use this extension with your own Stacks App, we recommend [@stacks/connect](https://github.com/hirosystems/connect).
 
 [📚 See Hiro Wallet API Reference →](https://github.com/hirosystems/stacks-wallet-web/wiki)
 
-
+[📩 Join the mailing list for updates →](https://forms.gle/sdZPu2jbX1AeQ8Fi9)
 
 ## Development
 
@@ -49,6 +48,24 @@ supports Chromium and Firefox browsers. When you run `yarn dev`, it will compile
 - [Chrome instructions](https://developer.chrome.com/docs/extensions/mv3/faq/#faq-dev-01)
 - [Firefox instructions](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Your_first_WebExtension#trying_it_out)
 
+## Testing
+
+Several testing scripts are available in [`package.json`](./package.json).
+
+The integration tests expect the extension to be built prior to running. The extension can be built for tests with the command below.
+
+```bash
+yarn build:test
+```
+
+The integration tests use Playwright, which requires the system to have the browsers it needs. The following command installs everything Playwright needs.
+
+```bash
+yarn playwright install --with-deps
+```
+
+Note that the installed browsers are tied to the version of Playwright being used, and it may be necessary to run the above command again in some situations, such as when upgrading Playwright or switching branches. [Read the documentation for more information](https://playwright.dev/docs/cli#install-system-dependencies).
+
 ## Production
 
 [See instructions on Hiro.so for installing from source for production usage.](https://www.hiro.so/wallet/install-web-source)
@@ -63,9 +80,7 @@ Run the following from within this repository's root directory if you've pulled 
 yarn && yarn build && sh build-ext.sh
 ```
 
-
 The extension will be packaged as `stacks-wallet-chromium.zip`.
-
 
 ## Security
 

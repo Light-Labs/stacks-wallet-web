@@ -1,25 +1,38 @@
 import { useMemo } from 'react';
 
-import {
-  useAccountsNonFungibleTokenHoldings,
-  useNonFungibleTokenHoldings,
-} from '@app/query/non-fungible-tokens/non-fungible-token-holdings.hooks';
+import BigNumber from 'bignumber.js';
+
+import { SuggestedFirstStepStatus, SuggestedFirstSteps } from '@shared/models/onboarding-types';
+
+import { useGetAnchoredAccountBalanceListQuery } from '@app/query/stacks/balance/balance.query';
+import { useAccountsNonFungibleTokenHoldings } from '@app/query/stacks/non-fungible-tokens/non-fungible-token-holdings.hooks';
+import { useGetNonFungibleTokenHoldingsQuery } from '@app/query/stacks/non-fungible-tokens/non-fungible-token-holdings.query';
 import { useAccounts, useCurrentAccount } from '@app/store/accounts/account.hooks';
-import { useCurrentAccountAvailableStxBalance } from '@app/query/balance/balance.hooks';
+import { AccountWithAddress } from '@app/store/accounts/account.models';
 import {
   useHideSuggestedFirstSteps,
   useSuggestedFirstStepsStatus,
 } from '@app/store/onboarding/onboarding.selectors';
-import { SuggestedFirstSteps, SuggestedFirstStepStatus } from '@shared/models/onboarding-types';
-import { useAllAccountsAvailableStxBalance } from '@app/query/balance/balance.hooks';
+
+function useAllAccountsAvailableStxBalance(accounts?: AccountWithAddress[]) {
+  const accountsBalances = useGetAnchoredAccountBalanceListQuery(accounts);
+  return useMemo(() => {
+    return accountsBalances.reduce(
+      (acc, balance) => acc.plus(balance.data?.stx.balance || 0),
+      new BigNumber(0)
+    );
+  }, [accountsBalances]);
+}
 
 export function useSuggestedFirstSteps() {
   const accounts = useAccounts();
   const currentAccount = useCurrentAccount();
   const hasHiddenSuggestedFirstSteps = useHideSuggestedFirstSteps();
   const stepsStatus = useSuggestedFirstStepsStatus();
-  const availableStxBalance = useCurrentAccountAvailableStxBalance();
-  const nonFungibleTokenHoldings = useNonFungibleTokenHoldings(currentAccount?.address);
+
+  const { data: nonFungibleTokenHoldings } = useGetNonFungibleTokenHoldingsQuery(
+    currentAccount?.address
+  );
 
   const firstFiveAccounts = accounts?.slice(0, 5);
   const accountsAvailableStxBalance = useAllAccountsAvailableStxBalance(firstFiveAccounts);
@@ -27,8 +40,7 @@ export function useSuggestedFirstSteps() {
 
   const isAddFundsStepComplete = useMemo(
     () => accountsAvailableStxBalance?.isGreaterThan(0),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [availableStxBalance]
+    [accountsAvailableStxBalance]
   );
 
   const isBuyNftStepComplete = useMemo(

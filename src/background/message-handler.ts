@@ -1,10 +1,12 @@
+import { StacksMainnet } from '@stacks/network';
+import { generateNewAccount, generateWallet, restoreWalletAccounts } from '@stacks/wallet-sdk';
+import memoize from 'promise-memoize';
+
 import { gaiaUrl } from '@shared/constants';
 import { logger } from '@shared/logger';
 import { InternalMethods } from '@shared/message-types';
 import { BackgroundMessages } from '@shared/messages';
-import { StacksMainnet } from '@stacks/network';
-import { generateNewAccount, generateWallet, restoreWalletAccounts } from '@stacks/wallet-sdk';
-import memoize from 'promise-memoize';
+
 import { backupWalletSaltForGaia } from './backup-old-wallet-salt';
 
 function validateMessagesAreFromExtension(sender: chrome.runtime.MessageSender) {
@@ -21,12 +23,17 @@ const deriveWalletWithAccounts = memoize(async (secretKey: string, highestAccoun
   // method. This does the same as the catch case, with the addition that it will
   // also try and fetch usernames associated with an account
   try {
-    return restoreWalletAccounts({ wallet, gaiaHubUrl: gaiaUrl, network: new StacksMainnet() });
+    return await restoreWalletAccounts({
+      wallet,
+      gaiaHubUrl: gaiaUrl,
+      network: new StacksMainnet(),
+    });
   } catch (e) {
     // To generate a new account, the wallet-sdk requires the entire `Wallet` to
     // be supplied so that it can count the `wallet.accounts[]` length, and return
     // a new `Wallet` object with all the accounts. As we want to generate them
     // all, we must set the updated value and read it again in the loop
+    logger.warn('Falling back to manual account generation without Gaia.');
     let walWithAccounts = wallet;
     for (let i = 0; i < highestAccountIndex; i++) {
       walWithAccounts = generateNewAccount(walWithAccounts);
@@ -47,7 +54,7 @@ export async function internalBackgroundMessageHandler(
     logger.error('Error: Received background script msg from ' + sender.url);
     return;
   }
-  logger.info(message);
+  logger.debug('Internal message', message);
   switch (message.method) {
     case InternalMethods.RequestDerivedStxAccounts: {
       const { secretKey, highestAccountIndex } = message.payload;

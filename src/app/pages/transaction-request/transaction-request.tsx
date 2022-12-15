@@ -1,101 +1,90 @@
-import { memo, useCallback, useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
-import { Formik } from 'formik';
-import * as yup from 'yup';
-import { Flex, Stack } from '@stacks/ui';
+import { memo } from 'react';
+import { Outlet, useNavigate } from 'react-router-dom';
 
-import { useRouteHeader } from '@app/common/hooks/use-route-header';
-import { useFeeSchema } from '@app/common/validation/use-fee-schema';
+import { Flex, Stack } from '@stacks/ui';
+import { Formik } from 'formik';
+import get from 'lodash.get';
+import * as yup from 'yup';
+
+import { FeeTypes } from '@shared/models/fees/_fees.model';
+import { TransactionFormValues } from '@shared/models/form.model';
+import { RouteUrls } from '@shared/route-urls';
+
+import { useAnalytics } from '@app/common/hooks/analytics/use-analytics';
 import { LoadingKeys, useLoading } from '@app/common/hooks/use-loading';
-import { PageTop } from '@app/pages/transaction-request/components/page-top';
+import { useOnMount } from '@app/common/hooks/use-on-mount';
+import { useRouteHeader } from '@app/common/hooks/use-route-header';
+import { useWalletType } from '@app/common/use-wallet-type';
+import { nonceSchema } from '@app/common/validation/nonce-schema';
+import { useFeeSchema } from '@app/common/validation/use-fee-schema';
+import { PopupHeader } from '@app/features/current-account/popup-header';
+import { EditNonceDrawer } from '@app/features/edit-nonce-drawer/edit-nonce-drawer';
+import { RequestingTabClosedWarningMessage } from '@app/features/errors/requesting-tab-closed-error-msg';
+import { HighFeeDrawer } from '@app/features/high-fee-drawer/high-fee-drawer';
+import { useLedgerNavigate } from '@app/features/ledger/hooks/use-ledger-navigate';
 import { ContractCallDetails } from '@app/pages/transaction-request/components/contract-call-details/contract-call-details';
 import { ContractDeployDetails } from '@app/pages/transaction-request/components/contract-deploy-details/contract-deploy-details';
+import { PageTop } from '@app/pages/transaction-request/components/page-top';
+import { PostConditionModeWarning } from '@app/pages/transaction-request/components/post-condition-mode-warning';
 import { PostConditions } from '@app/pages/transaction-request/components/post-conditions/post-conditions';
 import { StxTransferDetails } from '@app/pages/transaction-request/components/stx-transfer-details/stx-transfer-details';
-import { PostConditionModeWarning } from '@app/pages/transaction-request/components/post-condition-mode-warning';
 import { TransactionError } from '@app/pages/transaction-request/components/transaction-error/transaction-error';
-import {
-  useSetTransactionRequestAtom,
-  useTransactionRequest,
-  useTransactionRequestState,
-  useUpdateTransactionBroadcastError,
-} from '@app/store/transactions/requests.hooks';
+import { useStacksFeeEstimations } from '@app/query/stacks/fees/fees-legacy';
+import { useTransactionRequestState } from '@app/store/transactions/requests.hooks';
 import {
   useGenerateUnsignedStacksTransaction,
-  useSoftwareWalletTransactionBroadcast,
+  useSoftwareWalletTransactionRequestBroadcast,
   useTxRequestEstimatedUnsignedTxByteLengthState,
   useTxRequestSerializedUnsignedTxPayloadState,
 } from '@app/store/transactions/transaction.hooks';
-import { useFeeEstimations } from '@app/query/fees/fees.hooks';
-import { useAnalytics } from '@app/common/hooks/analytics/use-analytics';
-import { TransactionFormValues } from '@app/common/transactions/transaction-utils';
-import { FeeType } from '@shared/models/fees-types';
-import { PopupHeader } from '@app/features/current-account/popup-header';
-import { useWalletType } from '@app/common/use-wallet-type';
-import { useLedgerNavigate } from '@app/features/ledger/hooks/use-ledger-navigate';
-import { nonceSchema } from '@app/common/validation/nonce-schema';
-import { EditNonceDrawer } from '@app/features/edit-nonce-drawer/edit-nonce-drawer';
-import { HighFeeDrawer } from '@app/features/high-fee-drawer/high-fee-drawer';
 
-import { TxRequestFormNonceSetter } from './components/tx-request-form-nonce-setter';
 import { FeeForm } from './components/fee-form';
 import { SubmitAction } from './components/submit-action';
-import { RequestingTabClosedWarningMessage } from '@app/features/errors/requesting-tab-closed-error-msg';
+import { TxRequestFormNonceSetter } from './components/tx-request-form-nonce-setter';
 
 function TransactionRequestBase() {
   const transactionRequest = useTransactionRequestState();
   const { setIsLoading, setIsIdle } = useLoading(LoadingKeys.SUBMIT_TRANSACTION);
-  const handleBroadcastTransaction = useSoftwareWalletTransactionBroadcast();
-  const setBroadcastError = useUpdateTransactionBroadcastError();
+  const handleBroadcastTransaction = useSoftwareWalletTransactionRequestBroadcast();
   const txByteLength = useTxRequestEstimatedUnsignedTxByteLengthState();
   const txPayload = useTxRequestSerializedUnsignedTxPayloadState();
-  const feeEstimations = useFeeEstimations(txByteLength, txPayload);
+  const feeEstimations = useStacksFeeEstimations(txByteLength, txPayload);
   const feeSchema = useFeeSchema();
   const analytics = useAnalytics();
   const { walletType } = useWalletType();
   const generateUnsignedTx = useGenerateUnsignedStacksTransaction();
   const ledgerNavigate = useLedgerNavigate();
+  const navigate = useNavigate();
 
   useRouteHeader(<PopupHeader />);
 
-  useEffect(() => void analytics.track('view_transaction_signing'), [analytics]);
+  useOnMount(() => {
+    void analytics.track('view_transaction_signing'), [analytics];
+  });
 
-  const txRequest = useTransactionRequest();
+  const onSubmit = async (values: TransactionFormValues) => {
+    if (walletType === 'ledger') {
+      const tx = await generateUnsignedTx(values);
+      if (!tx) return;
+      ledgerNavigate.toConnectAndSignTransactionStep(tx);
+      return;
+    }
+    setIsLoading();
 
-  // This exists to move away from the pattern where the search param is pull
-  // from an atom, rather than from the tooling provided by the app's router
-  useSetTransactionRequestAtom(txRequest);
-
-  const onSubmit = useCallback(
-    async values => {
-      if (walletType === 'ledger') {
-        const tx = await generateUnsignedTx(values);
-        if (!tx) return;
-        ledgerNavigate.toConnectAndSignStep(tx);
-        return;
-      }
-      setIsLoading();
+    try {
       await handleBroadcastTransaction(values);
       setIsIdle();
-      void analytics.track('submit_fee_for_transaction', {
-        calculation: feeEstimations.calculation,
-        fee: values.fee,
-        type: values.feeType,
-      });
-      return () => void setBroadcastError(null);
-    },
-    [
-      analytics,
-      feeEstimations.calculation,
-      generateUnsignedTx,
-      handleBroadcastTransaction,
-      ledgerNavigate,
-      setBroadcastError,
-      setIsIdle,
-      setIsLoading,
-      walletType,
-    ]
-  );
+    } catch (e) {
+      navigate(RouteUrls.TransactionBroadcastError, { state: { message: get(e, 'message') } });
+      return;
+    }
+
+    void analytics.track('submit_fee_for_transaction', {
+      calculation: feeEstimations.calculation,
+      fee: values.fee,
+      type: values.feeType,
+    });
+  };
 
   if (!transactionRequest) return null;
 
@@ -103,9 +92,9 @@ function TransactionRequestBase() {
     ? yup.object({ fee: feeSchema(), nonce: nonceSchema })
     : null;
 
-  const initialValues: Partial<TransactionFormValues> = {
+  const initialValues: TransactionFormValues = {
     fee: '',
-    feeType: FeeType[FeeType.Middle],
+    feeType: FeeTypes[FeeTypes.Middle],
     nonce: '',
   };
 

@@ -1,7 +1,8 @@
-import { createEntityAdapter, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { PayloadAction, createEntityAdapter, createSlice } from '@reduxjs/toolkit';
+
+import { StxAndIdentityPublicKeys } from '@app/features/ledger/ledger-utils';
 
 import { migrateVaultReducerStoreToNewStateStructure } from '../utils/vault-reducer-migration';
-import { StxAndIdentityPublicKeys } from '@app/features/ledger/ledger-utils';
 
 export const defaultKeyId = 'default' as const;
 
@@ -19,7 +20,6 @@ interface KeyConfigLedger {
 }
 
 type KeyConfig = KeyConfigSoftware | KeyConfigLedger;
-
 const keyAdapter = createEntityAdapter<KeyConfig>();
 
 export const initialKeysState = keyAdapter.getInitialState();

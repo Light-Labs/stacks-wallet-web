@@ -1,11 +1,12 @@
 import { FiInfo } from 'react-icons/fi';
-import { color, Box, Flex, Text } from '@stacks/ui';
-import { Caption } from '@app/components/typography';
+
+import { Box, Flex, Text, color } from '@stacks/ui';
+
 import { Tooltip } from '@app/components/tooltip';
+import { Caption } from '@app/components/typography';
 
 interface LedgerScreenDetailProps {
   children: React.ReactNode;
-  isFullPage: boolean;
   title: string;
   tooltipLabel?: string;
 }
@@ -33,9 +34,7 @@ export function LedgerScreenDetail(props: LedgerScreenDetailProps) {
         )}
       </Caption>
       <Flex alignItems="center" mt="base">
-        <Text overflowWrap="break-word" maxWidth={['280px', '360px']}>
-          {children}
-        </Text>
+        <Text overflowWrap="break-word">{children}</Text>
       </Flex>
     </Flex>
   );

@@ -1,15 +1,16 @@
-import { addressToString, FungiblePostCondition } from '@stacks/transactions';
-import { ContractCallPayload, ContractDeployPayload, STXTransferPayload } from '@stacks/connect';
+import { useMemo } from 'react';
 
-import { useFungibleTokenMetadata } from '@app/query/fungible-tokens/fungible-token-metadata.hooks';
-import { useTransactionRequestState } from './requests.hooks';
-import { useCurrentAccountStxAddressState } from '../accounts/account.hooks';
+import { ContractCallPayload, ContractDeployPayload, STXTransferPayload } from '@stacks/connect';
+import { FungiblePostCondition, addressToString } from '@stacks/transactions';
 
 import {
   getPostCondition,
   handlePostConditions,
-} from '@app/common/transactions/post-condition-utils';
-import { useMemo } from 'react';
+} from '@app/common/transactions/stacks/post-condition.utils';
+import { useGetFungibleTokenMetadataQuery } from '@app/query/stacks/fungible-tokens/fungible-token-metadata.query';
+import { useCurrentAccountStxAddressState } from '@app/store/accounts/account.hooks';
+
+import { useTransactionRequestState } from './requests.hooks';
 
 export function formatPostConditionState(
   payload?: ContractCallPayload | ContractDeployPayload | STXTransferPayload | null,
@@ -40,6 +41,6 @@ export function useAssetFromFungiblePostCondition(pc: FungiblePostCondition) {
   const contractAddress = addressToString(pc.assetInfo.address);
   const contractName = pc.assetInfo.contractName.content;
   const contractId = `${contractAddress}.${contractName}`;
-  const asset = useFungibleTokenMetadata(contractId);
+  const { data: asset } = useGetFungibleTokenMetadataQuery(contractId);
   return !asset || 'error' in asset ? undefined : asset;
 }

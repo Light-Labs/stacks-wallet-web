@@ -1,11 +1,11 @@
 import { Suspense } from 'react';
+
 import { TransactionTypes } from '@stacks/connect';
-import { addressToString, FungiblePostCondition } from '@stacks/transactions';
+import { FungiblePostCondition, addressToString } from '@stacks/transactions';
 import { truncateMiddle } from '@stacks/ui-utils';
 
-import { LoadingSpinner } from '@app/components/loading-spinner';
+import { getImageCanonicalUri } from '@app/common/crypto-assets/stacks-crypto-asset.utils';
 import { ftDecimals } from '@app/common/stacks-utils';
-import { useCurrentAccount } from '@app/store/accounts/account.hooks';
 import {
   getAmountFromPostCondition,
   getIconStringFromPostCondition,
@@ -13,11 +13,12 @@ import {
   getPostConditionCodeMessage,
   getPostConditionTitle,
   getSymbolFromPostCondition,
-} from '@app/common/transactions/post-condition-utils';
+} from '@app/common/transactions/stacks/post-condition.utils';
 import { EventCard } from '@app/components/event-card';
-import { useTransactionRequestState } from '@app/store/transactions/requests.hooks';
+import { LoadingSpinner } from '@app/components/loading-spinner';
+import { useCurrentAccount } from '@app/store/accounts/account.hooks';
 import { useAssetFromFungiblePostCondition } from '@app/store/transactions/post-conditions.hooks';
-import { imageCanonicalUriFromFtMetadata } from '@app/common/token-utils';
+import { useTransactionRequestState } from '@app/store/transactions/requests.hooks';
 
 interface FungiblePostConditionItemProps {
   isLast?: boolean;
@@ -33,7 +34,7 @@ function FungiblePostConditionItemSuspense(
   // Use token meta data if available
   const asset = useAssetFromFungiblePostCondition(pc);
   // find the correct asset
-  const imageCanonicalUri = imageCanonicalUriFromFtMetadata(asset);
+  const imageCanonicalUri = asset && getImageCanonicalUri(asset.image_canonical_uri, asset.name);
 
   const title = getPostConditionTitle(pc);
   const iconString = imageCanonicalUri ?? getIconStringFromPostCondition(pc);

@@ -1,23 +1,23 @@
 import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
-import { useRouteHeader } from '@app/common/hooks/use-route-header';
-import { Header } from '@app/components/header';
-import { useCurrentAccount } from '@app/store/accounts/account.hooks';
-import { useCurrentAccountAvailableStxBalance } from '@app/query/balance/balance.hooks';
 import { RouteUrls } from '@shared/route-urls';
 
-import { FundLayout } from './fund.layout';
-import { SkipFundAccountButton } from './components/skip-fund-account-button';
+import { useRouteHeader } from '@app/common/hooks/use-route-header';
+import { Header } from '@app/components/header';
+import { useCurrentStacksAccountAnchoredBalances } from '@app/query/stacks/balance/balance.hooks';
+import { useCurrentAccount } from '@app/store/accounts/account.hooks';
 
-interface LocationStateProps {
+import { SkipFundAccountButton } from './components/skip-fund-account-button';
+import { FundLayout } from './fund.layout';
+
+interface FundPageLocationStateProps {
   state: { showSkipButton: boolean };
 }
-
 export function FundPage() {
-  const { state } = useLocation() as LocationStateProps;
+  const { state } = useLocation() as FundPageLocationStateProps;
   const navigate = useNavigate();
   const currentAccount = useCurrentAccount();
-  const availableStxBalance = useCurrentAccountAvailableStxBalance();
+  const { data: balances } = useCurrentStacksAccountAnchoredBalances();
 
   const isOnboarding = state?.showSkipButton;
 
@@ -36,7 +36,7 @@ export function FundPage() {
 
   if (!currentAccount) return null;
 
-  if (isOnboarding && availableStxBalance?.isGreaterThan(0))
+  if (isOnboarding && balances?.stx.availableStx.amount.isGreaterThan(0))
     return <Navigate to={RouteUrls.Home} />;
 
   return (

@@ -1,48 +1,68 @@
-import { Suspense, useCallback, useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { FiInfo } from 'react-icons/fi';
-import { useField } from 'formik';
-import { Box, color, Stack, Text } from '@stacks/ui';
 
-import { microStxToStx, stacksValue } from '@app/common/stacks-utils';
+import { Box, Stack, Text, color } from '@stacks/ui';
+import { SendFormSelectors } from '@tests-legacy/page-objects/send-form.selectors';
+import BigNumber from 'bignumber.js';
+import { useField } from 'formik';
+
+import { StacksFeeEstimateLegacy } from '@shared/models/fees/_fees-legacy.model';
+import { FeeTypes } from '@shared/models/fees/_fees.model';
+import { createMoney } from '@shared/models/money.model';
+import { isNumber, isString } from '@shared/utils';
+
+import { useConvertCryptoCurrencyToFiatAmount } from '@app/common/hooks/use-convert-to-fiat-amount';
+import { microStxToStx } from '@app/common/money/unit-conversion';
+import { stacksValue } from '@app/common/stacks-utils';
 import { openInNewTab } from '@app/common/utils/open-in-new-tab';
 import { ErrorLabel } from '@app/components/error-label';
-import { Tooltip } from '@app/components/tooltip';
-import { WarningLabel } from '@app/components/warning-label';
 import { SpaceBetween } from '@app/components/space-between';
 import { SponsoredLabel } from '@app/components/sponsored-label';
+import { Tooltip } from '@app/components/tooltip';
 import { Caption } from '@app/components/typography';
-import { FeeEstimate, FeeType } from '@shared/models/fees-types';
-import { SendFormSelectors } from '@tests/page-objects/send-form.selectors';
+import { WarningLabel } from '@app/components/warning-label';
 
-import { TransactionFee } from './components/transaction-fee';
+import { CustomFeeField } from './components/custom-fee-field';
 import { FeeEstimateItem } from './components/fee-estimate-item';
 import { FeeEstimateSelect } from './components/fee-estimate-select';
-import { CustomFeeField } from './components/custom-fee-field';
+import { TransactionFee } from './components/transaction-fee';
 
 const feesInfo =
   'Higher fees increase the likelihood of your transaction getting confirmed before others. Click to learn more.';
 const url = 'https://hiro.so/questions/fee-estimates';
 
 interface FeeRowProps {
-  feeEstimations: FeeEstimate[];
+  feeEstimations: StacksFeeEstimateLegacy[];
   feeFieldName: string;
   feeTypeFieldName: string;
   isSponsored: boolean;
 }
+/**
+ * Refactored with new send form; remove with legacy send form.
+ * @deprecated
+ */
 export function FeeRow(props: FeeRowProps): JSX.Element {
   const { feeEstimations, feeFieldName, isSponsored, feeTypeFieldName } = props;
   const [feeInput, feeMeta, feeHelper] = useField(feeFieldName);
   const [, _, feeTypeHelper] = useField(feeTypeFieldName);
   const [fieldWarning, setFieldWarning] = useState<string | undefined>(undefined);
   const [isOpen, setIsOpen] = useState(false);
-  const [selected, setSelected] = useState(FeeType.Middle);
+  const [selected, setSelected] = useState(FeeTypes.Middle);
   const [isCustom, setIsCustom] = useState(false);
+
+  const convertStxToUsd = useConvertCryptoCurrencyToFiatAmount('STX');
+
+  const feeInUsd = useMemo(() => {
+    if (!isNumber(feeInput.value) && !isString(feeInput.value)) return null;
+    const feeAsMoney = createMoney(new BigNumber(feeInput.value), 'STX');
+    return convertStxToUsd(feeAsMoney);
+  }, [convertStxToUsd, feeInput.value]);
 
   useEffect(() => {
     // Set it to the middle estimation on mount
     if (!feeInput.value && !isCustom) {
-      feeHelper.setValue(microStxToStx(feeEstimations[FeeType.Middle].fee).toNumber());
-      feeTypeHelper.setValue(FeeType[FeeType.Middle]);
+      feeHelper.setValue(microStxToStx(feeEstimations[FeeTypes.Middle].fee).toNumber());
+      feeTypeHelper.setValue(FeeTypes[FeeTypes.Middle]);
     }
     if (isSponsored) {
       feeHelper.setValue(0);
@@ -54,8 +74,8 @@ export function FeeRow(props: FeeRowProps): JSX.Element {
   const handleSelectedItem = useCallback(
     (index: number) => {
       if (selected !== index) setSelected(index);
-      feeTypeHelper.setValue(FeeType[index]);
-      if (index === FeeType.Custom) {
+      feeTypeHelper.setValue(FeeTypes[index]);
+      if (index === FeeTypes.Custom) {
         feeHelper.setValue('');
         setIsCustom(true);
       } else {
@@ -108,13 +128,13 @@ export function FeeRow(props: FeeRowProps): JSX.Element {
         {isCustom ? (
           <CustomFeeField
             fieldName={feeFieldName}
-            lowFeeEstimate={feeEstimations[FeeType.Low]}
+            lowFeeEstimate={feeEstimations[FeeTypes.Low]}
             setFieldWarning={setFieldWarning}
           />
         ) : (
           <Suspense fallback={<></>}>
             <Caption>
-              <TransactionFee fee={feeInput.value} />
+              <TransactionFee fee={feeInput.value} usdAmount={feeInUsd} />
             </Caption>
           </Suspense>
         )}

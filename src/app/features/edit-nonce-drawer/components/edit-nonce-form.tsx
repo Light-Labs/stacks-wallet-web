@@ -1,8 +1,10 @@
 import { Suspense } from 'react';
+
 import { Button, Stack } from '@stacks/ui';
 
-import { EditNonceField } from './edit-nonce-field';
 import { PrimaryButton } from '@app/components/primary-button';
+
+import { EditNonceField } from './edit-nonce-field';
 
 function EditNonceFormFallback() {
   return (
@@ -11,15 +13,7 @@ function EditNonceFormFallback() {
         <EditNonceField />
       </Stack>
       <Stack isInline>
-        <Button
-          _hover={{
-            boxShadow: 'none',
-          }}
-          boxShadow="none"
-          borderRadius="10px"
-          flexGrow={1}
-          mode="tertiary"
-        >
+        <Button borderRadius="10px" flexGrow={1} mode="tertiary">
           Cancel
         </Button>
         <PrimaryButton isLoading>Apply</PrimaryButton>
@@ -42,16 +36,7 @@ export function EditNonceForm(props: EditNonceFormProps): JSX.Element {
         <EditNonceField onBlur={onBlur} />
       </Stack>
       <Stack isInline>
-        <Button
-          _hover={{
-            boxShadow: 'none',
-          }}
-          boxShadow="none"
-          borderRadius="10px"
-          flexGrow={1}
-          mode="tertiary"
-          onClick={onClose}
-        >
+        <Button flexGrow={1} mode="tertiary" onClick={onClose}>
           Cancel
         </Button>
         <PrimaryButton flexGrow={1} onClick={onSubmit}>

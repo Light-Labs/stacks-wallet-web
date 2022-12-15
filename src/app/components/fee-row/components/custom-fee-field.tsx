@@ -1,17 +1,19 @@
 import { Dispatch, FormEvent, SetStateAction, useCallback } from 'react';
+
+import { Input, InputGroup, Stack, StackProps, color } from '@stacks/ui';
+import { SendFormSelectors } from '@tests-legacy/page-objects/send-form.selectors';
 import BigNumber from 'bignumber.js';
 import { useField } from 'formik';
-import { color, Input, InputGroup, Stack, StackProps } from '@stacks/ui';
 
-import { stxToMicroStx } from '@app/common/stacks-utils';
+import { StacksFeeEstimateLegacy } from '@shared/models/fees/_fees-legacy.model';
+
+import { stxToMicroStx } from '@app/common/money/unit-conversion';
 import { SendFormWarningMessages } from '@app/common/warning-messages';
 import { Caption } from '@app/components/typography';
-import { SendFormSelectors } from '@tests/page-objects/send-form.selectors';
-import { FeeEstimate } from '@shared/models/fees-types';
 
 interface CustomFeeFieldProps extends StackProps {
   fieldName: string;
-  lowFeeEstimate: FeeEstimate;
+  lowFeeEstimate: StacksFeeEstimateLegacy;
   setFieldWarning: Dispatch<SetStateAction<string | undefined>>;
 }
 export function CustomFeeField(props: CustomFeeFieldProps) {

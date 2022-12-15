@@ -1,26 +1,27 @@
-import { QueryClient } from 'react-query';
-import { createWebStoragePersistor } from 'react-query/createWebStoragePersistor-experimental';
-import { persistQueryClient } from 'react-query/persistQueryClient-experimental';
+import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
+import { QueryClient } from '@tanstack/react-query';
+import { persistQueryClient } from '@tanstack/react-query-persist-client';
 
 import { PERSISTENCE_CACHE_TIME } from '@shared/constants';
 import { IS_TEST_ENV } from '@shared/environment';
 
-const localStoragePersistor = createWebStoragePersistor({ storage: window.localStorage });
+const localStoragePersistor = createSyncStoragePersister({ storage: window.localStorage });
 
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       cacheTime: PERSISTENCE_CACHE_TIME,
-      notifyOnChangeProps: ['data', 'error'],
+      // https://tanstack.com/query/v4/docs/guides/testing#turn-off-retries
+      retry: !IS_TEST_ENV,
     },
   },
 });
 
 export async function persistAndRenderApp(renderApp: () => void) {
   if (!IS_TEST_ENV)
-    await persistQueryClient({
+    persistQueryClient({
       queryClient,
-      persistor: localStoragePersistor,
+      persister: localStoragePersistor,
       buster: VERSION,
     });
   renderApp();

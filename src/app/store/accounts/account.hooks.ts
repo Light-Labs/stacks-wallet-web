@@ -1,26 +1,21 @@
+import { useMemo } from 'react';
+
 import { useAtom } from 'jotai';
 import { useAtomValue } from 'jotai/utils';
 
-import {
-  addressNetworkVersionState,
-  transactionNetworkVersionState,
-} from '@app/store/transactions/transaction';
+import { BITCOIN_TEST_ADDRESS } from '@shared/constants';
+
 import {
   accountsWithAddressState,
-  currentAccountConfirmedTransactionsState,
-  hasSwitchedAccountsState,
   hasCreatedAccountState,
+  hasSwitchedAccountsState,
 } from '@app/store/accounts/accounts';
+import { useSignatureRequestAccountIndex } from '@app/store/signatures/requests.hooks';
+import { useTransactionRequestState } from '@app/store/transactions/requests.hooks';
+import { transactionNetworkVersionState } from '@app/store/transactions/transaction';
+import { currentAccountIndexState } from '@app/store/wallet/wallet';
 
-import { currentAccountIndexState } from '../wallet/wallet';
-import { useTransactionRequestState } from '../transactions/requests.hooks';
-import { useMemo } from 'react';
 import { AccountWithAddress } from './account.models';
-import { signatureRequestAccountIndex } from '../signatures/requests';
-
-export function useAccountConfirmedTransactions() {
-  return useAtomValue(currentAccountConfirmedTransactionsState);
-}
 
 export function useAccounts() {
   return useAtomValue(accountsWithAddressState);
@@ -34,10 +29,11 @@ export function useAccounts() {
 export function useCurrentAccount() {
   const accountIndex = useCurrentAccountIndex();
   const txIndex = useTransactionAccountIndex();
-  const signatureIndex = useAtomValue(signatureRequestAccountIndex);
+  const signatureIndex = useSignatureRequestAccountIndex();
   // ⚠️ to refactor, we should not just continually add new conditionals here
   const hasSwitched = useAtomValue(hasSwitchedAccountsState);
   const accounts = useAccounts();
+
   return useMemo(() => {
     const index = txIndex ?? signatureIndex;
     if (!accounts) return undefined;
@@ -46,8 +42,14 @@ export function useCurrentAccount() {
   }, [accountIndex, accounts, hasSwitched, signatureIndex, txIndex]);
 }
 
+// TODO: Needs to be handled with btc addresses work
+// Move account addresses state to redux?
+export function useCurrentAccountBtcAddressState() {
+  return BITCOIN_TEST_ADDRESS;
+}
+
 export function useCurrentAccountStxAddressState() {
-  return useCurrentAccount()?.address;
+  return useCurrentAccount()?.address ?? '';
 }
 
 export function useCurrentAccountIndex() {
@@ -58,7 +60,6 @@ export function useTransactionAccountIndex() {
   const accounts = useAtomValue(accountsWithAddressState);
   const txPayload = useTransactionRequestState();
   const txAddress = txPayload?.stxAddress;
-
   return useMemo(() => {
     if (txAddress && accounts) {
       return accounts.findIndex(account => account.address === txAddress); // selected account
@@ -69,10 +70,6 @@ export function useTransactionAccountIndex() {
 
 export function useTransactionNetworkVersion() {
   return useAtomValue(transactionNetworkVersionState);
-}
-
-export function useAddressNetworkVersion() {
-  return useAtomValue(addressNetworkVersionState);
 }
 
 export function useHasSwitchedAccounts() {

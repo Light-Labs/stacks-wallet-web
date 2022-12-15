@@ -1,3 +1,329 @@
+## [3.27.0](https://github.com/hirosystems/stacks-wallet-web/compare/v3.26.0...v3.27.0) (2022-12-05)
+
+
+### Features
+
+* add get help menu item, closes [#2823](https://github.com/hirosystems/stacks-wallet-web/issues/2823) ([6e13f4c](https://github.com/hirosystems/stacks-wallet-web/commit/6e13f4c22a2e81c6d46c9e8b3584fb82696a88e9))
+* add option to easily transfer within same wallet ([f1b6ac6](https://github.com/hirosystems/stacks-wallet-web/commit/f1b6ac67cae96819ec1e6c377975d7771f3be85a))
+* allow tracking app initiating wallet flow, closes [#2904](https://github.com/hirosystems/stacks-wallet-web/issues/2904) ([d533d43](https://github.com/hirosystems/stacks-wallet-web/commit/d533d43057652cc2d926f886cbf1f5eb9dc1a27f))
+* bitcoin fees query ([9451f89](https://github.com/hirosystems/stacks-wallet-web/commit/9451f89461234e61ccf220e3f4bb3a7c1e217e87))
+
+
+### Bug Fixes
+
+* close other frames when wallet locks ([8788e01](https://github.com/hirosystems/stacks-wallet-web/commit/8788e010b9504f1cfa5c8f2c619af19da240dbc8))
+* re-enable sentry, closes 2822 ([23776d4](https://github.com/hirosystems/stacks-wallet-web/commit/23776d43b316152ed17e8bc0d5eac220da359cc4))
+* use existing data-testid values ([5194c20](https://github.com/hirosystems/stacks-wallet-web/commit/5194c20dc9084acfc655e532978b9a9ee7105a16))
+
+
+### Internal
+
+* add window.open lint rule ([0ed015b](https://github.com/hirosystems/stacks-wallet-web/commit/0ed015bee8d1b39c3564136d9c9488468ad55585))
+* reading search params outside react ([4e8d3dd](https://github.com/hirosystems/stacks-wallet-web/commit/4e8d3ddbc7f7adc6444ce7a16f787ecd89e86d46))
+* use type assertion ([1ac3fba](https://github.com/hirosystems/stacks-wallet-web/commit/1ac3fbad7bea0214a09182cbfa2bc6e4d1341a7d))
+
+## [3.26.0](https://github.com/hirosystems/stacks-wallet-web/compare/v3.25.0...v3.26.0) (2022-11-24)
+
+
+### Features
+
+* send form amount field ([ab3a10a](https://github.com/hirosystems/stacks-wallet-web/commit/ab3a10a5c69def2b4c3c56c048bfdaaa9098cff5))
+* send form details ([b6a54bb](https://github.com/hirosystems/stacks-wallet-web/commit/b6a54bb0ef82a737e7681983a3975b9296b4b0bc))
+* support bns recipients, closes [#1840](https://github.com/hirosystems/stacks-wallet-web/issues/1840) ([55bf5ef](https://github.com/hirosystems/stacks-wallet-web/commit/55bf5ef0459b2bfc38a4231115c33e53f05ee0d4))
+
+
+### Bug Fixes
+
+* amount input in extension ([9b31782](https://github.com/hirosystems/stacks-wallet-web/commit/9b31782a5b2263519853204e8eb46914eda74c7f))
+* **balances:** query correct balance, show microblock balance, closes [#2898](https://github.com/hirosystems/stacks-wallet-web/issues/2898) ([da58732](https://github.com/hirosystems/stacks-wallet-web/commit/da58732c087d5d65852aeff3e1d67f9000c00d7e))
+* missing address chars, closes [#2860](https://github.com/hirosystems/stacks-wallet-web/issues/2860) ([95bee55](https://github.com/hirosystems/stacks-wallet-web/commit/95bee55811093ab22bc7c187ff97128f2cfb943f))
+* theme analytics, closes [#2799](https://github.com/hirosystems/stacks-wallet-web/issues/2799) ([8c85177](https://github.com/hirosystems/stacks-wallet-web/commit/8c851777009cd326c983ad44f0c0464c714cd88f))
+* typo ([f5f68f3](https://github.com/hirosystems/stacks-wallet-web/commit/f5f68f3e767d7a89725e73f020e1866272b7efe6))
+
+
+### Internal
+
+* add error handling to form ([fb19774](https://github.com/hirosystems/stacks-wallet-web/commit/fb19774740d3e42d4f88aff0b5331547b22b05a1))
+* base forms for all currencies ([3eec893](https://github.com/hirosystems/stacks-wallet-web/commit/3eec8938d204263319af7979f18fff70355972c2))
+* be explicit about address, allow reuse for non-current account ([153b961](https://github.com/hirosystems/stacks-wallet-web/commit/153b9611a8e55fbb07bcc1c49243e51e7d4379fc))
+* form field error styles ([7ebe8c9](https://github.com/hirosystems/stacks-wallet-web/commit/7ebe8c9ffa1992b46e2e70741cf7366b5d36a00d))
+* home page with facade pattern ([c1bbd29](https://github.com/hirosystems/stacks-wallet-web/commit/c1bbd299e4b0d5bcce9e81bdd41552abd7a7392f))
+* improve errors, add focus state ([0d193af](https://github.com/hirosystems/stacks-wallet-web/commit/0d193aff8db47a836f191f28fb7ad67ea0c2493f))
+* init new integration tests ([5de2613](https://github.com/hirosystems/stacks-wallet-web/commit/5de2613315d4dccbc94281a3f4041fc839743a5e))
+* initial test forms ([601c4a8](https://github.com/hirosystems/stacks-wallet-web/commit/601c4a88741ac1584d8efb1c773b77aa7237039e))
+* initial value helper, inline error ([15fe88d](https://github.com/hirosystems/stacks-wallet-web/commit/15fe88da412580be23ea6ac3e282c6e088374104))
+* react query pattern, form routes ([7860ee9](https://github.com/hirosystems/stacks-wallet-web/commit/7860ee9aa5eee970a192c39d2ef231c8a6be6367))
+* remove coupling of balances types, subBalance ([de94f2c](https://github.com/hirosystems/stacks-wallet-web/commit/de94f2cc55b3ca459539cddb268f8072deac2bf6))
+* remove okcoin ([b34e214](https://github.com/hirosystems/stacks-wallet-web/commit/b34e2143b0c24c8a1e45a03bedc6b094a0cb9f15))
+* remove unused suspense ([8369e32](https://github.com/hirosystems/stacks-wallet-web/commit/8369e328a2a9eb14f05ba3e165359c49003f582f))
+* rename existing tests as legacy ([7b97265](https://github.com/hirosystems/stacks-wallet-web/commit/7b97265b440db2c0b730a3742d911a37ea80f816))
+* rename original balance queries with stx naming ([1770e3d](https://github.com/hirosystems/stacks-wallet-web/commit/1770e3d215d09a1141a1a8e6dfbda550834cd2e3))
+* semantic form elements ([6f9b123](https://github.com/hirosystems/stacks-wallet-web/commit/6f9b123cc967784e6d921d21e0d73089f02afb4b))
+* tightens rules against orphan files ([950569a](https://github.com/hirosystems/stacks-wallet-web/commit/950569a3659f23e84021df5fe8f05b4e6e6217ce))
+* use factory fn ([b43159a](https://github.com/hirosystems/stacks-wallet-web/commit/b43159a25729814cbffa0cba4debb80e392f62d2))
+* validation schemas ([3cd15c5](https://github.com/hirosystems/stacks-wallet-web/commit/3cd15c5705eced4954cd235d38440af6ba4bce2a))
+
+## [3.25.0](https://github.com/hirosystems/stacks-wallet-web/compare/v3.24.0...v3.25.0) (2022-11-16)
+
+
+### Features
+
+* send form amount field ([c8621bc](https://github.com/hirosystems/stacks-wallet-web/commit/c8621bce93394e76558b67175179f46a7e6cba4c))
+* support bns recipients, closes [#1840](https://github.com/hirosystems/stacks-wallet-web/issues/1840) ([6dae61e](https://github.com/hirosystems/stacks-wallet-web/commit/6dae61ee5b8b59c06036178774c43d156b2783d5))
+
+
+### Bug Fixes
+
+* missing address chars, closes [#2860](https://github.com/hirosystems/stacks-wallet-web/issues/2860) ([793f90a](https://github.com/hirosystems/stacks-wallet-web/commit/793f90ad2a74ab227eaba269d06bf0f2f6373340))
+
+
+### Internal
+
+* remove unused suspense ([4cab35f](https://github.com/hirosystems/stacks-wallet-web/commit/4cab35fcfd2f1912c4c7018135c78ccb73e009fc))
+
+## [3.24.0](https://github.com/hirosystems/stacks-wallet-web/compare/v3.23.0...v3.24.0) (2022-11-15)
+
+
+### Features
+
+* add chain-specific network config, closes [#2689](https://github.com/hirosystems/stacks-wallet-web/issues/2689) ([5404f75](https://github.com/hirosystems/stacks-wallet-web/commit/5404f755982cb546ea00a6f31beb37795cd24d0d))
+* add send crypto asset routes and choose asset ([d92f98c](https://github.com/hirosystems/stacks-wallet-web/commit/d92f98c16e0defecc6ee90037d0a6262ede04d01))
+* capture analytics on consent screen only by default, closes [#2784](https://github.com/hirosystems/stacks-wallet-web/issues/2784) ([8f7d61d](https://github.com/hirosystems/stacks-wallet-web/commit/8f7d61d01e2799987fa50437dcd02d2d14e9f5ef))
+* strengthen signout message, closes [#2748](https://github.com/hirosystems/stacks-wallet-web/issues/2748) ([6358807](https://github.com/hirosystems/stacks-wallet-web/commit/6358807ae4572d73f3a609e1d404ae53064689a5))
+
+
+### Bug Fixes
+
+* balance with wrong decimals, closes [#2828](https://github.com/hirosystems/stacks-wallet-web/issues/2828) ([37f0c10](https://github.com/hirosystems/stacks-wallet-web/commit/37f0c10b1f911ec334fab3d0f68f0789b9fca458))
+* clipped label ([8414602](https://github.com/hirosystems/stacks-wallet-web/commit/8414602e1954bf1d7678be866acc9a39149a79cf))
+* logic with client fallback nonce ([22d77eb](https://github.com/hirosystems/stacks-wallet-web/commit/22d77eb75210053662b04c6a53ac727a6691c1c8))
+* merge conflicts ([8992adc](https://github.com/hirosystems/stacks-wallet-web/commit/8992adc6eded0d91c152e0c54eb6e502beca9a9d))
+* remove unused types ([24d1ca6](https://github.com/hirosystems/stacks-wallet-web/commit/24d1ca6ea842a0546bac8ebccfd91929091bf37b))
+* rename settings actions ([ea16169](https://github.com/hirosystems/stacks-wallet-web/commit/ea1616999818f1f5f14fc533250dec76290f112e))
+
+
+### Internal
+
+* audit tx request errors ([c58b4cb](https://github.com/hirosystems/stacks-wallet-web/commit/c58b4cb036de8f066d750ea9d3444745947f9f34))
+* configurable query hook pattern ([35893ab](https://github.com/hirosystems/stacks-wallet-web/commit/35893ab043aff5a848bde62c8cdbf5399ee6ad19))
+* **linting:** import order ([239e7d7](https://github.com/hirosystems/stacks-wallet-web/commit/239e7d781722a63a0399097e2ebc4bbe49c76f5b))
+* remove capsize library ([4d5db43](https://github.com/hirosystems/stacks-wallet-web/commit/4d5db4309ac5fa6e6db27f6c23f96c51e3a514a3))
+* remove capsize workaround ([a7e8cf4](https://github.com/hirosystems/stacks-wallet-web/commit/a7e8cf42e6602e97d7b848326da1d8a6653f371c))
+* test dev access ([c3ac636](https://github.com/hirosystems/stacks-wallet-web/commit/c3ac636071164ee3ef7f6fedbc20ddfbc581fc5c))
+* **tooling:** add decrypt mnemonic page ([befb98b](https://github.com/hirosystems/stacks-wallet-web/commit/befb98b50dde109d0ce1732265ab9e49012d5c62))
+
+## [3.23.0](https://github.com/hirosystems/stacks-wallet-web/compare/v3.22.1...v3.23.0) (2022-11-07)
+
+
+### Features
+
+* add btc to balance list ([c13e27f](https://github.com/hirosystems/stacks-wallet-web/commit/c13e27f96b9caa1fe5c4812c35c4171fb6a6cf2f))
+
+
+### Bug Fixes
+
+* **ledger:** failing to broadcast from send form ([25ba10c](https://github.com/hirosystems/stacks-wallet-web/commit/25ba10c210d2fd13f17583b2b4100a45339c1eba))
+* persist user selected theme, fixes [#2789](https://github.com/hirosystems/stacks-wallet-web/issues/2789) ([adabbaa](https://github.com/hirosystems/stacks-wallet-web/commit/adabbaa8a1ebea3ce1886de9cf3220fab3a93d53))
+
+
+### Internal
+
+* enable btc query with address ([404f904](https://github.com/hirosystems/stacks-wallet-web/commit/404f9042f1ba9b9b548da235e6bec5433e0d52cc))
+* network switcher ([708e638](https://github.com/hirosystems/stacks-wallet-web/commit/708e6386fd40d972c2f2240dd49ffeb767d6fa9b))
+* remove btc test address ([463bc17](https://github.com/hirosystems/stacks-wallet-web/commit/463bc17a7f31059f41863979d88350763290a0cf))
+* rename vars, closes [#2779](https://github.com/hirosystems/stacks-wallet-web/issues/2779) ([d2a7e17](https://github.com/hirosystems/stacks-wallet-web/commit/d2a7e1718b327fdc1267a71e50c0c48761103bb9))
+
+## [3.22.1](https://github.com/hirosystems/stacks-wallet-web/compare/v3.22.0...v3.22.1) (2022-11-03)
+
+
+### Bug Fixes
+
+* **market-data:** conversion creating decimal money ([1557fe0](https://github.com/hirosystems/stacks-wallet-web/commit/1557fe011772dc110bb950f5765ff2a1b264319b))
+
+## [3.22.0](https://github.com/hirosystems/stacks-wallet-web/compare/v3.21.1...v3.22.0) (2022-11-03)
+
+
+### Features
+
+* dark theme, closes [#2701](https://github.com/hirosystems/stacks-wallet-web/issues/2701) ([6d43dad](https://github.com/hirosystems/stacks-wallet-web/commit/6d43dad07301a1ef6d0b21fdce943346e8f78449))
+
+
+### Bug Fixes
+
+* padding on switch acct list, closes [#2751](https://github.com/hirosystems/stacks-wallet-web/issues/2751) ([3a190e2](https://github.com/hirosystems/stacks-wallet-web/commit/3a190e231abb96b5db2c02d7594dda8518751f21))
+* reintroduces usd amounts, closes [#2756](https://github.com/hirosystems/stacks-wallet-web/issues/2756), [#2735](https://github.com/hirosystems/stacks-wallet-web/issues/2735) ([b9574a8](https://github.com/hirosystems/stacks-wallet-web/commit/b9574a8446c99243ccae08b4c66a7a2f116b6823))
+* remove unnecessary call to setShowSignOut ([ce7ad3c](https://github.com/hirosystems/stacks-wallet-web/commit/ce7ad3caa814abe7639030ebce44b3fbd90f74cb))
+* show spinner when activity is loading ([f9fbca3](https://github.com/hirosystems/stacks-wallet-web/commit/f9fbca3dcf3dc7762c611af7cc313cbc1d24bc56))
+
+## [3.21.1](https://github.com/hirosystems/stacks-wallet-web/compare/v3.21.0...v3.21.1) (2022-10-31)
+
+
+### Bug Fixes
+
+* add analytics events to local log ([b0bfb9a](https://github.com/hirosystems/stacks-wallet-web/commit/b0bfb9ad022dcac450ff76023a4b72d899aa905c))
+* disable input on pw field when loading ([9e26a45](https://github.com/hirosystems/stacks-wallet-web/commit/9e26a457cb50a397002648243d889655a6c9f93a))
+* parsing invalid punycode ([18f59fa](https://github.com/hirosystems/stacks-wallet-web/commit/18f59fa1fb5b90a32f696338bbdf7aef0beaee6b))
+* tooltip label ([ff587cd](https://github.com/hirosystems/stacks-wallet-web/commit/ff587cd6d56075a69688f5c1a728285bd06ccb33))
+
+
+### Internal
+
+* broadcast fn ([07e4362](https://github.com/hirosystems/stacks-wallet-web/commit/07e43627f29dd4efb954c0f20a548f922b009f95))
+
+## [3.21.0](https://github.com/hirosystems/stacks-wallet-web/compare/v3.20.0...v3.21.0) (2022-10-27)
+
+
+### Features
+
+* **logging:** add client side logs ([6d5b355](https://github.com/hirosystems/stacks-wallet-web/commit/6d5b355940b212ba4633e635fbf1d217b1ede584))
+* punycode support ([521c05b](https://github.com/hirosystems/stacks-wallet-web/commit/521c05baafeadd227b964a2dc156476188ce8401))
+
+
+### Bug Fixes
+
+* not quite strong strength bar full ([dcfb1ec](https://github.com/hirosystems/stacks-wallet-web/commit/dcfb1ec3aad26faf0deef1ea91c2ce38b0399239))
+* send form loading ui ([eaf313b](https://github.com/hirosystems/stacks-wallet-web/commit/eaf313b141872527179356ebbc39a5eddbb98f0a))
+* throw on http error response ([5291cc3](https://github.com/hirosystems/stacks-wallet-web/commit/5291cc3eddfa58201979d2467cd6ad7dc600c47d))
+
+
+### Internal
+
+* prevent vercel msgs ([11278e5](https://github.com/hirosystems/stacks-wallet-web/commit/11278e5fe663d170018d22203904a6afc247bdc7))
+
+## [3.20.0](https://github.com/hirosystems/stacks-wallet-web/compare/v3.19.1...v3.20.0) (2022-10-21)
+
+
+### Features
+
+* add bitcoin to tx list ([711ad3c](https://github.com/hirosystems/stacks-wallet-web/commit/711ad3ceae001ededad2d2cfa722835c567d281d))
+
+
+### Bug Fixes
+
+* no suspense on market data query ([100e927](https://github.com/hirosystems/stacks-wallet-web/commit/100e927c24e228cd2f9d22e058ef0fade943be5e))
+
+## [3.19.1](https://github.com/hirosystems/stacks-wallet-web/compare/v3.19.0...v3.19.1) (2022-10-20)
+
+
+### Bug Fixes
+
+* menu items casing ([ab4fbc9](https://github.com/hirosystems/stacks-wallet-web/commit/ab4fbc9cac4124d1383590cfd6bb75f8d3bf2490))
+* slow firefox sign in times, persistent worker ([7eb353a](https://github.com/hirosystems/stacks-wallet-web/commit/7eb353ad799d3a2398127d4de328848f8536e23d))
+* white screen on account select list ([12d77a1](https://github.com/hirosystems/stacks-wallet-web/commit/12d77a16fde366f6d4055a270a599ca7f32801e5))
+
+
+### Internal
+
+* removes 1 of the 2 expensive tx generations on input change ([7dd067c](https://github.com/hirosystems/stacks-wallet-web/commit/7dd067c7975a4ec645a262bce443e69a3ac2cd8c))
+
+## [3.19.0](https://github.com/hirosystems/stacks-wallet-web/compare/v3.18.2...v3.19.0) (2022-10-18)
+
+
+### Features
+
+* add base queries to fetch market data ([d98db75](https://github.com/hirosystems/stacks-wallet-web/commit/d98db75c36dd9b59d169311aa1ec073ff61f6490))
+* display address segments, closes [#2690](https://github.com/hirosystems/stacks-wallet-web/issues/2690) ([5e07f88](https://github.com/hirosystems/stacks-wallet-web/commit/5e07f88bf25e9858f38c136084c5f4507175a713))
+
+
+### Bug Fixes
+
+* fees query options ([16068b1](https://github.com/hirosystems/stacks-wallet-web/commit/16068b1138b5ebbdeb9230ba61660a09e28d098f))
+* password box lag issue, closes [#2697](https://github.com/hirosystems/stacks-wallet-web/issues/2697) ([d3aad11](https://github.com/hirosystems/stacks-wallet-web/commit/d3aad11b7a3e331635797714f7c9dcae1c7b6837))
+* remove deprecated substr methods ([10b9b62](https://github.com/hirosystems/stacks-wallet-web/commit/10b9b6231f64d3388ee5bea2f6e7c7cd40870dc2))
+* simulated fee estimations ([669ade2](https://github.com/hirosystems/stacks-wallet-web/commit/669ade25264ea97fc70b56fc38d98553e3481952))
+
+
+### Internal
+
+* add mailing list link to readme ([956840d](https://github.com/hirosystems/stacks-wallet-web/commit/956840dccad0155358c3e6739af1b622f536b941))
+* migrate to @tanstack/react-query ([b103bee](https://github.com/hirosystems/stacks-wallet-web/commit/b103bee8ac33fc7ceb451f7bf72930014fe5a99a))
+* reusable base type, Money, MarketPair, MarketData ([025c5f1](https://github.com/hirosystems/stacks-wallet-web/commit/025c5f1c47cfb18186e610300f0d9f3ce85c8d3d))
+* reuse account item layout component ([b6be275](https://github.com/hirosystems/stacks-wallet-web/commit/b6be2753e1b3dfe06badf3ea01d6c0fbb44fe2a5))
+
+## [3.18.2](https://github.com/hirosystems/stacks-wallet-web/compare/v3.18.1...v3.18.2) (2022-10-14)
+
+
+### Bug Fixes
+
+* no fallback when no gaia profile found ([12d796d](https://github.com/hirosystems/stacks-wallet-web/commit/12d796d1c0cb032d4b309681b78301df71391aba))
+
+## [3.18.1](https://github.com/hirosystems/stacks-wallet-web/compare/v3.18.0...v3.18.1) (2022-10-05)
+
+
+### Bug Fixes
+
+* path url trailing slash ([ff4cc7b](https://github.com/hirosystems/stacks-wallet-web/commit/ff4cc7bd62179d11d42e085aa1862d3f81abf8ef))
+
+
+### Internal
+
+* upgrade stacks.js v5 ([fc8dadc](https://github.com/hirosystems/stacks-wallet-web/commit/fc8dadc4388c2ff2e05429be7c47ffd57c25f5bc))
+
+## [3.18.0](https://github.com/hirosystems/stacks-wallet-web/compare/v3.17.2...v3.18.0) (2022-10-04)
+
+
+### Features
+
+* add warning msg for outdated ledger app versions ([1af7a04](https://github.com/hirosystems/stacks-wallet-web/commit/1af7a047cadc6050add2178da77fc2822a617b88))
+* bitcoin data ([f6b4166](https://github.com/hirosystems/stacks-wallet-web/commit/f6b416645b7256a6617ebc28a59bdebdbca75d1e))
+
+
+### Bug Fixes
+
+* edit nonce to zero ([1fb1e36](https://github.com/hirosystems/stacks-wallet-web/commit/1fb1e362dd5d641f235357bbdf2c7c1c6984eb4e))
+* hide menu in send form ([78c2001](https://github.com/hirosystems/stacks-wallet-web/commit/78c20017197d044d1e019e30d6b35e73ac15d737))
+* **ledger:** mismatching public key ([d1be7be](https://github.com/hirosystems/stacks-wallet-web/commit/d1be7bebaff98569c34406a753d011b9643e4208))
+* **network:** full path not accepted, closes [#2680](https://github.com/hirosystems/stacks-wallet-web/issues/2680) ([23fb2f6](https://github.com/hirosystems/stacks-wallet-web/commit/23fb2f686e9b3d85d885c9076ba4a93eca5d7ba1))
+
+
+### Internal
+
+* add bitcoin feature flag ([f0d284c](https://github.com/hirosystems/stacks-wallet-web/commit/f0d284c43b4ba8d1eec561eca9bf31d1e9b7923d))
+* network state to redux ([c475572](https://github.com/hirosystems/stacks-wallet-web/commit/c4755728904dbc747e0a4886d3a69de560274e22))
+
+## [3.17.2](https://github.com/hirosystems/stacks-wallet-web/compare/v3.17.1...v3.17.2) (2022-09-16)
+
+
+### Bug Fixes
+
+* **query:** reuse of query key ([9c654bc](https://github.com/hirosystems/stacks-wallet-web/commit/9c654bc409be2d1690ef9023dc25a25c2b897a19))
+
+## [3.17.1](https://github.com/hirosystems/stacks-wallet-web/compare/v3.17.0...v3.17.1) (2022-09-15)
+
+
+### Bug Fixes
+
+* throwing error with contract function ([6f528fe](https://github.com/hirosystems/stacks-wallet-web/commit/6f528febb75f504f487f91c2ba42096d925d1ffc))
+
+## [3.17.0](https://github.com/hirosystems/stacks-wallet-web/compare/v3.16.1...v3.17.0) (2022-09-14)
+
+
+### Features
+
+* **ledger:** add utf-8 message signing support ([99239b2](https://github.com/hirosystems/stacks-wallet-web/commit/99239b2648c227a6d045962fde9c206d46800315))
+
+
+### Bug Fixes
+
+* cached data bug in atom with wrong network, closes [#2645](https://github.com/hirosystems/stacks-wallet-web/issues/2645) ([2a180ee](https://github.com/hirosystems/stacks-wallet-web/commit/2a180ee7940d2208654b4062fba7f5cc5143c0f2))
+* chrome rejections, unused permissions ([86e1ddb](https://github.com/hirosystems/stacks-wallet-web/commit/86e1ddbae9d69cbf4475d58f490b532aceedc575))
+* **message-signing:** message wrapping, closes [#2594](https://github.com/hirosystems/stacks-wallet-web/issues/2594), [#2441](https://github.com/hirosystems/stacks-wallet-web/issues/2441) ([3ca2d10](https://github.com/hirosystems/stacks-wallet-web/commit/3ca2d10c252056270a16212c0d86549c683e0838))
+* querying fee endpoint empty payload, closes [#2653](https://github.com/hirosystems/stacks-wallet-web/issues/2653) ([cf2ca3b](https://github.com/hirosystems/stacks-wallet-web/commit/cf2ca3b21d0d69dcc5c39e016cf3d64066e23cd0))
+* sponsored txs confirm button ([4d01442](https://github.com/hirosystems/stacks-wallet-web/commit/4d01442f4f51c5b94a3dc46a0b359790d2623577))
+
+
+### Internal
+
+* broadcast error ux ([70fe208](https://github.com/hirosystems/stacks-wallet-web/commit/70fe2082efa571b14ce235b69d4a42b303980263))
+* **deps-dev:** bump @actions/core from 1.6.0 to 1.9.1 ([fca2545](https://github.com/hirosystems/stacks-wallet-web/commit/fca2545e5de9bfa017a7d42b24fefc445254207c))
+* **message-signing:** structured data formatting ([b3dd513](https://github.com/hirosystems/stacks-wallet-web/commit/b3dd513b431fc83fd74e263560770de29e8a1a80))
+* remove useUpdateAuthRequest atom, closes [#2639](https://github.com/hirosystems/stacks-wallet-web/issues/2639) ([110d87c](https://github.com/hirosystems/stacks-wallet-web/commit/110d87c151b937cb537d0e9ae657c2a6af636825))
+* select asset ([b5684d8](https://github.com/hirosystems/stacks-wallet-web/commit/b5684d8483d5aad46f85aa25a3af398a13a5bbb0))
+* upgrade @zondax/ledger-stacks ([797ce5a](https://github.com/hirosystems/stacks-wallet-web/commit/797ce5aefeab64b9b715901f202823faba9fb424))
+* upgrade packages ([9558376](https://github.com/hirosystems/stacks-wallet-web/commit/955837664cbc55d23a435065067129152e4071a1))
+* upgrade stacks.js packages ([b6ed0a9](https://github.com/hirosystems/stacks-wallet-web/commit/b6ed0a9970daae671afa0ea4d99ed6ca472fc903))
+* use onMount hook ([3712a30](https://github.com/hirosystems/stacks-wallet-web/commit/3712a3037bc3a48e6ff23b67ba80b593a1264630))
+
 ## [3.16.1](https://github.com/hirosystems/stacks-wallet-web/compare/v3.16.0...v3.16.1) (2022-08-17)
 
 

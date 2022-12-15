@@ -1,6 +1,7 @@
 import { ChainID } from '@stacks/transactions';
 
 import { IS_TEST_ENV } from './environment';
+import { Blockchains } from './models/blockchain.model';
 
 export const gaiaUrl = 'https://hub.blockstack.org';
 
@@ -11,10 +12,9 @@ export const HIGH_FEE_AMOUNT_STX = 5;
 
 export const DEFAULT_FEE_RATE = 400;
 
-export const HUMAN_REACTION_DEBOUNCE_TIME = 200;
-
 export const PERSISTENCE_CACHE_TIME = 1000 * 60 * 60 * 12; // 12 hours
 
+export const BTC_DECIMALS = 8;
 export const STX_DECIMALS = 6;
 
 export const KEBAB_REGEX = /[A-Z\u00C0-\u00D6\u00D8-\u00DE]/g;
@@ -24,35 +24,111 @@ export const MICROBLOCKS_ENABLED = !IS_TEST_ENV && true;
 export const GITHUB_ORG = 'hirosystems';
 export const GITHUB_REPO = 'stacks-wallet-web';
 
-export interface Network {
+export enum DefaultNetworkConfigurationIds {
+  mainnet = 'mainnet',
+  testnet = 'testnet',
+  devnet = 'devnet',
+}
+
+export type DefaultNetworkConfigurations = keyof typeof DefaultNetworkConfigurationIds;
+
+interface BaseChainConfig {
+  blockchain: Blockchains;
+}
+
+interface BitcoinChainConfig extends BaseChainConfig {
+  blockchain: 'bitcoin';
   url: string;
-  name: string;
+}
+
+interface StacksChainConfig extends BaseChainConfig {
+  blockchain: 'stacks';
+  url: string;
   chainId: ChainID;
 }
 
-export const DEFAULT_TESTNET_SERVER = 'https://stacks-node-api.testnet.stacks.co';
+export interface NetworkConfiguration {
+  name: string;
+  id: DefaultNetworkConfigurations;
+  chain: {
+    bitcoin: BitcoinChainConfig;
+    stacks: StacksChainConfig;
+  };
+}
 
-const DEFAULT_MAINNET_SERVER = 'https://stacks-node-api.stacks.co';
+export enum DefaultNetworkModes {
+  mainnet = 'mainnet',
+  testnet = 'testnet',
+}
 
-export type Networks = Record<string, Network>;
+export type NetworkModes = keyof typeof DefaultNetworkModes;
 
-export const defaultNetworks: Networks = {
-  mainnet: {
-    url: DEFAULT_MAINNET_SERVER,
-    name: 'Mainnet',
-    chainId: ChainID.Mainnet,
+const DEFAULT_SERVER_MAINNET = 'https://stacks-node-api.stacks.co';
+export const DEFAULT_SERVER_TESTNET = 'https://stacks-node-api.testnet.stacks.co';
+
+export const BITCOIN_API_BASE_URL_MAINNET = 'https://blockstream.info/api';
+export const BITCOIN_API_BASE_URL_TESTNET = 'https://blockstream.info/testnet/api';
+
+export const BITCOIN_TEST_ADDRESS = '';
+
+const networkMainnet: NetworkConfiguration = {
+  id: DefaultNetworkConfigurationIds.mainnet,
+  name: 'Mainnet',
+  chain: {
+    stacks: {
+      blockchain: 'stacks',
+      chainId: ChainID.Mainnet,
+      url: DEFAULT_SERVER_MAINNET,
+    },
+    bitcoin: {
+      blockchain: 'bitcoin',
+      url: BITCOIN_API_BASE_URL_MAINNET,
+    },
   },
-  testnet: {
-    url: DEFAULT_TESTNET_SERVER,
-    name: 'Testnet',
-    chainId: ChainID.Testnet,
+};
+
+const networkTestnet: NetworkConfiguration = {
+  id: DefaultNetworkConfigurationIds.testnet,
+  name: 'Testnet',
+  chain: {
+    stacks: {
+      blockchain: 'stacks',
+      chainId: ChainID.Testnet,
+      url: DEFAULT_SERVER_TESTNET,
+    },
+    bitcoin: {
+      blockchain: 'bitcoin',
+      url: BITCOIN_API_BASE_URL_TESTNET,
+    },
   },
-  devnet: {
-    url: 'http://localhost:3999',
-    name: 'Devnet',
-    chainId: ChainID.Testnet,
+};
+
+const networkDevnet: NetworkConfiguration = {
+  id: DefaultNetworkConfigurationIds.devnet,
+  name: 'Devnet',
+  chain: {
+    stacks: {
+      blockchain: 'stacks',
+      chainId: ChainID.Testnet,
+      url: 'http://localhost:3999',
+    },
+    bitcoin: {
+      blockchain: 'bitcoin',
+      url: BITCOIN_API_BASE_URL_TESTNET,
+    },
   },
-} as const;
+};
+
+export const defaultCurrentNetwork: NetworkConfiguration = networkMainnet;
+
+export const defaultNetworksKeyedById: Record<
+  DefaultNetworkConfigurationIds,
+  NetworkConfiguration
+> = {
+  [DefaultNetworkConfigurationIds.mainnet]: networkMainnet,
+  [DefaultNetworkConfigurationIds.testnet]: networkTestnet,
+  [DefaultNetworkConfigurationIds.devnet]: networkDevnet,
+};
 
 export enum QueryRefreshRates {
   VERY_SLOW = 120_000,

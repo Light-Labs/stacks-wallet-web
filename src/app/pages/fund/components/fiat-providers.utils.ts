@@ -1,6 +1,3 @@
-import { generateOnRampURL } from '@coinbase/cbpay-js';
-
-import { ActiveFiatProvider } from '@app/query/hiro-config/hiro-config.query';
 import BinanceIcon from '@assets/images/fund/fiat-providers/binance-icon.png';
 import BlockchainComIcon from '@assets/images/fund/fiat-providers/blockchain.com-icon.png';
 import ByBitIcon from '@assets/images/fund/fiat-providers/bybit-icon.png';
@@ -9,10 +6,13 @@ import CryptoComIcon from '@assets/images/fund/fiat-providers/crypto.com-icon.pn
 import GateIoIcon from '@assets/images/fund/fiat-providers/gate.io-icon.png';
 import KuCoinIcon from '@assets/images/fund/fiat-providers/kucoin-icon.png';
 import MoonPayIcon from '@assets/images/fund/fiat-providers/moonpay-icon.png';
-import OkcoinIcon from '@assets/images/fund/fiat-providers/okcoin-icon.png';
 import OkxIcon from '@assets/images/fund/fiat-providers/okx-icon.png';
 import TransakIcon from '@assets/images/fund/fiat-providers/transak-icon.png';
+import { generateOnRampURL } from '@coinbase/cbpay-js';
+
 import { COINBASE_APP_ID, MOONPAY_API_KEY, TRANSAK_API_KEY } from '@shared/environment';
+
+import { ActiveFiatProvider } from '@app/query/common/hiro-config/hiro-config.query';
 
 // Keys are set in wallet-config.json
 enum ActiveFiatProviders {
@@ -24,7 +24,6 @@ enum ActiveFiatProviders {
   GateIo = 'gateIo',
   KuCoin = 'kuCoin',
   MoonPay = 'moonPay',
-  Okcoin = 'okcoin',
   Okx = 'okx',
   Transak = 'transak',
 }
@@ -38,7 +37,6 @@ export const activeFiatProviderIcons: Record<ActiveFiatProvider['name'], string>
   [ActiveFiatProviders.GateIo]: GateIoIcon,
   [ActiveFiatProviders.KuCoin]: KuCoinIcon,
   [ActiveFiatProviders.MoonPay]: MoonPayIcon,
-  [ActiveFiatProviders.Okcoin]: OkcoinIcon,
   [ActiveFiatProviders.Okx]: OkxIcon,
   [ActiveFiatProviders.Transak]: TransakIcon,
 };
@@ -58,13 +56,6 @@ function makeCoinbaseUrl(address: string) {
 
 function makeMoonPayUrl(address: string) {
   return `https://buy.moonpay.com?apiKey=${MOONPAY_API_KEY}&currencyCode=stx&walletAddress=${address}`;
-}
-
-function makeOkcoinUrl(address: string) {
-  const successBackLink = encodeURI(`https://explorer.stacks.co/address/${address}?chain=mainnet`);
-  const thirdPartyLink = encodeURI('https://hiro.so');
-
-  return `https://www.okcoin.com/bridge/thirdBridge?isThirdBridge=1&partnerId=10002&crypto=STX&address=${address}&thirdPartyName=Hiro&fiatAmount=100&currency=USD&successBackLink=${successBackLink}&thirdPartyLink=${thirdPartyLink}`;
 }
 
 function makeTransakUrl(address: string) {
@@ -99,8 +90,6 @@ export function getProviderUrl({
       return makeCoinbaseUrl(address);
     case ActiveFiatProviders.MoonPay:
       return makeMoonPayUrl(address);
-    case ActiveFiatProviders.Okcoin:
-      return makeOkcoinUrl(address);
     case ActiveFiatProviders.Transak:
       return makeTransakUrl(address);
     default:

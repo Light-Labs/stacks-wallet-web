@@ -74,9 +74,9 @@ const aliases = {
   '@stacks/storage': '@stacks/storage/dist/esm',
   '@stacks/transactions': '@stacks/transactions/dist/esm',
   '@stacks/wallet-sdk': '@stacks/wallet-sdk/dist/esm',
+
   'lottie-web': path.resolve('node_modules/lottie-web/build/player/lottie_light.js'),
 };
-
 const config = {
   entry: {
     background: path.join(SRC_ROOT_PATH, 'background', 'background.ts'),
@@ -84,6 +84,7 @@ const config = {
     'content-script': path.join(SRC_ROOT_PATH, 'content-scripts', 'content-script.ts'),
     index: path.join(SRC_ROOT_PATH, 'app', 'index.tsx'),
     'decryption-worker': path.join(SRC_ROOT_PATH, 'shared/workers/decryption-worker.ts'),
+    debug: path.join(SRC_ROOT_PATH, '../scripts/debug.js'),
   },
   output: {
     path: DIST_ROOT_PATH,
@@ -183,6 +184,12 @@ const config = {
       template: path.join(SRC_ROOT_PATH, '../', 'public', 'html', 'popup-center.html'),
       filename: 'popup-center.html',
       ...HTML_PROD_OPTIONS,
+    }),
+    new HtmlWebpackPlugin({
+      template: path.join(SRC_ROOT_PATH, '../', 'public', 'html', 'debug.html'),
+      filename: 'debug.html',
+      title: 'Hiro Wallet—Debugger',
+      chunks: ['debug'],
     }),
     new GenerateJsonPlugin(
       'manifest.json',
