@@ -208,6 +208,12 @@ class RyderApp {
     callback: (res: Response<boolean>) => void
   ): Promise<void> {
     this.ryder_serial = new RyderSerial(payload.port, payload.options);
+    let wrapped_callback = (res) => {
+      // The `RyderSerial` must be closed before invoking the callback, or the latter might create a
+      // new `RyderSerial` and get a device busy error
+      this.ryder_serial?.close();
+      callback(res);
+    };
     new Promise<boolean>((resolve, reject) => {
       if (!this.ryder_serial) {
         reject('Ryder Serial does not exist for some reason');
@@ -235,14 +241,13 @@ class RyderApp {
         return;
       });
     })
-      .then((res: boolean) => callback({ data: res }))
+      .then((res: boolean) => wrapped_callback({ data: res }))
       .catch(error =>
-        callback({
+        wrapped_callback({
           source: error,
           error: error,
         })
-      )
-      .finally(() => this.ryder_serial?.close());
+      );
   }
 
   async serial_info(
@@ -250,6 +255,12 @@ class RyderApp {
     callback: (res: Response<ResponseVersion | string>) => void
   ): Promise<void> {
     this.ryder_serial = new RyderSerial(payload.port, payload.options);
+    let wrapped_callback = (res) => {
+      // The `RyderSerial` must be closed before invoking the callback, or the latter might create a
+      // new `RyderSerial` and get a device busy error
+      this.ryder_serial?.close();
+      callback(res);
+    };
     new Promise<ResponseVersion | string>((resolve, reject) => {
       if (!this.ryder_serial) {
         reject('Ryder Serial does not exist for some reason');
@@ -293,14 +304,13 @@ class RyderApp {
         return;
       });
     })
-      .then((res: string | ResponseVersion) => callback({ data: res }))
+      .then((res: string | ResponseVersion) => wrapped_callback({ data: res }))
       .catch(error =>
-        callback({
+        wrapped_callback({
           source: error,
           error: error,
         })
-      )
-      .finally(() => this.ryder_serial?.close());
+      );
   }
 
   async export_derived_public_key(
@@ -309,6 +319,12 @@ class RyderApp {
     callback: (res: Response<string>) => void
   ): Promise<void> {
     this.ryder_serial = new RyderSerial(payload.port, payload.options);
+    let wrapped_callback = (res) => {
+      // The `RyderSerial` must be closed before invoking the callback, or the latter might create a
+      // new `RyderSerial` and get a device busy error
+      this.ryder_serial?.close();
+      callback(res);
+    };
     new Promise<string>((resolve, reject) => {
       if (!this.ryder_serial) {
         reject('Ryder Serial does not exist for some reason');
@@ -361,14 +377,13 @@ class RyderApp {
         return;
       });
     })
-      .then((res: string) => callback({ data: res }))
+      .then((res: string) => wrapped_callback({ data: res }))
       .catch(error =>
-        callback({
+        wrapped_callback({
           source: error,
           error: error,
         })
-      )
-      .finally(() => this.ryder_serial?.close());
+      );
   }
 
   async serial_export_identity(
@@ -397,6 +412,12 @@ class RyderApp {
     ) => void
   ): Promise<void> {
     this.ryder_serial = new RyderSerial(payload.port, payload.options);
+    let wrapped_callback = (res) => {
+      // The `RyderSerial` must be closed before invoking the callback, or the latter might create a
+      // new `RyderSerial` and get a device busy error
+      this.ryder_serial?.close();
+      callback(res);
+    };
     new Promise<{
       walletPubKey: Uint8Array;
       identityPubKey: Uint8Array;
@@ -474,16 +495,15 @@ class RyderApp {
           walletPubKey: Uint8Array;
           identityPubKey: Uint8Array;
           appPrivateKey: Uint8Array;
-        }) => callback({ data: res })
+        }) => wrapped_callback({ data: res })
       )
       .catch(error => {
         console.log({ error });
-        callback({
+        wrapped_callback({
           source: error,
           error: error,
         });
-      })
-      .finally(() => this.ryder_serial?.close());
+      });
   }
 
   async sign_identity_message(
@@ -493,6 +513,12 @@ class RyderApp {
     callback: (res: Response<Uint8Array>) => void
   ): Promise<void> {
     this.ryder_serial = new RyderSerial(payload.port, payload.options);
+    let wrapped_callback = (res) => {
+      // The `RyderSerial` must be closed before invoking the callback, or the latter might create a
+      // new `RyderSerial` and get a device busy error
+      this.ryder_serial?.close();
+      callback(res);
+    };
     new Promise<Uint8Array>((resolve, reject) => {
       if (!this.ryder_serial) {
         reject('Ryder Serial does not exist for some reason');
@@ -546,14 +572,13 @@ class RyderApp {
         return;
       });
     })
-      .then((res: Uint8Array) => callback({ data: res }))
+      .then((res: Uint8Array) => wrapped_callback({ data: res }))
       .catch(error =>
-        callback({
+        wrapped_callback({
           source: error,
           error: error,
         })
-      )
-      .finally(() => this.ryder_serial?.close());
+      );
   }
 
   async sign_transaction(
@@ -563,6 +588,12 @@ class RyderApp {
     callback: (res: Response<Uint8Array>) => void
   ): Promise<void> {
     this.ryder_serial = new RyderSerial(payload.port, payload.options);
+    let wrapped_callback = (res) => {
+      // The `RyderSerial` must be closed before invoking the callback, or the latter might create a
+      // new `RyderSerial` and get a device busy error
+      this.ryder_serial?.close();
+      callback(res);
+    };
     new Promise<Uint8Array>((resolve, reject) => {
       if (!this.ryder_serial) {
         reject('Ryder Serial does not exist for some reason');
@@ -618,16 +649,15 @@ class RyderApp {
     })
       .then((res: Uint8Array) => {
         console.log({ res });
-        //callback({ data: res })
+        //wrapped_callback({ data: res })
       })
       .catch(error => {
         console.log('tx-sign', error);
-        callback({
+        wrapped_callback({
           source: error,
           error: error,
         });
-      })
-      .finally(() => this.ryder_serial?.close());
+      });
   }
 
   async sign_structed_message(
@@ -638,6 +668,12 @@ class RyderApp {
     callback: (res: Response<Uint8Array>) => void
   ): Promise<void> {
     this.ryder_serial = new RyderSerial(serialSettings.port, serialSettings.options);
+    let wrapped_callback = (res) => {
+      // The `RyderSerial` must be closed before invoking the callback, or the latter might create a
+      // new `RyderSerial` and get a device busy error
+      this.ryder_serial?.close();
+      callback(res);
+    };
     new Promise<Uint8Array>((resolve, reject) => {
       if (!this.ryder_serial) {
         reject('Ryder Serial does not exist for some reason');
@@ -693,13 +729,12 @@ class RyderApp {
         return;
       });
     })
-      .then((res: Uint8Array) => callback({ data: res }))
+      .then((res: Uint8Array) => wrapped_callback({ data: res }))
       .catch(error =>
-        callback({
+        wrapped_callback({
           source: error,
           error: error,
         })
-      )
-      .finally(() => this.ryder_serial?.close());
+      );
   }
 }
