@@ -15,7 +15,7 @@ enum OutputKind {
  */
 export class OutputParser {
   /* A buffer to store the parsed output. */
-  private buffer: string;
+  private buffer: Array<number>;
   private kind?: OutputKind;
   /* Whether the output is completed (i.e., no more data is expected). */
   private completed: boolean;
@@ -24,7 +24,7 @@ export class OutputParser {
 
   /* Initializes an empty output parser, ready to receive data. */
   constructor() {
-    this.buffer = '';
+    this.buffer = new Array();
     this.completed = false;
     this.escape_next_byte = false;
   }
@@ -34,7 +34,7 @@ export class OutputParser {
    *
    * @param data The data to add to the output, interpreted as a byte array.
    */
-  add_data(data: string): string | undefined {
+  add_data(data: Uint8Array): Uint8Array | undefined {
     // TODO: unit tests
     if (this.completed) {
       throw new Error('`add_data` called on completed output');
@@ -48,7 +48,7 @@ export class OutputParser {
     // If this is the first data received, check whether it is single- or multi-byte output
     let is_first_byte = this.kind === undefined;
     if (is_first_byte) {
-      if (data.charCodeAt(0) === RESPONSE_OUTPUT) {
+      if (data[0] === RESPONSE_OUTPUT) {
         // This is the beginning of a multi-byte output
         this.kind = OutputKind.Multi;
       } else {
@@ -61,7 +61,7 @@ export class OutputParser {
     let extra_data = false;
 
     if (this.kind === OutputKind.Single) {
-      this.buffer += data[0];
+      this.buffer.push(data[0]);
       this.completed = true;
 
       // Detect if there is more data than expected
@@ -76,11 +76,11 @@ export class OutputParser {
           break;
         }
 
-        const byte = data.charCodeAt(i);
+        const byte = data[i];
 
         if (this.escape_next_byte) {
           // Escaped bytes are added as-is
-          this.buffer += String.fromCharCode(byte);
+          this.buffer.push(byte);
           this.escape_next_byte = false;
         } else if (byte === RESPONSE_ESC_SEQUENCE) {
           // Escape the next byte
@@ -92,7 +92,7 @@ export class OutputParser {
           this.completed = true;
         } else {
           // All other bytes are added as-is
-          this.buffer += String.fromCharCode(byte);
+          this.buffer.push(byte);
         }
 
         is_first_byte = false;
@@ -107,7 +107,7 @@ export class OutputParser {
 
     // Return the output if it is completed
     if (this.completed) {
-      return this.buffer;
+      return Uint8Array.from(this.buffer);
     }
   }
 

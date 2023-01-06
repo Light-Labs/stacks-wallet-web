@@ -256,7 +256,7 @@ export default class RyderSerial extends Events.EventEmitter {
       this.on_bridge_response(response);
     } else {
       // Binary responses come from the device
-      response.arrayBuffer().then((data: Uint8Array) => {
+      response.arrayBuffer().then((data) => {
         this.on_raw_device_response.bind(this)(data);
       });
     }
@@ -300,11 +300,10 @@ export default class RyderSerial extends Events.EventEmitter {
    * device responses from the fragments received and then passes them to `on_device_response` to be
    * handled.
    */
-  private on_raw_device_response(raw_data: Uint8Array) {
-    // Convert the data to a usable form
-    const data = Buffer.from(raw_data);
-    const data_string = data.toString('binary');
-    const data_hex = data.toString('hex');
+  private on_raw_device_response(raw_data: object) {
+    const buffer = Buffer.from(raw_data);
+    const data = Uint8Array.from(buffer);
+    const data_hex = buffer.toString('hex');
 
     // Data should only be received during reading states
     if (!(this.state === State.READING || this.state === State.WAITING_FOR_USER_CONFIRM)) {
@@ -322,7 +321,7 @@ export default class RyderSerial extends Events.EventEmitter {
     }
 
     // Add the received data to it
-    let completed_data = this.partial_device_output.add_data(data_string);
+    let completed_data = this.partial_device_output.add_data(data);
 
     // Check if the complete response is now available
     if (completed_data !== undefined) {
@@ -344,16 +343,16 @@ export default class RyderSerial extends Events.EventEmitter {
   /*
    * Handles completed responses that were reconstructed by `on_raw_device_response`.
    *
-   * @param response The complete response, interpreted as a byte array.
+   * @param response The complete response.
    * @param is_single_byte Whether `response` represents a single-byte response from the device.
    */
-  private on_device_response(response: string, is_single_byte: boolean) {
+  private on_device_response(response: Uint8Array, is_single_byte: boolean) {
     // The response to return to the corresponding command if one is available, which may be either
     // data or an error
     let result;
 
     if (is_single_byte === true) {
-      const byte = response.charCodeAt(0);
+      const byte = response[0];
       switch (byte) {
         // Simple responses that are just returned to the command
         case RESPONSE_OK:
@@ -398,7 +397,9 @@ export default class RyderSerial extends Events.EventEmitter {
       if (result instanceof Error) {
         reject(result);
       } else {
-        resolve(result);
+        // Convert the result to a string
+        let result_string = Buffer.from(result).toString('binary');
+        resolve(result_string);
       }
 
       // The command is now fully handled, so process the next one in the queue
