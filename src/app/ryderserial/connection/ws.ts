@@ -1,31 +1,52 @@
-import { Options } from '../ryder-serial';
-
+/*
+ * A WebSocket connection that provides hooks for various events from the connection.
+ */
 export class WSConnection {
   private open: boolean;
   private socket: WebSocket;
-  constructor(path: string, options?: Options) {
+
+  /*
+   * Opens a WebSocket connection.
+   *
+   * @param url The url of the listening server.
+   */
+  constructor(url: string) {
     this.open = false;
-    this.socket = new WebSocket(path);
+    this.socket = new WebSocket(url);
   }
 
+  /*
+   * Returns whether the connection is open.
+   */
   isOpen(): boolean {
     return this.open;
   }
 
-  write(
-    data: Buffer,
-    callback?: (error: Error | null | undefined, bytesWritten: number) => void
-  ): boolean {
+  /*
+   * Sends data through the connection.
+   */
+  write(data: Buffer) {
     this.socket.send(data);
-    return true;
+
+    if (!this.open) {
+      console.log('WSConnection.write called on a closed connection');
+    }
   }
 
+  /*
+   * Registers a callback to be called when a connection event occurs.
+   *
+   * @param event The kind of event to register the callback to. Can be one of `data`, `error`,
+   * `close`, or `open`.
+   * @param callback The function to call when the specified event occurs. If `event` is "data", the
+   * argument will be the data received on the connection. If `event` is "error", the argument will
+   * be the error received. Otherwise, it will be undefined.
+   */
   on(event: string, callback: (data?: any) => void): this {
     switch (event) {
       case 'data':
         this.socket.onmessage = messageEvent => {
-          console.log('new message from bridge', messageEvent.data);
-          messageEvent.data.arrayBuffer().then((d: Uint8Array) => callback(d));
+          callback(messageEvent.data);
         };
         break;
       case 'error':
@@ -53,6 +74,9 @@ export class WSConnection {
     return this;
   }
 
+  /*
+   * Closes the connection.
+   */
   close(): void {
     this.socket.close();
   }

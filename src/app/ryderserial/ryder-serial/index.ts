@@ -1,106 +1,97 @@
 import Events from 'events'; // https://nodejs.org/api/events.html#events_class_eventemitter
 import { LogLevel, Logger, make_logger, log_security_level } from '../logging';
-import Train, { Entry } from './sequencer';
 import { WSConnection } from '../connection/ws';
+import { CommandQueue, Command } from './queue';
+import { OutputParser } from './output_parser';
+import {
+  RESPONSE_OK,
+  RESPONSE_SEND_INPUT,
+  RESPONSE_REJECTED,
+  RESPONSE_OUTPUT,
+  RESPONSE_OUTPUT_END,
+  RESPONSE_ESC_SEQUENCE,
+  RESPONSE_WAIT_USER_CONFIRM,
+  RESPONSE_LOCKED,
+  response_errors,
+  BRIDGE_RESPONSE_WAIT_IN_QUEUE,
+  BRIDGE_RESPONSE_BEING_SERVED,
+  BRIDGE_RESPONSE_SHUTDOWN,
+  BRIDGE_RESPONSE_DEVICE_NOT_CONNECTED,
+  BRIDGE_RESPONSE_DEVICE_DISCONNECTED,
+} from './responses';
 
-// responses
-const RESPONSE_OK = 1; // generic command ok/received
-const RESPONSE_SEND_INPUT = 2; // command received, send input
-const RESPONSE_REJECTED = 3; // user input rejected
-const RESPONSE_OUTPUT = 4; // sending output
-const RESPONSE_OUTPUT_END = 5; // end of output
-const RESPONSE_ESC_SEQUENCE = 6; // output esc sequence
-const RESPONSE_WAIT_USER_CONFIRM = 10; // user has to confirm action
-const RESPONSE_LOCKED = 11; // device is locked, send PIN
-
-// error responses
-const response_errors: Record<number, string> = {
-  255: 'RESPONSE_ERROR_UNKNOWN_COMMAND',
-  254: 'RESPONSE_ERROR_NOT_INITIALIZED',
-  253: 'RESPONSE_ERROR_MEMORY_ERROR',
-  252: 'RESPONSE_ERROR_APP_DOMAIN_TOO_LONG',
-  251: 'RESPONSE_ERROR_APP_DOMAIN_INVALID',
-  250: 'RESPONSE_ERROR_MNEMONIC_TOO_LONG',
-  249: 'RESPONSE_ERROR_MNEMONIC_INVALID',
-  248: 'RESPONSE_ERROR_GENERATE_MNEMONIC',
-  247: 'RESPONSE_ERROR_INPUT_TIMEOUT',
-  246: 'RESPONSE_ERROR_NOT_IMPLEMENTED',
-  245: 'RESPONSE_ERROR_INPUT_TOO_LONG',
-  // 244
-  243: 'RESPONSE_ERROR_DEPRECATED',
-};
-
+/* The current state of the Ryder device client. */
 const enum State {
+  /* The connection to the Ryder device is closed, but may be reopened. */
+  CLOSED,
+  /*
+   * The connection was just opened, and the client is now waiting for the bridge to indicate its
+   * state with its initial response (either available or busy).
+   */
+  WAITING_FOR_BRIDGE_STATE_RESPONSE,
+  /* The client is waiting to be given a command to send. */
   IDLE,
+  /* The client is sending a command. */
   SENDING,
+  /* The client is waiting for a command's response. */
   READING,
+  /* The client is waiting for the user to interact with a confirmation dialog on the device. */
   WAITING_FOR_USER_CONFIRM,
+  /*
+   * Like `CLOSED`, but the connection will never be reopened. No further state changes should
+   * occur once this state is reached.
+   */
+  CLOSED_PERMANENTLY,
 }
 
-const state_symbol = Symbol('state');
-const lock_symbol = Symbol('ready');
-const reconnect_symbol = Symbol('reconnect');
-
+/* The global, unique identifier for `RyderSerial` objects. */
 let id = 0;
 
+/* Configuration option for a `RyderSerial` object. */
 export interface Options {
-  baudRate?:
-    | 115200
-    | 57600
-    | 38400
-    | 19200
-    | 9600
-    | 4800
-    | 2400
-    | 1800
-    | 1200
-    | 600
-    | 300
-    | 200
-    | 150
-    | 134
-    | 110
-    | 75
-    | 50
-    | number;
-  lock?: boolean;
+  /* An optional log level. `LogLevel.SILENT` will be used if none is provided. */
   log_level?: LogLevel;
+  /* An optional logger. A new one will be created if none is provided. */
   logger?: Logger;
-  /**
-   * @deprecated  as of **v0.0.2** please use `reject_on_locked` instead
+  /*
+   * How long to wait between each attempt to reconnect to the device when not connected, in
+   * milliseconds.
    */
-  rejectOnLocked?: boolean;
-  reject_on_locked?: boolean;
-  /**
-   * @deprecated  as of **v0.0.2** please use `reconnect_time` instead
-   */
-  reconnectTime?: number;
-  reconnect_time?: number;
-  debug?: boolean;
+  reconnect_interval_ms?: number;
 }
 
+/* A client that provides an interface to interact with a Ryder device. Generally, only a single
+ * open instance should exist at once, or all after the first will be disconnected because the
+ * device is busy (though they may later reconnect when the device becomes available).
+ */
 export default class RyderSerial extends Events.EventEmitter {
-  #log_level: LogLevel;
-  #logger: Logger;
+  private log_level: LogLevel;
+  private logger: Logger;
 
-  /** the id of the `RyderSerial` instance */
-  id: number;
-  /** the port at which the Ryder device (or simulator) is connected */
-  port: string;
-  /** optional specifications for `RyderSerial`'s behavior (especially regarding connection)  */
+  /* The id of the `RyderSerial` instance. */
+  readonly id: number;
+  /* The URL of the Ryder bridge. */
+  bridge_url: string;
+  /* Configuration of the `RyderSerial`'s behavior. */
   options: Options;
-  /** true if `RyderSerial` is in the process of closing */
-  closing: boolean;
-  /** instantiated on successful connection; sticks around while connection is active */
-  connection?: WSConnection;
-  /** sequencer implementation to manage process sequencing */
-  #train: Train;
-  /** current state of the RyderSerial -- either `IDLE`, `SENDING`, `READING` */
-  [state_symbol]: State;
-  /** array of resolve functions representing locks; locks are released when resolved */
-  [lock_symbol]: Array<(value?: unknown) => void>;
-  /** timeout that will invoke `this.open()` if we ever go over `this.options.reconnectTimeout` */
-  [reconnect_symbol]: NodeJS.Timeout;
+  /* The connection to the Ryder bridge, or undefined if the connection is currently closed. */
+  private connection?: WSConnection;
+  /* The queue for commands and data to be sent to the Ryder device. */
+  private queue: CommandQueue;
+  /* The current state of the `RyderSerial`. */
+  private state: State;
+  /*
+   * A parser to parse and combine partial responses from the Ryder device before they are
+   * returned to `RyderSerial` callers in completed form.
+   */
+  private partial_device_output?: OutputParser;
+  // TODO: implement a lock for the RyderSerial
+  // [lock_symbol]: Array<(value?: unknown) => void>;
+  /*
+   * A timer that attempts to reconnect to the Ryder bridge after the reconnection interval if the
+   * connection is ever closed.
+   */
+  private reconnect_timer?: NodeJS.Timeout;
 
   // command constants
   // lifecycle commands
@@ -140,359 +131,345 @@ export default class RyderSerial extends Events.EventEmitter {
   static readonly RESPONSE_REJECTED = RESPONSE_REJECTED;
   static readonly RESPONSE_LOCKED = RESPONSE_LOCKED;
 
-  /**
-   * Construct a new instance of RyderSerial and try to open connection at given port
-   * @param port The port at which Ryder device (or simulator) is connected
-   * @param options Optional specifications to customize RyderSerial behavior — especially regarding connection
+  /*
+   * Constructs a the new instance of `RyderSerial` and tries to open a connection to the Ryder
+   * bridge at the given URL.
+   *
+   * @param bridge_url The URL of the Ryder bridge.
+   * @param options Optional configuration of the `RyderSerial`'s behavior.
    */
-  constructor(port: string, options?: Options) {
+  constructor(bridge_url: string, options?: Options) {
     super();
-    this.#log_level = options?.log_level ?? LogLevel.SILENT;
-    this.#logger = options?.logger ?? make_logger(this.constructor.name);
+    this.log_level = options?.log_level ?? LogLevel.SILENT;
+    this.logger = options?.logger ?? make_logger(this.constructor.name);
     this.id = id++;
-    this.port = port;
+    this.bridge_url = bridge_url;
     this.options = options || {};
-    if (this.options.debug && !this.options.log_level) {
-      this.#log_level = LogLevel.DEBUG;
-    }
-    // to support now-deprecated `options.reconnectTime`
-    if (!this.options.reconnect_time && this.options.reconnectTime) {
-      this.options.reconnect_time = this.options.reconnectTime;
-    }
-    // to support now-deprecated `options.rejectOnLocked`
-    if (!this.options.reject_on_locked && this.options.rejectOnLocked) {
-      this.options.reject_on_locked = this.options.rejectOnLocked;
-    }
-    this.#train = new Train();
-    this[state_symbol] = State.IDLE;
-    this[lock_symbol] = [];
-    this.closing = false;
-    this.open();
+    this.queue = new CommandQueue();
+    this.set_state(State.CLOSED);
+    this.connect_to_bridge();
   }
 
+  /* Logs a message and an optional record to the logger at the given log level. */
   private log(level: LogLevel, message: string, extra?: Record<string, unknown>): void {
-    const instance_log_level = log_security_level(this.#log_level);
+    const instance_log_level = log_security_level(this.log_level);
     if (instance_log_level > 0 && log_security_level(level) >= instance_log_level) {
-      this.#logger(level, message, extra);
+      this.logger(level, message, extra);
     }
   }
 
-  private serial_error(error: Error): void {
-    this.emit('error', error);
-    if (!this.#train.is_empty()) {
-      const { reject } = this.#train.pop_tail();
-      reject(error);
-    }
-    this[state_symbol] = State.IDLE;
-    this.next();
+  private set_state(state: State) {
+    this.log(LogLevel.DEBUG, `Changing state to ${State[state]} (instance id ${this.id})`);
+    this.state = state;
   }
 
-  private async serial_data(dataArray: Uint8Array): Promise<void> {
-    const data = Buffer.from(dataArray);
-    this.log(LogLevel.DEBUG, 'data from Ryder', {
-      data: '0x' + Buffer.from(data).toString('hex'),
-      i: data[0],
-    });
-    if (this[state_symbol] === State.IDLE) {
-      this.log(LogLevel.WARN, 'Got data from Ryder without asking, discarding.');
-    } else {
-      if (this.#train.is_empty()) {
-        return;
-      }
-      const { resolve, reject } = this.#train.peek_front();
-      let offset = 0;
-      if (this[state_symbol] === State.WAITING_FOR_USER_CONFIRM) {
-        // user has confirmed, now continue with reading the data for the last command
-        this[state_symbol] = State.READING;
-      }
-      if (this[state_symbol] === State.SENDING) {
-        this.log(LogLevel.DEBUG, `-> SENDING... ryderserial is trying to send data ${data[0]}`);
-        if (data[0] === RESPONSE_LOCKED) {
-          this.log(
-            LogLevel.WARN,
-            '!! WARNING: RESPONSE_LOCKED -- RYDER DEVICE IS NEVER SUPPOSED TO EMIT THIS EVENT'
-          );
-          if (this.options.reject_on_locked) {
-            const error = new Error('ERROR_LOCKED');
-            this.#train.reject_all_remaining(error);
-            this[state_symbol] = State.IDLE;
-            this.emit('locked');
-            return;
-          } else {
-            this.emit('locked');
-          }
-        }
-        if (
-          data[0] === RESPONSE_OK ||
-          data[0] === RESPONSE_SEND_INPUT ||
-          data[0] === RESPONSE_REJECTED
-        ) {
-          this.log(
-            LogLevel.DEBUG,
-            '---> (while sending): RESPONSE_OK or RESPONSE_SEND_INPUT or RESPONSE_REJECTED'
-          );
-          this.#train.pop_front();
-          resolve(data[0]);
-          if (data.length > 1) {
-            this.log(LogLevel.DEBUG, 'ryderserial more in buffer');
-            return this.serial_data.bind(this)(data.slice(1)); // more responses in the buffer
-          }
-          this[state_symbol] = State.IDLE;
-          this.next();
-          return;
-        } else if (data[0] === RESPONSE_OUTPUT) {
-          this.log(
-            LogLevel.DEBUG,
-            '---> (while sending): RESPONSE_OUTPUT... ryderserial is ready to read'
-          );
-          this[state_symbol] = State.READING;
-          ++offset;
-        } else if (data[0] === RESPONSE_WAIT_USER_CONFIRM) {
-          // wait for user to confirm
-          this.emit('wait_user_confirm');
-          this.log(LogLevel.DEBUG, 'waiting for user confirm on device');
-          if (data.length > 1) {
-            this.log(LogLevel.DEBUG, 'ryderserial more in buffer');
-            return this.serial_data.bind(this)(data.slice(1)); // more responses in the buffer
-          }
-          this[state_symbol] = State.WAITING_FOR_USER_CONFIRM;
-          ++offset;
-          do {
-            await new Promise(r => setTimeout(r, 5000));
-            this.send_empty_message();
-          } while (this[state_symbol] === State.WAITING_FOR_USER_CONFIRM);
-          return;
-        } else {
-          // error
-          const error = new Error(
-            data[0] in response_errors
-              ? response_errors[data[0]] // known error
-              : 'ERROR_UNKNOWN_RESPONSE' + data[0] // unknown error
-          );
-          this.log(LogLevel.ERROR, '---> (while sending): ryderserial ran into an error', {
-            error,
-          });
-          reject(error);
-          this.#train.pop_front();
-          this[state_symbol] = State.IDLE;
-          if (data.length > 1) {
-            this.log(LogLevel.DEBUG, 'ryderserial more in buffer');
-            return this.serial_data.bind(this)(data.slice(1)); // more responses in the buffer
-          }
-          this.next();
-          return;
-        }
-      }
-      if (
-        this[state_symbol] === State.READING ||
-        this[state_symbol] === State.WAITING_FOR_USER_CONFIRM
-      ) {
-        this.log(
-          LogLevel.INFO,
-          '---> (during response_output): READING... ryderserial is trying to read data'
-        );
-        for (let i = offset; i < data.byteLength; ++i) {
-          const b = data[i];
-          // if previous was not escape byte
-          if (!this.#train.peek_front().is_prev_escaped_byte) {
-            if (b === RESPONSE_ESC_SEQUENCE) {
-              // escape previous byte
-              this.#train.peek_front().is_prev_escaped_byte = true;
-              continue; // skip this byte
-            } else if (b === RESPONSE_OUTPUT_END) {
-              this.#log_level == LogLevel.DEBUG &&
-                this.log(LogLevel.DEBUG, '---> READING SUCCESS resolving output buffer', {
-                  output_buffer: Buffer.from(
-                    this.#train.peek_front().output_buffer,
-                    'binary'
-                  ).toString('hex'),
-                });
-              // resolve output buffer
-              resolve(this.#train.pop_front().output_buffer);
-              this[state_symbol] = State.IDLE;
-              this.next();
-              return;
-            }
-          }
-          // else, previous was escape byte
-          this.#train.peek_front().is_prev_escaped_byte = false;
-          this.#train.peek_front().output_buffer += String.fromCharCode(b);
-        }
-      }
-    }
-  }
-
-  private send_empty_message() {
-    try {
-      if (this.connection) {
-        this.connection.write(Buffer.from([]));
-        this.log(LogLevel.DEBUG, `sent empty message`);
-      } else {
-        this.log(LogLevel.ERROR, `no connection`);
-        this.serial_error(new Error('no connection'));
-      }
-    } catch (error) {
-      this.log(LogLevel.ERROR, `encountered error while sending data: ${error}`);
-      this.serial_error(error as Error);
+  /*
+   * Attempts to (re)open a new connection to the Ryder bridge. This is called once automatically
+   * when the `RyderSerial` is first constructed, and repeatedly while the connection is closed.
+   *
+   * Does nothing if the connection is already open or if the `RyderSerial` is permanently closed.
+   */
+  private connect_to_bridge(): void {
+    if (this.connection?.isOpen || this.state === State.CLOSED_PERMANENTLY) {
       return;
     }
-  }
 
-  /**
-   * Attempts to (re)open a new connection to serial port and initialize Event listeners.
-   *
-   * NOTE that a connection is opened automatically when a `RyderSerial` object is constructed.
-   *
-   * @param port The port to connect to. If omitted, fallback to `this.port`
-   * @param options Specific options to drive behavior. If omitted, fallback to `this.options` or `DEFAULT_OPTIONS`
-   */
-  public open(port?: string, options?: Options): void {
-    this.log(LogLevel.DEBUG, `ryderserial attempt open ${this.connection?.isOpen()}`);
-    this.closing = false;
+    this.log(LogLevel.DEBUG, `Connecting to the bridge (instance id ${this.id})`);
 
-    // if connection is already open
-    if (this.connection?.isOpen) {
-      // TODO: what if client code is intentionally trying to open connection to a new port for some reason? Or passed in new options?
-      return; // return out, we don't need to open a new connection
-    }
-    // if connection is defined, but it's actively closed
-    if (this.connection) {
-      // close RyderSerial b/c client is trying to open a new connection.
-      // `this.close()` will clear all interval timeouts, set destroy `this.serial`, reject all pending processes, and unlock all locks.
-      this.close();
-    }
-    this.port = port || this.port;
-    this.options = options || this.options || {};
-    if (!this.options.baudRate) {
-      this.options.baudRate = 115_200;
-    }
-    if (!this.options.lock) {
-      this.options.lock = true;
-    }
-    if (!this.options.reconnect_time) {
-      this.options.reconnect_time = 2_000;
-    }
-    this.connection = new WSConnection(this.port, this.options);
+    // Open the connection
+    this.connection = new WSConnection(this.bridge_url);
 
+    // Register event listeners
+    this.connection.on('open', () => {
+      this.on_open.bind(this)();
+    });
     this.connection.on('data', (data: any) => {
-      this.log(LogLevel.DEBUG, "this.serial ran into 'data' event");
-      this.serial_data.bind(this)(data);
+      this.on_response.bind(this)(data);
     });
     this.connection.on('error', (error: any) => {
-      this.log(LogLevel.WARN, `\`this.serial\` encountered an error: ${error}`);
-      if (this.connection && !this.connection.isOpen) {
-        clearInterval(this[reconnect_symbol]);
-        this[reconnect_symbol] = setInterval(this.open.bind(this), this.options.reconnect_time);
-        this.emit('failed', error);
-      }
-      this.serial_error.bind(this);
+      this.on_error.bind(this)(error);
     });
     this.connection.on('close', () => {
-      this.log(LogLevel.DEBUG, 'ryderserial close');
-      this.emit('close');
-      clearInterval(this[reconnect_symbol]);
-      if (!this.closing) {
-        this[reconnect_symbol] = setInterval(this.open.bind(this), this.options.reconnect_time);
+      this.on_close.bind(this)();
+    });
+  }
+
+  /*
+   * Schedules repeated attempts to reconnect to the bridge, separated by a delay of
+   * `this.options.reconnect_interval_ms`.
+   */
+  private set_reconnect_interval() {
+    let delay = this.options.reconnect_time || 1000;
+    this.log(LogLevel.DEBUG, `Retrying connection in ${delay} ms`);
+    // Clear the previous timer
+    clearInterval(this.reconnect_timer);
+    // Create a new one
+    this.reconnect_timer = setInterval(
+      this.connect_to_bridge.bind(this),
+      delay,
+    );
+  }
+
+  /*
+   * Handles the WebSocket connection opening successfully. Note that this does not mean that the
+   * `RyderSerial` is ready for use, because the bridge may later indicate that another client
+   * already has control of the device.
+   */
+  private on_open() {
+    this.log(LogLevel.DEBUG, 'WS connection opened');
+    this.set_state(State.WAITING_FOR_BRIDGE_STATE_RESPONSE);
+    // Remove any reconnection timer because the connection is now open
+    clearInterval(this.reconnect_timer);
+  }
+
+  /* Handles errors encountered while interacting with the Ryder bridge or device. */
+  private on_error(error: Error) {
+    // Note that `on_close` will be called on error as well
+    this.log(LogLevel.ERROR, `Error in Ryder bridge or device connection: ${error}`);
+    // This causes an uncaught error, but 'failed' seems to be caught correctly
+    // this.emit('error', error);
+    this.emit('failed', error);
+    // Clear the command queue
+    this.queue.cancel_all();
+    // Close the bridge connection if it isn't already closed
+    this.close_connection();
+    // Retry the connection after a delay
+    this.set_reconnect_interval();
+  }
+
+  /* Handles the connection closing for any reason. */
+  private on_close() {
+    this.log(LogLevel.DEBUG, 'WS connection closed');
+    // Only update the state if the `RyderSerial` is not permanently closed
+    if (this.state !== State.CLOSED_PERMANENTLY) {
+      this.set_state(State.CLOSED);
+    }
+    this.emit('close');
+    // Clear the command queue
+    this.queue.cancel_all();
+  }
+
+  /* Handles responses received from the Ryder bridge and device. */
+  private on_response(response: string | object) {
+    if (typeof response === 'string') {
+      // String responses come from the bridge and are handled separately
+      this.on_bridge_response(response);
+    } else {
+      // Binary responses come from the device
+      response.arrayBuffer().then((data) => {
+        this.on_raw_device_response.bind(this)(data);
+      });
+    }
+  }
+
+  /* Handles a response from the bridge itself. */
+  private on_bridge_response(response: string) {
+    switch (response) {
+      case BRIDGE_RESPONSE_WAIT_IN_QUEUE:
+        // It is possible to wait here as well, but this could lead to deadlock situations if the
+        // user isn't careful
+        this.on_error(new Error('ERROR_DEVICE_BUSY'));
+        break;
+      case BRIDGE_RESPONSE_BEING_SERVED:
+        // The Ryder device is now available through the bridge, so notify the caller and update the
+        // state accordingly
+        this.log(LogLevel.DEBUG, 'Ryder device now available');
+        this.set_state(State.IDLE);
+        this.emit('open');
+        break;
+      case BRIDGE_RESPONSE_SHUTDOWN:
+        // The bridge is shutting down
+        this.on_error(new Error('ERROR_BRIDGE_SHUTDOWN'));
+        break;
+      case BRIDGE_RESPONSE_DEVICE_NOT_CONNECTED:
+        // The bridge is not connected to the device (only returned when first connecting)
+        this.on_error(new Error('ERROR_DEVICE_NOT_CONNECTED'));
+        break;
+      case BRIDGE_RESPONSE_DEVICE_DISCONNECTED:
+        // The bridge lost its connection to the device
+        this.on_error(new Error('ERROR_DEVICE_DISCONNECTED'));
+        break;
+      default:
+        this.log(LogLevel.WARN, 'Received unknown bridge response', { response });
+        break;
+    }
+  }
+
+  /*
+   * Handles raw data received from the Ryder device. This function only reconstructs complete
+   * device responses from the fragments received and then passes them to `on_device_response` to be
+   * handled.
+   */
+  private on_raw_device_response(raw_data: object) {
+    const buffer = Buffer.from(raw_data);
+    const data = Uint8Array.from(buffer);
+    const data_hex = buffer.toString('hex');
+
+    // Data should only be received during reading states
+    if (!(this.state === State.READING || this.state === State.WAITING_FOR_USER_CONFIRM)) {
+      throw new Error(`received device response unexpectedly: 0x${data_hex}`);
+    }
+
+    this.log(LogLevel.DEBUG, 'Data from Ryder', {
+      data: '0x' + data_hex,
+      i: data[0],
+    });
+
+    // Initialize a parser to handle the response if none exists
+    if (this.partial_device_output === undefined) {
+      this.partial_device_output = new OutputParser();
+    }
+
+    // Add the received data to it
+    let completed_data = this.partial_device_output.add_data(data);
+
+    // Check if the complete response is now available
+    if (completed_data !== undefined) {
+      const is_single_byte = this.partial_device_output.is_single_byte();
+
+      // Delete this parser to prepare for the next response
+      delete this.partial_device_output;
+
+      this.log(LogLevel.DEBUG, 'Completed response from Ryder', {
+        data: '0x' + Buffer.from(completed_data, 'binary').toString('hex'),
+        is_single_byte,
+      });
+
+      // Handle the completed response
+      this.on_device_response(completed_data, is_single_byte);
+    }
+  }
+
+  /*
+   * Handles completed responses that were reconstructed by `on_raw_device_response`.
+   *
+   * @param response The complete response.
+   * @param is_single_byte Whether `response` represents a single-byte response from the device.
+   */
+  private on_device_response(response: Uint8Array, is_single_byte: boolean) {
+    // The response to return to the corresponding command if one is available, which may be either
+    // data or an error
+    let result;
+
+    if (is_single_byte === true) {
+      const byte = response[0];
+      switch (byte) {
+        // Simple responses that are just returned to the command
+        case RESPONSE_OK:
+        case RESPONSE_SEND_INPUT:
+        case RESPONSE_REJECTED:
+          result = response;
+          break;
+        // Special responses that are not returned to the command
+        case RESPONSE_WAIT_USER_CONFIRM:
+          // Update the state and notify the caller, but continue waiting for the followup response
+          this.set_state(State.WAITING_FOR_USER_CONFIRM);
+          this.emit('wait_user_confirm');
+          break;
+        case RESPONSE_LOCKED:
+          // The device should never be locked, so this response is an error
+          this.log(
+            LogLevel.ERROR,
+            'RESPONSE_LOCKED -- RYDER DEVICE IS NEVER SUPPOSED TO EMIT THIS EVENT'
+          );
+          this.emit('locked');
+          this.on_error(new Error('ERROR_LOCKED'));
+          break;
+        default:
+          if (byte in response_errors) {
+            // Error responses
+            result = new Error(response_errors[byte]);
+          } else {
+            // Unknown responses
+            result = new Error('ERROR_UNKNOWN_RESPONSE_' + byte);
+          }
+          break;
       }
-    });
-    this.connection.on('open', () => {
-      this.log(LogLevel.DEBUG, 'ryderserial open');
-      clearInterval(this[reconnect_symbol]);
-      this.emit('open');
-      this.next();
-    });
-  }
-
-  /**
-   * Close down `this.connection` connection and reset `RyderSerial`
-   *
-   * All tasks include:
-   * - clear watchdog timeout,
-   * - reject pending processes,
-   * - release all locks.
-   * - close connection,
-   * - clear reconnect interval
-   * - destroy `this.serial`
-   */
-  public close(): void {
-    if (this.closing) {
-      return;
+    } else if (is_single_byte === false) {
+      // Multi-byte data is not special, so it is just returned
+      result = response;
     }
-    this.closing = true;
-    this.clear(); // clears watchdog timeout, rejects all pending processes, and releases all locks.
-    this.connection?.close(); // close connection if it exists
-    clearInterval(this[reconnect_symbol]); // clear reconnect interval
-    delete this.connection; // destroy connection
-  }
 
-  /**
-   * @returns `true` if RyderSerial is currently locked; `false` otherwise
-   */
-  public locked(): boolean {
-    return !!this[lock_symbol].length;
-  }
+    // If a response to the command is available, return it and remove the command from the queue
+    if (result !== undefined) {
+      let { resolve, reject } = this.queue.remove();
 
-  /**
-   * Requests a lock to be placed so that commands can be sent in sequence.
-   *
-   * @returns a `Promise` that resolves when the lock is released.
-   */
-  public lock(): Promise<void> {
-    this.log(LogLevel.DEBUG, '\tLOCK... ryderserial lock');
-    this[lock_symbol].push(Promise.resolve);
-    return Promise.resolve();
-  }
+      if (result instanceof Error) {
+        reject(result);
+      } else {
+        // Convert the result to a string
+        let result_string = Buffer.from(result).toString('binary');
+        resolve(result_string);
+      }
 
-  /**
-   * Releases the last lock that was requested.
-   *
-   * Be sure to call this after calling `lock()`, otherwise the serial connection may be blocked until your
-   * app exits or the Ryder disconnects.
-   */
-  public unlock(): void {
-    if (this[lock_symbol].length) {
-      this.log(LogLevel.DEBUG, 'ryderserial unlock');
-      const resolve = this[lock_symbol].shift();
-      resolve && resolve();
+      // The command is now fully handled, so process the next one in the queue
+      this.set_state(State.IDLE);
+      this.process_next_command();
     }
   }
 
-  /**
-   * A utility function that requests a lock and executes the callback once the lock has been granted.
-   *
-   * Once the callback resolves, it will then release the lock.
-   *
-   * Useful to chain commands whilst making your application less error-prone (forgetting to call `unlock()`).
-   *
-   * @returns a `Promise` that resolves to whatever the given `callback` returns.
+  /*
+   * Sends the next command in the queue to the Ryder device if the queue is not empty.
    */
-  public sequence<T>(callback: () => T): Promise<T> {
-    if (typeof callback !== 'function' || callback.constructor.name !== 'AsyncFunction') {
-      return Promise.reject(new Error('ERROR_SEQUENCE_NOT_ASYNC'));
+  private process_next_command(): void {
+    if (this.state !== State.IDLE) {
+      throw new Error('`process_next_command` called when not waiting for commands');
     }
-    return this.lock().then(callback).finally(this.unlock.bind(this));
+
+    if (!this.connection?.isOpen) {
+      throw new Error('`process_next_command` called while the connection is closed');
+    }
+
+    if (!this.queue.is_empty()) {
+      // Get the next command in the queue
+      const { data, reject } = this.queue.peek();
+
+      this.log(
+        LogLevel.DEBUG,
+        `Sending data to Ryder: ${data.byteLength} byte(s)`,
+        {
+          bytes: data.toString('hex'),
+        }
+      );
+
+      try {
+        this.set_state(State.SENDING);
+        this.connection.write(data);
+        this.set_state(State.READING);
+      } catch (error) {
+        this.log(LogLevel.ERROR, `Encountered error while sending data: ${error}`);
+        this.on_error(error as Error);
+      }
+    }
   }
 
-  /**
-   * Send a command and/or data to the Ryder device.
-   * The command will be queued and executed once preceding commands have completed.
+  /*
+   * Sends a command and/or data to the Ryder device. The command will be placed in a queue and
+   * executed once all preceding commands have completed.
    *
-   * Data can be passed in as a number (as byte), string
-   * Set `prepend` to `true` to put the data on the top of the queue.
+   * `data` can be either:
+   * - A single byte (a number)
+   * - An array of bytes
+   * - A string (which will be interpreted as an array of bytes)
    *
-   * @param data A command or data to send to the Ryder device
-   * @param prepend Set to `true` to put data on top of the queue.
-   * @returns A `Promise` that resolves with response from the Ryder device (includes waiting for a possible user confirm). The returned data may be a single byte (see static members of this class) and/or resulting data, like an identity or app key.
+   * If `priority` is true, the command will be executed immediately after the current one
+   * finishes, or immediately if the queue is empty.
+   *
+   * @param data The command or data to send
+   * @param priority Whether to execute this command as soon as possible
+   * @returns A `Promise` that resolves with the Ryder device's response to the command, or an error
+   * if the device returned an error response or if the command was canceled for any reason
    */
   public send(
     data: string | number | number[] | Uint8Array | Buffer,
-    prepend?: boolean
-  ): Promise<string | number> {
-    // if `this.serial` is `undefined` or NOT open, then we do not have a connection
-    if (!this.connection?.isOpen) {
-      // reject because we do not have a connection
-      return Promise.reject(new Error('ERROR_DISCONNECTED'));
+    priority?: boolean,
+  ): Promise<string> {
+    // Check that the `RyderSerial` is ready to send commands
+    if (this.state !== State.IDLE) {
+      throw new Error('`send` called while not in idle state');
     }
+
+    // Convert `data` to the correct type
     let buff: Buffer;
     if (typeof data === 'string') {
       buff = Buffer.from(data, 'binary');
@@ -503,76 +480,57 @@ export default class RyderSerial extends Events.EventEmitter {
       buff = Buffer.from(data);
     }
 
-    this.#log_level == LogLevel.DEBUG &&
-      this.log(LogLevel.DEBUG, 'queue data for Ryder: ' + buff.length + ' byte(s)', {
-        bytes: buff.toString('hex'),
-        data,
-      });
+    this.log(LogLevel.DEBUG, `Adding command to queue: ${buff.length} byte(s)`, {
+      bytes: buff.toString('hex'),
+      data,
+    });
+
     return new Promise((resolve, reject) => {
-      const c: Entry = {
+      const c: Command = {
         data: buff,
         resolve,
         reject,
-        is_prev_escaped_byte: false,
-        output_buffer: '',
       };
-      prepend ? this.#train.push_front(c) : this.#train.push_tail(c);
-      this.next();
+
+      // Add the command to the queue
+      let is_first_command = this.queue.is_empty();
+      if (priority) {
+        this.queue.add_priority(c);
+      } else {
+        this.queue.add(c)
+      }
+
+      // Process it immediately if it is the first in the queue
+      if (is_first_command) {
+        this.process_next_command();
+      }
     });
   }
 
-  /**
-   * Moves on to the next command in the queue.
-   *
-   * This method should ordinarily **not** be called directly.
-   * The library takes care of queueing and will call `next()` at the right time.
+  /*
+   * Closes the bridge connection without scheduling a reconnection attempt.
    */
-  private next(): void {
-    if (this[state_symbol] === State.IDLE && !this.#train.is_empty()) {
-      this.log(LogLevel.INFO, '-> NEXT... ryderserial is moving to next task');
-      if (!this.connection?.isOpen) {
-        // `this.serial` is undefined or not open
-        this.log(LogLevel.ERROR, 'ryderserial connection to port has shut down');
-        const { reject } = this.#train.peek_front();
-        this.clear();
-        reject(new Error('ERROR_DISCONNECTED'));
-        return;
-      }
-      this[state_symbol] = State.SENDING;
-      this.#log_level == LogLevel.DEBUG &&
-        this.log(
-          LogLevel.DEBUG,
-          'send data to Ryder: ' + this.#train.peek_front().data.byteLength + ' byte(s)',
-          {
-            bytes: this.#train.peek_front().data.toString('hex'),
-          }
-        );
-      try {
-        this.connection.write(this.#train.peek_front().data);
-      } catch (error) {
-        this.log(LogLevel.ERROR, `encountered error while sending data: ${error}`);
-        this.serial_error(error as Error);
-        return;
-      }
-    } else {
-      this.log(LogLevel.INFO, '-> IDLE... ryderserial is waiting for next task.');
-    }
+  private close_connection(): void {
+    this.connection?.close();
+    delete this.connection;
   }
 
-  /**
-   * Reset `RyderSerial` processes and locks.
-   *
-   * All tasks include:
-   * - clear watchdog timeout
-   * - reject all pending processes
-   * - set state to `IDLE`
-   * - release all locks
+  /*
+   * Closes the `RyderSerial` and its connection to the bridge permanently. To reopen the
+   * connection, a new `RyderSerial` must be created.
    */
-  public clear(): void {
-    this.#train.reject_all_remaining();
-    this[state_symbol] = State.IDLE;
-    for (let i = 0; i < this[lock_symbol].length; ++i)
-      this[lock_symbol][i] && this[lock_symbol][i](); // release all locks
-    this[lock_symbol] = [];
+  public close(): void {
+    if (this.state === State.CLOSED_PERMANENTLY) {
+      return;
+    }
+
+    this.set_state(State.CLOSED_PERMANENTLY);
+    // Cancel reconnection attempts
+    clearInterval(this.reconnect_timer);
+    // Close the bridge connection
+    this.close_connection();
+    // Cancel pending commands
+    this.queue.cancel_all();
   }
 }
+
