@@ -135,7 +135,7 @@ export default class RyderSerial extends Events.EventEmitter {
    * Constructs a the new instance of `RyderSerial` and tries to open a connection to the Ryder
    * bridge at the given URL.
    *
-   * @param url The URL of the Ryder bridge.
+   * @param bridge_url The URL of the Ryder bridge.
    * @param options Optional configuration of the `RyderSerial`'s behavior.
    */
   constructor(bridge_url: string, options?: Options) {
@@ -250,7 +250,7 @@ export default class RyderSerial extends Events.EventEmitter {
   }
 
   /* Handles responses received from the Ryder bridge and device. */
-  private on_response(response: any) {
+  private on_response(response: string | object) {
     if (typeof response === 'string') {
       // String responses come from the bridge and are handled separately
       this.on_bridge_response(response);
